@@ -1,0 +1,16 @@
+# Root ignore for workspace-level artifacts
+.DS_Store
+Thumbs.db
+
+# Backend project artifacts
+backend/node_modules/
+backend/logs/
+backend/*.log
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+backend/pnpm-debug.log*
+backend/.env
+backend/.env.*
+backend/uploads/*
+!backend/uploads/.gitkeep
