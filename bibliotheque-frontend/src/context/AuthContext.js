@@ -17,13 +17,20 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
-    const res = await authAPI.login({ email, mot_de_passe: password });
-    const { token, user: userData } = res.data;
+  const setSession = (token, userData) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
     return userData;
+  };
+
+  const login = async (email, password) => {
+    const res = await authAPI.login({ email, mot_de_passe: password });
+    const { token, user: userData, requireOtp } = res.data;
+    if (requireOtp) {
+      return { requireOtp: true, email: res.data.email || email };
+    }
+    return setSession(token, userData);
   };
 
   const logout = () => {
@@ -32,7 +39,15 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const value = { user, login, logout, loading, isAuthenticated: !!user };
+  const updateUserData = (nextUser) => {
+    setUser(prev => {
+      const merged = { ...(prev || {}), ...(nextUser || {}) };
+      try { localStorage.setItem('user', JSON.stringify(merged)); } catch (_e) { /* ignore */ }
+      return merged;
+    });
+  };
+
+  const value = { user, login, logout, setSession, updateUserData, loading, isAuthenticated: !!user };
 
   if (loading) {
     return (

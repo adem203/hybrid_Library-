@@ -1,0 +1,223 @@
+/* Custom DD/MM/YYYY date field — dark theme */
+
+.datefield {
+  position: relative;
+  display: inline-block;
+}
+
+.datefield-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 0 4px 0 10px;
+  height: 38px;
+  min-width: 160px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.datefield-control:focus-within {
+  border-color: var(--glass-border-gold);
+  background: var(--glass-bg-hover);
+}
+
+.datefield-control.has-error {
+  border-color: rgba(239, 68, 68, 0.6);
+}
+
+.datefield-control.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.datefield-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono), inherit;
+  font-size: 0.9rem;
+  padding: 6px 0;
+  letter-spacing: 0.5px;
+}
+
+.datefield-input::placeholder {
+  color: var(--text-muted);
+  letter-spacing: normal;
+}
+
+.datefield-btn {
+  background: transparent;
+  border: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.datefield-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.datefield-btn:disabled {
+  cursor: not-allowed;
+}
+
+.datefield-clear {
+  font-size: 0.75rem;
+}
+
+.datefield-error {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--danger);
+}
+
+/* Popover — rendered through a React portal to document.body so it's never
+   clipped by ancestor overflow. Position is set inline via JS. */
+.datefield-popover {
+  position: absolute;
+  z-index: 9999;
+  width: 280px;
+  background: var(--navy-mid, #0d1b4b);
+  border: 1px solid var(--glass-border-gold, rgba(201, 168, 76, 0.3));
+  border-radius: var(--radius-md, 14px);
+  padding: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  user-select: none;
+  color: var(--text-primary, #e8e6f0);
+  font-family: var(--font-body, system-ui, sans-serif);
+}
+
+.datefield-pop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.datefield-pop-title {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.92rem;
+  font-family: var(--font-display, inherit);
+}
+
+.datefield-nav {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.datefield-nav:hover {
+  background: var(--gold-dim, rgba(201, 168, 76, 0.15));
+  color: var(--gold, #c9a84c);
+  border-color: var(--glass-border-gold, rgba(201, 168, 76, 0.3));
+}
+
+.datefield-pop-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.datefield-pop-wd {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  padding: 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.datefield-pop-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.datefield-day {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+
+.datefield-day:hover:not(:disabled):not(.is-selected) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.datefield-day.is-other-month {
+  color: var(--text-muted);
+  opacity: 0.45;
+}
+
+.datefield-day.is-today {
+  border-color: var(--glass-border-gold, rgba(201, 168, 76, 0.3));
+  color: var(--gold, #c9a84c);
+}
+
+.datefield-day.is-selected {
+  background: var(--gold, #c9a84c);
+  color: var(--navy-deepest, #020818);
+  font-weight: 700;
+}
+
+.datefield-day.is-disabled,
+.datefield-day:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.datefield-pop-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.datefield-foot-btn {
+  background: transparent;
+  border: 0;
+  color: var(--gold, #c9a84c);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.datefield-foot-btn:hover {
+  background: var(--gold-dim, rgba(201, 168, 76, 0.15));
+}
+
+@media (max-width: 480px) {
+  .datefield-popover { width: 260px; }
+}

@@ -17,6 +17,8 @@ const livresRoutes = require('./src/modules/livres/livres.routes');
 const documentsRoutes = require('./src/modules/documents/documents.routes');
 const empruntsRoutes = require('./src/modules/emprunts/emprunts.routes');
 const statsRoutes = require('./src/modules/stats/stats.routes');
+const supportRoutes = require('./src/modules/support/support.routes');
+const notificationsRoutes = require('./src/modules/notifications/notifications.routes');
 
 // Import des tâches cron
 const { initJobs } = require('./src/jobs/penalites.job');
@@ -54,14 +56,11 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// Servir les fichiers statiques (uploads)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+// Servir uniquement les images publiques (couvertures). Les documents passent par /api/v1/documents/:id/stream.
+const uploadRoot = path.resolve(process.env.UPLOAD_PATH || './uploads');
+app.use('/uploads/images', express.static(path.join(uploadRoot, 'images'), {
   setHeaders: (res, filePath) => {
-    // Permettre la lecture inline des PDF
-    if (filePath.endsWith('.pdf')) {
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'inline');
-    }
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   },
 }));
 
@@ -88,6 +87,8 @@ app.use(`${API_PREFIX}/livres`, livresRoutes);
 app.use(`${API_PREFIX}/documents`, documentsRoutes);
 app.use(`${API_PREFIX}/emprunts`, empruntsRoutes);
 app.use(`${API_PREFIX}/stats`, statsRoutes);
+app.use(`${API_PREFIX}/support`, supportRoutes);
+app.use(`${API_PREFIX}/notifications`, notificationsRoutes);
 
 // ─────────────────────────────────────────────
 // Route 404 (route non trouvée)

@@ -2,6 +2,75 @@ const { query, getClient } = require('../../config/db');
 const { validationResult } = require('express-validator');
 const path = require('path');
 const fs = require('fs');
+const { notifyAdmins, createNotification } = require('../notifications/notifications.service');
+
+const DOCUMENT_MANAGER_ROLES = ['BIBLIOTHECAIRE', 'ADMIN'];
+const DOCUMENT_PUBLIC_READER_ROLES = ['ETUDIANT', 'ENSEIGNANT', ...DOCUMENT_MANAGER_ROLES];
+const UPLOAD_URL_PREFIX = '/uploads/';
+
+const getUploadRoot = () => path.resolve(process.env.UPLOAD_PATH || './uploads');
+
+const isPathInside = (targetPath, rootPath) => {
+  const relativePath = path.relative(rootPath, targetPath);
+  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
+};
+
+const buildStoredUploadUrl = (uploadedPath) => {
+  const uploadRoot = getUploadRoot();
+  const resolvedPath = path.resolve(uploadedPath);
+
+  if (!isPathInside(resolvedPath, uploadRoot)) {
+    throw new Error('Uploaded file is outside the configured upload directory.');
+  }
+
+  const relativeFilePath = path.relative(uploadRoot, resolvedPath).split(path.sep).join('/');
+  return `${UPLOAD_URL_PREFIX}${relativeFilePath}`;
+};
+
+const resolveStoredUploadPath = (storedUrl) => {
+  const normalizedUrl = String(storedUrl || '').replace(/\\/g, '/');
+  if (!normalizedUrl.startsWith(UPLOAD_URL_PREFIX)) return null;
+
+  const relativeFilePath = normalizedUrl.slice(UPLOAD_URL_PREFIX.length);
+  if (!relativeFilePath || relativeFilePath.includes('\0')) return null;
+
+  const uploadRoot = getUploadRoot();
+  const resolvedPath = path.resolve(uploadRoot, relativeFilePath);
+  return isPathInside(resolvedPath, uploadRoot) ? resolvedPath : null;
+};
+
+const getDocumentOwnership = async (client, id) => {
+  const result = await client.query(
+    `SELECT dn.id_uploade_par
+     FROM documents_numeriques dn
+     INNER JOIN ressources r ON r.id_ressource = dn.id_ressource
+     WHERE dn.id_ressource = $1
+       AND r.type_ressource = 'NUMERIQUE'`,
+    [id]
+  );
+
+  return result.rows[0] || null;
+};
+
+const canManageDocument = (user, document) => {
+  if (!user || !document) return false;
+  if (DOCUMENT_MANAGER_ROLES.includes(user.role)) return true;
+  return user.role === 'ENSEIGNANT' && document.id_uploade_par === user.id_user;
+};
+
+const isDocumentOwner = (user, document) => (
+  Boolean(user && document && Number(document.id_uploade_par) === Number(user.id_user))
+);
+
+const canAccessDocumentFile = (user, document) => {
+  if (!user || !document) return false;
+  if (DOCUMENT_PUBLIC_READER_ROLES.includes(user.role)) return true;
+  return user.role === 'ENSEIGNANT' && isDocumentOwner(user, document);
+};
+
+const canBypassDownloadRestriction = (user, document) => (
+  Boolean(user && (DOCUMENT_MANAGER_ROLES.includes(user.role) || isDocumentOwner(user, document)))
+);
 
 // ─────────────────────────────────────────────
 // GET /api/v1/documents
@@ -147,7 +216,15 @@ const uploadDocument = async (req, res) => {
 
   const format = mimeToFormat[req.file.mimetype] || 'AUTRE';
   const taille_ko = Math.round(req.file.size / 1024);
-  const url_fichier = `/${req.file.path.replace(/\\/g, '/')}`;
+  let url_fichier;
+
+  try {
+    url_fichier = buildStoredUploadUrl(req.file.path);
+  } catch (error) {
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    console.error('Erreur chemin uploadDocument:', error);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
 
   const client = await getClient();
   try {
@@ -180,6 +257,31 @@ const uploadDocument = async (req, res) => {
 
     await client.query('COMMIT');
 
+    // Notification admin uniquement si l'uploader est un enseignant
+    // (admins/bibliothécaires qui uploadent eux-mêmes n'ont pas besoin d'être notifiés).
+    if (req.user.role === 'ENSEIGNANT') {
+      const uploaderName = `${req.user.prenom || ''} ${req.user.nom || ''}`.trim() || 'Un enseignant';
+      notifyAdmins({
+        title: 'Nouveau document uploadé',
+        message: `${uploaderName} (enseignant) a déposé le document « ${ressource.titre} ».`,
+        type: 'DOCUMENT_UPLOAD',
+        relatedEntityType: 'document',
+        relatedEntityId: ressource.id_ressource,
+        targetUrl: '/admin/documents',
+      }).catch(() => {});
+
+      // Notifier aussi les étudiants : nouveau document de cours disponible.
+      createNotification({
+        title: 'Nouveau document de cours',
+        message: `${uploaderName} (enseignant) a publié « ${ressource.titre} ».`,
+        type: 'DOCUMENT_UPLOAD',
+        recipientRole: 'ETUDIANT',
+        relatedEntityType: 'document',
+        relatedEntityId: ressource.id_ressource,
+        targetUrl: '/student/documents',
+      }).catch(() => {});
+    }
+
     return res.status(201).json({
       success: true,
       message: 'Document uploadé avec succès.',
@@ -211,7 +313,7 @@ const streamDocument = async (req, res) => {
   const { id } = req.params;
   try {
     const result = await query(
-      `SELECT dn.url_fichier, dn.nom_fichier, dn.format, r.titre
+      `SELECT dn.url_fichier, dn.nom_fichier, dn.format, dn.id_uploade_par, r.titre
        FROM documents_numeriques dn
        INNER JOIN ressources r ON r.id_ressource = dn.id_ressource
        WHERE dn.id_ressource = $1`,
@@ -223,27 +325,49 @@ const streamDocument = async (req, res) => {
     }
 
     const doc = result.rows[0];
-    // url_fichier est relatif : /uploads/pdf/xxx.pdf
-    const filePath = path.join(process.cwd(), doc.url_fichier);
+    if (!canAccessDocumentFile(req.user, doc)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès refusé à ce document.',
+      });
+    }
 
-    if (!fs.existsSync(filePath)) {
+    const filePath = resolveStoredUploadPath(doc.url_fichier);
+
+    if (!filePath || !fs.existsSync(filePath)) {
       return res.status(404).json({ success: false, message: 'Fichier introuvable sur le serveur.' });
     }
 
     // Enregistrer la consultation dans l'historique (async, ne bloque pas)
-    query(
-      `INSERT INTO historique_lectures (id_user, id_document) VALUES ($1, $2)`,
-      [req.user.id_user, id]
-    ).catch(console.error);
+    if (req.user.role === 'ETUDIANT') {
+      query(
+        `INSERT INTO historique_lectures (id_user, id_document) VALUES ($1, $2)`,
+        [req.user.id_user, id]
+      ).catch(console.error);
 
     // Incrémenter le compteur de consultations (async)
-    query(
-      `UPDATE documents_numeriques SET nb_consultations = nb_consultations + 1 WHERE id_ressource = $1`,
-      [id]
-    ).catch(console.error);
+      query(
+        `UPDATE documents_numeriques SET nb_consultations = nb_consultations + 1 WHERE id_ressource = $1`,
+        [id]
+      ).catch(console.error);
+    }
 
     const stat = fs.statSync(filePath);
     const fileSize = stat.size;
+
+    // MIME type centralisé pour les formats supportés
+    const MIME_BY_FORMAT = {
+      PDF: 'application/pdf',
+      MP4: 'video/mp4',
+      WEBM: 'video/webm',
+      OGG: 'video/ogg',
+      MOV: 'video/quicktime',
+      DOCX: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      PPTX: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      XLSX: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ZIP: 'application/zip',
+    };
+    const contentType = MIME_BY_FORMAT[doc.format] || 'application/octet-stream';
 
     // Support du streaming partiel (Range requests pour PDF viewer et vidéos)
     const range = req.headers.range;
@@ -253,17 +377,11 @@ const streamDocument = async (req, res) => {
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
       const chunkSize = end - start + 1;
 
-      const mimeTypes = {
-        PDF: 'application/pdf',
-        MP4: 'video/mp4',
-        DOCX: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      };
-
       res.writeHead(206, {
         'Content-Range': `bytes ${start}-${end}/${fileSize}`,
         'Accept-Ranges': 'bytes',
         'Content-Length': chunkSize,
-        'Content-Type': mimeTypes[doc.format] || 'application/octet-stream',
+        'Content-Type': contentType,
         'Content-Disposition': 'inline',
       });
 
@@ -271,7 +389,8 @@ const streamDocument = async (req, res) => {
     } else {
       res.writeHead(200, {
         'Content-Length': fileSize,
-        'Content-Type': doc.format === 'PDF' ? 'application/pdf' : 'application/octet-stream',
+        'Accept-Ranges': 'bytes',
+        'Content-Type': contentType,
         'Content-Disposition': `inline; filename="${encodeURIComponent(doc.nom_fichier)}"`,
       });
       fs.createReadStream(filePath).pipe(res);
@@ -291,7 +410,7 @@ const downloadDocument = async (req, res) => {
   const { id } = req.params;
   try {
     const result = await query(
-      `SELECT dn.url_fichier, dn.nom_fichier, dn.est_telechargeable
+      `SELECT dn.url_fichier, dn.nom_fichier, dn.est_telechargeable, dn.id_uploade_par
        FROM documents_numeriques dn
        WHERE dn.id_ressource = $1`,
       [id]
@@ -303,16 +422,23 @@ const downloadDocument = async (req, res) => {
 
     const doc = result.rows[0];
 
-    if (!doc.est_telechargeable) {
+    if (!canAccessDocumentFile(req.user, doc)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès refusé à ce document.',
+      });
+    }
+
+    if (!doc.est_telechargeable && !canBypassDownloadRestriction(req.user, doc)) {
       return res.status(403).json({
         success: false,
         message: 'Ce document n\'est pas disponible en téléchargement.',
       });
     }
 
-    const filePath = path.join(process.cwd(), doc.url_fichier);
+    const filePath = resolveStoredUploadPath(doc.url_fichier);
 
-    if (!fs.existsSync(filePath)) {
+    if (!filePath || !fs.existsSync(filePath)) {
       return res.status(404).json({ success: false, message: 'Fichier introuvable sur le serveur.' });
     }
 
@@ -323,6 +449,94 @@ const downloadDocument = async (req, res) => {
   } catch (error) {
     console.error('Erreur downloadDocument:', error);
     return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+};
+
+// ─────────────────────────────────────────────
+// PUT /api/v1/documents/:id
+// Mettre à jour les métadonnées d'un document
+// ─────────────────────────────────────────────
+const updateDocument = async (req, res) => {
+  const { id } = req.params;
+  const {
+    titre, auteur, date_publication, description,
+    id_categorie, est_telechargeable,
+  } = req.body;
+
+  if (titre !== undefined && (!titre || !titre.toString().trim())) {
+    return res.status(400).json({ success: false, message: 'Le titre est requis.' });
+  }
+
+  const client = await getClient();
+  try {
+    await client.query('BEGIN');
+
+    const documentOwnership = await getDocumentOwnership(client, id);
+    if (!documentOwnership) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, message: 'Document introuvable.' });
+    }
+    if (!canManageDocument(req.user, documentOwnership)) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({
+        success: false,
+        message: 'Vous pouvez modifier uniquement vos propres documents.',
+      });
+    }
+
+    await client.query(
+      `UPDATE ressources SET
+         titre = COALESCE($1, titre),
+         auteur = COALESCE($2, auteur),
+         date_publication = COALESCE($3, date_publication),
+         description = COALESCE($4, description),
+         id_categorie = COALESCE($5, id_categorie),
+         date_modification = NOW()
+       WHERE id_ressource = $6`,
+      [
+        titre || null,
+        auteur || null,
+        date_publication || null,
+        description || null,
+        id_categorie ? parseInt(id_categorie) : null,
+        id,
+      ]
+    );
+
+    if (est_telechargeable !== undefined) {
+      const flag = est_telechargeable === true || est_telechargeable === 'true';
+      await client.query(
+        `UPDATE documents_numeriques SET est_telechargeable = $1 WHERE id_ressource = $2`,
+        [flag, id]
+      );
+    }
+
+    await client.query('COMMIT');
+
+    const result = await query(
+      `SELECT r.*, c.libelle AS categorie,
+              dn.url_fichier, dn.nom_fichier, dn.format, dn.taille_ko,
+              dn.est_telechargeable, dn.nb_consultations,
+              u.nom AS uploade_par_nom, u.prenom AS uploade_par_prenom
+       FROM ressources r
+       INNER JOIN documents_numeriques dn ON dn.id_ressource = r.id_ressource
+       LEFT JOIN categories c ON c.id_categorie = r.id_categorie
+       LEFT JOIN utilisateurs u ON u.id_user = dn.id_uploade_par
+       WHERE r.id_ressource = $1`,
+      [id]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Document mis à jour.',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Erreur updateDocument:', error);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  } finally {
+    client.release();
   }
 };
 
@@ -338,7 +552,11 @@ const deleteDocument = async (req, res) => {
 
     // Récupérer le chemin du fichier avant suppression
     const docResult = await client.query(
-      'SELECT url_fichier FROM documents_numeriques WHERE id_ressource = $1',
+      `SELECT dn.url_fichier, dn.id_uploade_par
+       FROM documents_numeriques dn
+       INNER JOIN ressources r ON r.id_ressource = dn.id_ressource
+       WHERE dn.id_ressource = $1
+         AND r.type_ressource = 'NUMERIQUE'`,
       [id]
     );
 
@@ -347,7 +565,15 @@ const deleteDocument = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Document introuvable.' });
     }
 
-    const filePath = path.join(process.cwd(), docResult.rows[0].url_fichier);
+    if (!canManageDocument(req.user, docResult.rows[0])) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({
+        success: false,
+        message: 'Vous pouvez supprimer uniquement vos propres documents.',
+      });
+    }
+
+    const filePath = resolveStoredUploadPath(docResult.rows[0].url_fichier);
 
     // Supprimer de la BDD (cascade)
     await client.query(
@@ -358,7 +584,7 @@ const deleteDocument = async (req, res) => {
     await client.query('COMMIT');
 
     // Supprimer le fichier physique (ne pas bloquer si erreur)
-    if (fs.existsSync(filePath)) {
+    if (filePath && fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
 
@@ -382,13 +608,16 @@ const getMesLectures = async (req, res) => {
     const result = await query(
       `SELECT
          hl.id, hl.date_lecture, hl.temps_passe_secondes,
-         r.titre, r.auteur, dn.format
+         r.id_ressource, r.titre, r.auteur, r.description, r.image_couverture,
+         c.libelle AS categorie,
+         dn.format, dn.taille_ko, dn.est_telechargeable, dn.nb_consultations
        FROM historique_lectures hl
        INNER JOIN documents_numeriques dn ON dn.id_ressource = hl.id_document
        INNER JOIN ressources r ON r.id_ressource = dn.id_ressource
+       LEFT JOIN categories c ON c.id_categorie = r.id_categorie
        WHERE hl.id_user = $1
        ORDER BY hl.date_lecture DESC
-       LIMIT 50`,
+       LIMIT 1000`,
       [req.user.id_user]
     );
 
@@ -405,6 +634,7 @@ module.exports = {
   uploadDocument,
   streamDocument,
   downloadDocument,
+  updateDocument,
   deleteDocument,
   getMesLectures,
 };

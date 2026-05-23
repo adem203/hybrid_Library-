@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const { query } = require('../config/db');
+const { notifyAdmins } = require('../modules/notifications/notifications.service');
 
 // ─────────────────────────────────────────────
 // Tâche : Tous les jours à 08h00
@@ -19,11 +20,32 @@ const marquerRetards = async () => {
     if (result.rowCount > 0) {
       console.log(`[CRON] ${result.rowCount} emprunt(s) marqué(s) EN_RETARD.`);
 
-      // Ici tu peux ajouter l'envoi d'emails (avec nodemailer par exemple)
-      // Pour chaque emprunt en retard, notifier l'utilisateur
-      for (const emprunt of result.rows) {
-        console.log(`[CRON] Notification retard → emprunt #${emprunt.id_emprunt}`);
-        // TODO: envoyer email à emprunt.id_user
+      // Récupérer les infos lisibles pour la notification admin
+      const ids = result.rows.map((r) => r.id_emprunt);
+      const enriched = await query(
+        `SELECT e.id_emprunt,
+                u.nom AS user_nom, u.prenom AS user_prenom,
+                r.titre AS titre_livre
+           FROM emprunts e
+           JOIN utilisateurs u ON u.id_user = e.id_user
+           JOIN ressources r   ON r.id_ressource = e.id_livre
+          WHERE e.id_emprunt = ANY($1::int[])`,
+        [ids]
+      );
+
+      for (const row of enriched.rows) {
+        const who = `${row.user_prenom || ''} ${row.user_nom || ''}`.trim() || 'Un utilisateur';
+        // L'index UNIQUE (type, related_entity_type, related_entity_id, ...)
+        // garantit qu'on ne crée qu'une seule notif "OVERDUE_LOAN" par emprunt,
+        // même si le cron retourne plusieurs fois la même ligne dans une journée.
+        notifyAdmins({
+          title: 'Emprunt en retard',
+          message: `L’emprunt #${row.id_emprunt} de ${who} pour « ${row.titre_livre} » est en retard.`,
+          type: 'OVERDUE_LOAN',
+          relatedEntityType: 'emprunt',
+          relatedEntityId: row.id_emprunt,
+          targetUrl: '/admin/emprunts',
+        }).catch(() => {});
       }
     } else {
       console.log('[CRON] Aucun nouveau retard.');

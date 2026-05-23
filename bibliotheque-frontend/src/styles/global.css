@@ -67,6 +67,78 @@
   /* Sidebar */
   --sidebar-width: 260px;
   --navbar-height: 64px;
+
+  /* ── Semantic tokens (theme-aware) ─────────────────────────
+     Both themes set the same names; components / new code
+     should prefer these to the legacy --navy-* / --text-* tokens. */
+  --bg:          var(--navy-deepest);
+  --surface:     var(--navy-deep);
+  --surface-2:   var(--navy-mid);
+  --card:        rgba(255, 255, 255, 0.04);
+  --card-hover:  rgba(255, 255, 255, 0.08);
+  --text:        var(--text-primary);
+  --text-soft:   var(--text-secondary);
+  --border:      var(--glass-border);
+  --input-bg:    rgba(255, 255, 255, 0.05);
+  --input-border: var(--glass-border);
+  --modal-bg:    rgba(13, 27, 75, 0.96);
+  --modal-backdrop: rgba(2, 8, 24, 0.72);
+  --sidebar-bg:  linear-gradient(180deg, var(--navy-deep) 0%, var(--navy-deepest) 100%);
+  --topbar-bg:   rgba(2, 8, 24, 0.9);
+  --table-row-bg: rgba(255, 255, 255, 0.028);
+  --table-row-hover: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Light theme override ───────────────────────────────────
+   Activated with <html data-theme="light"> (see ThemeContext.js).
+   We re-map the SAME variables so existing components stay readable
+   without any redesign; the gold accent is preserved. */
+:root[data-theme="light"] {
+  --navy-deepest:  #f4f5fb;
+  --navy-deep:     #ffffff;
+  --navy-mid:      #eef0f8;
+  --navy-light:    #dadfee;
+  --navy-muted:    #b9c0d4;
+
+  --gold:          #b08b22;
+  --gold-light:    #c9a84c;
+  --gold-pale:     #fff4cc;
+  --gold-dim:      rgba(176, 139, 34, 0.14);
+
+  --white:         #15192a;
+  --off-white:     #1c2138;
+  --text-primary:  #15192a;
+  --text-secondary:#475070;
+  --text-muted:    #6e7691;
+
+  --glass-bg:      #ffffff;
+  --glass-bg-hover:#f4f6fc;
+  --glass-border:  #d8dde9;
+  --glass-border-gold: rgba(176, 139, 34, 0.35);
+
+  --shadow-sm:     0 2px 8px rgba(20, 28, 60, 0.08);
+  --shadow-md:     0 8px 32px rgba(20, 28, 60, 0.12);
+  --shadow-lg:     0 20px 60px rgba(20, 28, 60, 0.18);
+  --shadow-gold:   0 0 24px rgba(176, 139, 34, 0.25);
+  --shadow-glow:   0 0 40px rgba(176, 139, 34, 0.18);
+
+  /* Semantic remap for light */
+  --bg:          #f4f5fb;
+  --surface:     #ffffff;
+  --surface-2:   #f8f9fd;
+  --card:        #ffffff;
+  --card-hover:  #f4f6fc;
+  --text:        #15192a;
+  --text-soft:   #475070;
+  --border:      #d8dde9;
+  --input-bg:    #ffffff;
+  --input-border:#d8dde9;
+  --modal-bg:    #ffffff;
+  --modal-backdrop: rgba(20, 28, 60, 0.45);
+  --sidebar-bg:  linear-gradient(180deg, #ffffff 0%, #f4f6fc 100%);
+  --topbar-bg:   rgba(255, 255, 255, 0.94);
+  --table-row-bg: #ffffff;
+  --table-row-hover: #f4f6fc;
 }
 
 /* ── Reset ──────────────────────────────────────────────────── */
@@ -428,3 +500,893 @@ ul, ol { list-style: none; }
     padding: 16px;
   }
 }
+
+/* ============================================================
+   LIGHT THEME — global overrides for hardcoded surfaces
+   ------------------------------------------------------------
+   Many admin/landing CSS files still use raw rgba()/hex colors
+   instead of variables. To make light mode usable without
+   redesigning the project, we force the most visible surfaces
+   (topbar, modals, inputs, tables, cards, badges) to readable
+   light values when [data-theme="light"] is active.
+   The dark theme is unchanged.
+   ============================================================ */
+[data-theme="light"] body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/* Scrollbars */
+[data-theme="light"] ::-webkit-scrollbar-track { background: #eef0f8; }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: #c4c9dc; }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ── Topbar / Navbar ───────────────────────────────────── */
+[data-theme="light"] .app-navbar {
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid var(--border);
+}
+[data-theme="light"] .navbar-title { color: var(--text); }
+[data-theme="light"] .navbar-time  { color: var(--text-muted); }
+[data-theme="light"] .navbar-search input {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme="light"] .navbar-notif-btn {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme="light"] .notif-dropdown {
+  background: #ffffff;
+  border-color: var(--border);
+}
+[data-theme="light"] .notif-dropdown-header { color: var(--text); }
+[data-theme="light"] .notif-dropdown-header strong { color: var(--text); }
+[data-theme="light"] .notif-item:hover { background: #f4f6fc; }
+[data-theme="light"] .notif-item.is-unread { background: rgba(201, 168, 76, 0.08); }
+[data-theme="light"] .notif-item-title { color: var(--text); }
+[data-theme="light"] .notif-item-message { color: var(--text-soft); }
+[data-theme="light"] .notif-item-time { color: var(--text-muted); }
+[data-theme="light"] .notif-count {
+  border-color: #ffffff;
+}
+
+/* ── Sidebar ───────────────────────────────────────────── */
+[data-theme="light"] .sidebar {
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+}
+[data-theme="light"] .sidebar-logo-text { color: var(--text); }
+[data-theme="light"] .sidebar-logo-text span { color: var(--gold); }
+[data-theme="light"] .sidebar-user-name { color: var(--text); }
+[data-theme="light"] .sidebar-nav-item:hover { background: #f0f3fb; color: var(--text); }
+[data-theme="light"] .sidebar-nav-item.active {
+  background: var(--gold-dim);
+  color: #8a6c1a;
+  border-color: var(--glass-border-gold);
+}
+[data-theme="light"] .sidebar-nav-item { color: var(--text-soft); }
+
+/* ── App layout ───────────────────────────────────────── */
+[data-theme="light"] .app-main,
+[data-theme="light"] .admin-layout,
+[data-theme="light"] .admin-main,
+[data-theme="light"] .admin-content {
+  background: var(--bg) !important;
+  color: var(--text);
+}
+
+/* ── Cards / surfaces with hardcoded dark fills ───────── */
+[data-theme="light"] .glass-card,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .feature-card,
+[data-theme="light"] .cta-card,
+[data-theme="light"] .auth-form-card,
+[data-theme="light"] .admin-support-panel,
+[data-theme="light"] .dashboard-stat-card,
+[data-theme="light"] .dashboard-activity-card {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+[data-theme="light"] .auth-form-title,
+[data-theme="light"] .section-title,
+[data-theme="light"] .cta-title,
+[data-theme="light"] .hero-title { color: var(--text); }
+
+[data-theme="light"] .hero-description,
+[data-theme="light"] .section-desc,
+[data-theme="light"] .cta-desc,
+[data-theme="light"] .auth-form-subtitle,
+[data-theme="light"] .feature-desc { color: var(--text-soft); }
+
+/* ── Inputs / textarea / select ───────────────────────── */
+[data-theme="light"] .form-input,
+[data-theme="light"] .form-select,
+[data-theme="light"] textarea.form-input,
+[data-theme="light"] input.form-input {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme="light"] .form-input::placeholder,
+[data-theme="light"] .form-select::placeholder { color: var(--text-muted); }
+[data-theme="light"] .form-input:focus,
+[data-theme="light"] .form-select:focus {
+  border-color: var(--gold);
+  background: #fffbef;
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.18);
+}
+[data-theme="light"] .form-label { color: var(--text-soft); }
+[data-theme="light"] .form-select option {
+  background: #ffffff;
+  color: var(--text);
+}
+
+/* ── Modals (auth reset, OTP, generic) ────────────────── */
+[data-theme="light"] .reset-modal-backdrop {
+  background: rgba(20, 28, 60, 0.45);
+}
+[data-theme="light"] .reset-modal {
+  background: #ffffff;
+  border-color: var(--border);
+  box-shadow: 0 28px 80px rgba(20, 28, 60, 0.25);
+  color: var(--text);
+}
+[data-theme="light"] .reset-modal-header h2 { color: var(--text); }
+[data-theme="light"] .reset-modal-header p  { color: var(--text-soft); }
+[data-theme="light"] .reset-modal-close {
+  background: #f4f6fc;
+  border-color: var(--border);
+  color: var(--text-soft);
+}
+[data-theme="light"] .reset-steps span { background: #e1e5f1; }
+
+/* ── Auth tabs ────────────────────────────────────────── */
+[data-theme="light"] .auth-tabs {
+  background: #f0f3fb;
+  border: 1px solid var(--border);
+}
+[data-theme="light"] .auth-tab { color: var(--text-soft); }
+[data-theme="light"] .auth-tab.active { color: #1c2138; }
+
+/* ── Auth alerts (keep colored, just make readable) ──── */
+[data-theme="light"] .auth-alert-error { color: #b91c1c; }
+[data-theme="light"] .auth-alert-info  { color: #0369a1; }
+[data-theme="light"] .auth-alert-success { color: #166534; }
+
+/* ── Tables ───────────────────────────────────────────── */
+[data-theme="light"] .data-table th {
+  color: var(--text-muted);
+  border-bottom-color: var(--border);
+}
+[data-theme="light"] .data-table td {
+  color: var(--text-soft);
+  border-bottom-color: var(--border);
+}
+[data-theme="light"] .data-table tr:hover td {
+  background: #f4f6fc;
+  color: var(--text);
+}
+
+/* Admin tables / list items that use raw rgba */
+[data-theme="light"] .admin-support-list-item,
+[data-theme="light"] .admin-support-toolbar input,
+[data-theme="light"] .admin-support-toolbar select,
+[data-theme="light"] .admin-support-textarea,
+[data-theme="light"] .admin-support-detail-top,
+[data-theme="light"] .admin-support-detail-grid,
+[data-theme="light"] .admin-support-history,
+[data-theme="light"] .admin-support-message-box,
+[data-theme="light"] .admin-support-resource-value,
+[data-theme="light"] .admin-support-placeholder {
+  background: #ffffff !important;
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme="light"] .admin-support-list-item:hover {
+  background: #f4f6fc !important;
+}
+[data-theme="light"] .admin-support-list-item.is-selected {
+  background: rgba(201, 168, 76, 0.10) !important;
+}
+[data-theme="light"] .admin-support-pagination button {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+/* ── Hero badge / pill ───────────────────────────────── */
+[data-theme="light"] .hero-badge {
+  background: #ffffff;
+  border-color: var(--glass-border-gold);
+  color: #8a6c1a;
+}
+
+/* ── Particles (less intense on light) ───────────────── */
+[data-theme="light"] .particle:nth-child(even) {
+  background: rgba(20, 28, 60, 0.35);
+}
+
+/* ── Hero radial overlay (less intense) ──────────────── */
+[data-theme="light"] .hero-section::before {
+  background: radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 70%);
+}
+
+/* ── Switcher pills in light (slight border + bg) ────── */
+[data-theme="light"] .lts-lang,
+[data-theme="light"] .lts-theme {
+  background: #ffffff;
+  border-color: var(--border);
+}
+[data-theme="light"] .lts-lang-btn { color: var(--text-soft); }
+[data-theme="light"] .lts-lang-btn.is-active {
+  background: var(--gold);
+  color: #ffffff;
+}
+
+/* ── DateField + EmpruntsView + ReservationsView shared ─ */
+[data-theme="light"] .date-field,
+[data-theme="light"] .date-field input,
+[data-theme="light"] .emp-toolbar input,
+[data-theme="light"] .emp-toolbar select,
+[data-theme="light"] .reservations-toolbar input,
+[data-theme="light"] .reservations-toolbar select {
+  background: #ffffff !important;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+/* ============================================================
+   LIGHT THEME — full admin pages override
+   ------------------------------------------------------------
+   Many admin pages declare panel/card/table backgrounds as raw
+   rgba()/hex literals (e.g. rgba(13,27,62,…), rgba(7,16,38,…)).
+   Variable remapping alone cannot reach them. The rules below
+   force all panels/cards/tables/inputs to a clean white surface
+   when [data-theme="light"] is active. The dark theme is
+   not affected because nothing in this block is loaded then.
+   ============================================================ */
+
+/* ── Hero / page headers (transparent so the bg shows) ──── */
+[data-theme="light"] .dashboard-hero,
+[data-theme="light"] .users-hero,
+[data-theme="light"] .docs-hero,
+[data-theme="light"] .categories-hero,
+[data-theme="light"] .stats-page-header,
+[data-theme="light"] .res-hero,
+[data-theme="light"] .admin-support-hero {
+  color: var(--text);
+}
+
+/* ── DASHBOARD ──────────────────────────────────────────── */
+[data-theme="light"] .dashboard-stat-card,
+[data-theme="light"] .dashboard-panel,
+[data-theme="light"] .dashboard-side-column,
+[data-theme="light"] .dashboard-repartition-content,
+[data-theme="light"] .dashboard-alert-list,
+[data-theme="light"] .dashboard-activity-list,
+[data-theme="light"] .dashboard-empty-state {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+  box-shadow: 0 2px 12px rgba(20, 28, 60, 0.04);
+}
+[data-theme="light"] .dashboard-activity-item {
+  background: #f7f9fd !important;
+  border-color: var(--border) !important;
+}
+[data-theme="light"] .dashboard-alert-danger {
+  background: rgba(251, 113, 133, 0.10) !important;
+  border-color: rgba(251, 113, 133, 0.30) !important;
+  color: #b1283b;
+}
+[data-theme="light"] .dashboard-alert-warning {
+  background: rgba(251, 191, 36, 0.12) !important;
+  border-color: rgba(251, 191, 36, 0.32) !important;
+  color: #8a5a07;
+}
+[data-theme="light"] .dashboard-progress {
+  background: #e7ebf4 !important;
+}
+[data-theme="light"] .dashboard-panel-header,
+[data-theme="light"] .dashboard-kicker,
+[data-theme="light"] .dashboard-activity-meta,
+[data-theme="light"] .dashboard-empty-state {
+  color: var(--text-soft);
+}
+
+/* ── USERS PAGE ─────────────────────────────────────────── */
+[data-theme="light"] .users-stat-card,
+[data-theme="light"] .users-side-card,
+[data-theme="light"] .users-main-panel,
+[data-theme="light"] .users-table-wrap,
+[data-theme="light"] .users-toolbar,
+[data-theme="light"] .users-alert,
+[data-theme="light"] .users-create-modal,
+[data-theme="light"] .users-empty-mini,
+[data-theme="light"] .users-info-list,
+[data-theme="light"] .users-distribution-list,
+[data-theme="light"] .users-activity-list {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+  box-shadow: 0 2px 12px rgba(20, 28, 60, 0.04);
+}
+[data-theme="light"] .users-pagination {
+  background: #ffffff !important;
+  border-top-color: var(--border) !important;
+  color: var(--text-soft);
+}
+[data-theme="light"] .users-table { background: transparent; }
+[data-theme="light"] .users-table th {
+  background: #f4f6fc !important;
+  color: var(--text-muted);
+  border-bottom-color: var(--border) !important;
+}
+[data-theme="light"] .users-table td {
+  background: #ffffff;
+  color: var(--text-soft);
+  border-bottom-color: var(--border) !important;
+}
+[data-theme="light"] .users-table tr:hover td {
+  background: #f7f9fd !important;
+  color: var(--text);
+}
+[data-theme="light"] .users-activity-item {
+  background: #f7f9fd !important;
+}
+[data-theme="light"] .users-eyebrow,
+[data-theme="light"] .users-toolbar label,
+[data-theme="light"] .users-mono {
+  color: var(--text-soft);
+}
+[data-theme="light"] .users-page-pill {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+
+/* ── DOCUMENTS PAGE ─────────────────────────────────────── */
+[data-theme="light"] .docs-stat-card,
+[data-theme="light"] .docs-side-card,
+[data-theme="light"] .docs-main-panel,
+[data-theme="light"] .docs-alert,
+[data-theme="light"] .docs-toolbar,
+[data-theme="light"] .docs-side-item,
+[data-theme="light"] .docs-side-empty,
+[data-theme="light"] .docs-side-list {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+  box-shadow: 0 2px 12px rgba(20, 28, 60, 0.04);
+}
+[data-theme="light"] .docs-table th {
+  background: #f4f6fc !important;
+  color: var(--text-muted);
+  border-bottom-color: var(--border) !important;
+}
+[data-theme="light"] .docs-table td {
+  background: #ffffff;
+  color: var(--text-soft);
+  border-bottom-color: var(--border) !important;
+}
+[data-theme="light"] .docs-table tr:hover td {
+  background: #f7f9fd !important;
+  color: var(--text);
+}
+[data-theme="light"] .docs-format-bar {
+  background: #e7ebf4 !important;
+}
+[data-theme="light"] .docs-total-pill,
+[data-theme="light"] .docs-page-pill {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+}
+[data-theme="light"] .docs-eyebrow,
+[data-theme="light"] .docs-results-line,
+[data-theme="light"] .docs-stat-title { color: var(--text-soft); }
+
+/* ── CATEGORIES PAGE ────────────────────────────────────── */
+[data-theme="light"] .cat-stat-card,
+[data-theme="light"] .cat-side-card,
+[data-theme="light"] .categories-main-card,
+[data-theme="light"] .categories-table-wrap,
+[data-theme="light"] .categories-toolbar,
+[data-theme="light"] .categories-alert,
+[data-theme="light"] .cat-summary-list,
+[data-theme="light"] .cat-distribution-list,
+[data-theme="light"] .cat-distribution-item,
+[data-theme="light"] .cat-recent-item,
+[data-theme="light"] .cat-empty-mini {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+  box-shadow: 0 2px 12px rgba(20, 28, 60, 0.04);
+}
+[data-theme="light"] .categories-table th {
+  background: #f4f6fc !important;
+  color: var(--text-muted);
+  border-bottom-color: var(--border) !important;
+}
+[data-theme="light"] .categories-table td {
+  background: #ffffff;
+  color: var(--text-soft);
+  border-bottom-color: var(--border) !important;
+}
+[data-theme="light"] .categories-table tr:hover td {
+  background: #f7f9fd !important;
+  color: var(--text);
+}
+[data-theme="light"] .categories-search,
+[data-theme="light"] .cat-page-number,
+[data-theme="light"] .cat-page-arrow {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+[data-theme="light"] .cat-muted,
+[data-theme="light"] .cat-date { color: var(--text-soft); }
+
+/* ── STATISTICS PAGE ────────────────────────────────────── */
+[data-theme="light"] .stats-panel-full,
+[data-theme="light"] .stats-section,
+[data-theme="light"] .stats-summary-grid > *,
+[data-theme="light"] .stats-horizontal-chart,
+[data-theme="light"] .stats-donut-wrap,
+[data-theme="light"] .stats-distribution,
+[data-theme="light"] .stats-empty-state,
+[data-theme="light"] .stats-sync,
+[data-theme="light"] .stats-refresh-btn {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+  box-shadow: 0 2px 12px rgba(20, 28, 60, 0.04);
+}
+[data-theme="light"] .stats-page-kicker,
+[data-theme="light"] .stats-page-subtitle,
+[data-theme="light"] .stats-panel-subtitle,
+[data-theme="light"] .stats-panel-meta,
+[data-theme="light"] .stats-legend-label { color: var(--text-soft); }
+
+/* ── LOANS (EMPRUNTS) ───────────────────────────────────── */
+[data-theme="light"] .emp-stat,
+[data-theme="light"] .emp-widget,
+[data-theme="light"] .emp-top-list,
+[data-theme="light"] .emp-activity-list,
+[data-theme="light"] .emp-stat-skel,
+[data-theme="light"] [class^="emp-"][class*="-card"],
+[data-theme="light"] [class^="emp-"][class*="-panel"] {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+  box-shadow: 0 2px 12px rgba(20, 28, 60, 0.04);
+}
+[data-theme="light"] .emp-top-bar { background: #e7ebf4 !important; }
+[data-theme="light"] .emp-stat-label,
+[data-theme="light"] .emp-top-sub,
+[data-theme="light"] .emp-activity-sub,
+[data-theme="light"] .emp-form-label { color: var(--text-soft); }
+[data-theme="light"] .emp-date-input { background: #ffffff !important; border-color: var(--border); color: var(--text); }
+
+/* ── RESERVATIONS ───────────────────────────────────────── */
+[data-theme="light"] .res-stat-card,
+[data-theme="light"] .res-side-card,
+[data-theme="light"] .res-main-panel,
+[data-theme="light"] .res-toolbar,
+[data-theme="light"] .res-table-wrap,
+[data-theme="light"] .res-alert,
+[data-theme="light"] .res-status-select,
+[data-theme="light"] .res-date-filter,
+[data-theme="light"] .res-activity-list,
+[data-theme="light"] .res-activity-item {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+  box-shadow: 0 2px 12px rgba(20, 28, 60, 0.04);
+}
+[data-theme="light"] .res-table th {
+  background: #f4f6fc !important;
+  color: var(--text-muted);
+  border-bottom-color: var(--border) !important;
+}
+[data-theme="light"] .res-table td {
+  background: #ffffff;
+  color: var(--text-soft);
+  border-bottom-color: var(--border) !important;
+}
+[data-theme="light"] .res-table tr:hover td {
+  background: #f7f9fd !important;
+  color: var(--text);
+}
+[data-theme="light"] .res-page-pill {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+[data-theme="light"] .res-mono,
+[data-theme="light"] .res-export { color: var(--text-soft); }
+
+/* ── RESERVATIONS — additional light-mode surfaces ──────── */
+[data-theme="light"] .res-hero {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+  box-shadow: 0 2px 12px rgba(20, 28, 60, 0.04);
+}
+[data-theme="light"] .res-hero h1 { color: var(--text) !important; }
+[data-theme="light"] .res-hero p { color: var(--text-soft) !important; }
+[data-theme="light"] .res-hero-icon {
+  background: rgba(176, 139, 34, 0.12);
+  border-color: var(--glass-border-gold);
+  color: #8a6c1a;
+}
+
+[data-theme="light"] .res-toolbar {
+  border-bottom-color: var(--border) !important;
+}
+[data-theme="light"] .res-pagination {
+  background: #ffffff !important;
+  border-top-color: var(--border) !important;
+  color: var(--text-soft);
+}
+
+[data-theme="light"] .res-borrower-cell strong,
+[data-theme="light"] .res-book-title {
+  color: var(--text) !important;
+}
+[data-theme="light"] .res-borrower-cell span,
+[data-theme="light"] .res-book-meta,
+[data-theme="light"] .res-mono span {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="light"] .res-side-header h2,
+[data-theme="light"] .res-rate-card h2 { color: #8a6c1a !important; }
+
+[data-theme="light"] .res-activity-item strong { color: var(--text); }
+[data-theme="light"] .res-activity-item span,
+[data-theme="light"] .res-activity-item em { color: var(--text-muted); }
+
+[data-theme="light"] .res-distribution-list > div { color: var(--text-soft); }
+[data-theme="light"] .res-distribution-list strong { color: var(--text); }
+
+[data-theme="light"] .res-donut-center strong { color: var(--text); }
+[data-theme="light"] .res-donut-center span { color: var(--text-muted); }
+
+[data-theme="light"] .res-rate-ring {
+  background:
+    radial-gradient(circle at center, #ffffff 54%, transparent 55%),
+    conic-gradient(var(--gold) var(--rate), #e7ebf4 0);
+}
+[data-theme="light"] .res-rate-ring strong { color: var(--text); }
+[data-theme="light"] .res-rate-card p { color: var(--text-muted); }
+[data-theme="light"] .res-empty-mini { color: var(--text-muted); }
+
+/* ── SUPPORT CENTER (panels / lists) ────────────────────── */
+[data-theme="light"] .admin-support-panel,
+[data-theme="light"] .admin-support-stats,
+[data-theme="light"] .admin-support-toolbar,
+[data-theme="light"] .admin-support-list,
+[data-theme="light"] .admin-support-detail,
+[data-theme="light"] .admin-support-reply,
+[data-theme="light"] .admin-support-history,
+[data-theme="light"] .admin-support-toast {
+  background: #ffffff !important;
+  color: var(--text);
+  border-color: var(--border) !important;
+}
+[data-theme="light"] .admin-support-toast {
+  box-shadow: 0 18px 40px rgba(20, 28, 60, 0.15);
+  color: #8a6c1a;
+  border-color: var(--glass-border-gold) !important;
+}
+
+/* ── SUPPORT CENTER — text colour readability in light mode ─ */
+[data-theme="light"] .admin-support-page { color: var(--text); }
+[data-theme="light"] .admin-support-hero h1 { color: var(--text); }
+[data-theme="light"] .admin-support-hero h1 span { color: var(--gold); }
+[data-theme="light"] .admin-support-hero p { color: var(--text-soft); }
+
+[data-theme="light"] .admin-support-panel-header h2 { color: var(--text); }
+[data-theme="light"] .admin-support-ticket-id { color: var(--text-muted); }
+
+[data-theme="light"] .admin-support-search span,
+[data-theme="light"] .admin-support-filters label { color: var(--text-muted); }
+[data-theme="light"] .admin-support-search input,
+[data-theme="light"] .admin-support-filters select {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+[data-theme="light"] .admin-support-search input::placeholder { color: var(--text-muted); }
+
+[data-theme="light"] .admin-support-list-item strong,
+[data-theme="light"] .admin-support-item-row strong,
+[data-theme="light"] .admin-support-item-sender strong { color: var(--text); }
+[data-theme="light"] .admin-support-item-date,
+[data-theme="light"] .admin-support-item-email,
+[data-theme="light"] .admin-support-item-type { color: var(--text-muted); }
+[data-theme="light"] .admin-support-item-subject { color: var(--text-soft); }
+
+[data-theme="light"] .admin-support-student-name { color: var(--text); }
+[data-theme="light"] .admin-support-student-meta { color: var(--text-soft); }
+
+[data-theme="light"] .admin-support-label { color: var(--text-muted); }
+[data-theme="light"] .admin-support-value { color: var(--text); }
+[data-theme="light"] .admin-support-resource-value {
+  background: #f7f9fd !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+[data-theme="light"] .admin-support-message-box {
+  background: #f7f9fd !important;
+  border-color: var(--border) !important;
+  color: var(--text-soft);
+}
+
+[data-theme="light"] .admin-support-textarea {
+  background: #ffffff !important;
+  border-color: var(--glass-border-gold) !important;
+  color: var(--text) !important;
+}
+[data-theme="light"] .admin-support-textarea::placeholder { color: var(--text-muted); }
+
+[data-theme="light"] .admin-support-placeholder {
+  background: #f7f9fd !important;
+  border-color: var(--border) !important;
+  color: var(--text-soft);
+}
+
+[data-theme="light"] .admin-support-pagination { color: var(--text-soft); border-top-color: var(--border); }
+[data-theme="light"] .admin-support-pagination button {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+[data-theme="light"] .admin-support-history { color: var(--text); }
+[data-theme="light"] .admin-support-history li strong { color: var(--text); }
+[data-theme="light"] .admin-support-history li em { color: var(--text-soft); }
+
+[data-theme="light"] .admin-support-btn-secondary {
+  background: #ffffff;
+  color: var(--text);
+  border-color: var(--border);
+}
+[data-theme="light"] .admin-support-btn-danger {
+  background: #ffffff;
+  color: #9d1b2c;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-theme="light"] .admin-support-detail-top,
+[data-theme="light"] .admin-support-detail-grid {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+}
+
+/* ── Generic action / pagination buttons on light ───────── */
+[data-theme="light"] .action-btn,
+[data-theme="light"] .users-actions button,
+[data-theme="light"] .res-actions button,
+[data-theme="light"] .docs-action-btn,
+[data-theme="light"] .cat-actions button {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--text-soft);
+}
+[data-theme="light"] .action-btn:hover,
+[data-theme="light"] .users-actions button:hover,
+[data-theme="light"] .docs-action-btn:hover {
+  background: #f4f6fc;
+  color: var(--text);
+}
+
+/* ── Status badges already use saturated colors — only flip
+       their alpha-on-dark bg to a colored-on-white tint. ──── */
+[data-theme="light"] .dashboard-status-success,
+[data-theme="light"] .users-status-active { color: #146e3a; background: rgba(16, 212, 142, 0.16); }
+[data-theme="light"] .dashboard-status-warning { color: #8a5a07; background: rgba(251, 191, 36, 0.18); }
+[data-theme="light"] .dashboard-status-danger,
+[data-theme="light"] .users-status-blocked  { color: #9d1b2c; background: rgba(251, 113, 133, 0.18); }
+[data-theme="light"] .dashboard-status-info  { color: #075985; background: rgba(56, 189, 248, 0.18); }
+[data-theme="light"] .dashboard-status-muted { color: #475070; background: rgba(148, 163, 184, 0.18); }
+
+/* Users role badges */
+[data-theme="light"] .users-role-admin   { color: #5b21b6; background: rgba(139, 92, 246, 0.16); }
+[data-theme="light"] .users-role-teacher { color: #92400e; background: rgba(214, 167, 107, 0.20); }
+[data-theme="light"] .users-role-student { color: #0c4a6e; background: rgba(56, 189, 248, 0.18); }
+[data-theme="light"] .users-role-other   { color: #334155; background: rgba(148, 163, 184, 0.18); }
+
+/* Res / Docs / Cat / Emp status badges */
+[data-theme="light"] .res-badge-pending   { color: #8a5a07; background: rgba(251, 191, 36, 0.18); }
+[data-theme="light"] .res-badge-approved  { color: #146e3a; background: rgba(16, 212, 142, 0.16); }
+[data-theme="light"] .res-badge-cancelled { color: #9d1b2c; background: rgba(251, 113, 133, 0.18); }
+[data-theme="light"] .res-badge-expired   { color: #475070; background: rgba(148, 163, 184, 0.18); }
+
+/* ── Headings inside panels should be dark ──────────────── */
+[data-theme="light"] .dashboard-panel h2,
+[data-theme="light"] .dashboard-panel h3,
+[data-theme="light"] .users-side-card h2,
+[data-theme="light"] .users-side-card h3,
+[data-theme="light"] .docs-side-card h2,
+[data-theme="light"] .docs-side-card h3,
+[data-theme="light"] .cat-side-card h2,
+[data-theme="light"] .cat-side-card h3,
+[data-theme="light"] .stats-panel-full h2,
+[data-theme="light"] .stats-panel-full h3,
+[data-theme="light"] .res-side-card h2,
+[data-theme="light"] .res-side-card h3,
+[data-theme="light"] .admin-support-panel h2,
+[data-theme="light"] .admin-support-panel h3,
+[data-theme="light"] .stats-panel-title { color: var(--text) !important; }
+
+/* ── OTP / Login verification modal final pass ──────────── */
+[data-theme="light"] .reset-modal,
+[data-theme="light"] .reset-modal-header,
+[data-theme="light"] .reset-modal .auth-alert,
+[data-theme="light"] .reset-modal .form-input,
+[data-theme="light"] .reset-modal .form-label {
+  color: var(--text);
+}
+[data-theme="light"] .reset-modal .form-input {
+  background: #ffffff !important;
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme="light"] .reset-modal .form-input::placeholder { color: var(--text-muted); }
+[data-theme="light"] .reset-modal .auth-submit-btn,
+[data-theme="light"] .reset-modal .reset-secondary-btn { color: var(--navy-deepest); }
+[data-theme="light"] .reset-modal .reset-secondary-btn {
+  background: #f4f6fc;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+[data-theme="light"] .reset-modal .reset-code-input {
+  background: #ffffff !important;
+  color: var(--text);
+  letter-spacing: 0.18em;
+}
+
+/* ── Misc: muted text fallbacks for hardcoded #9aa6c2/#8390ad
+       so subtitles don't disappear on white. ──────────────── */
+[data-theme="light"] [style*="color: #9aa6c2"],
+[data-theme="light"] [style*="color: #8390ad"],
+[data-theme="light"] [style*="color:#9aa6c2"],
+[data-theme="light"] [style*="color:#8390ad"] {
+  color: var(--text-soft) !important;
+}
+
+/* ============================================================
+   LIGHT THEME — extra surfaces (Books page, panel.* container,
+   categories donut chart, statistics card layers)
+   ============================================================ */
+
+/* ── Generic .panel (used by Books page + Settings + others) ── */
+[data-theme="light"] .panel {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+  box-shadow: 0 2px 12px rgba(20, 28, 60, 0.04);
+}
+[data-theme="light"] .panel-header {
+  border-bottom-color: var(--border) !important;
+  color: var(--text);
+}
+[data-theme="light"] .panel-title { color: var(--text) !important; }
+
+/* ── BOOKS PAGE (livres) — the gradient on .livres-page .panel
+       has higher specificity than the generic .panel rule above. ── */
+[data-theme="light"] .livres-page .panel {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  box-shadow: 0 2px 12px rgba(20, 28, 60, 0.04);
+}
+[data-theme="light"] .livres-page .form-input {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+[data-theme="light"] .livres-page .data-table th {
+  color: #8a6c1a; /* keep gold tint, just darker for white bg */
+  background: #f4f6fc;
+  border-bottom-color: var(--border);
+}
+[data-theme="light"] .livres-page .data-table td {
+  color: var(--text);
+  border-bottom-color: var(--border);
+}
+[data-theme="light"] .livres-page .data-table tr:hover td {
+  background: #f7f9fd;
+  color: var(--text);
+}
+
+/* ── CATEGORIES DONUT chart — labels, core text, ring center ── */
+[data-theme="light"] .cat-donut::before {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+}
+[data-theme="light"] .cat-donut-core strong {
+  color: var(--text) !important;
+}
+[data-theme="light"] .cat-donut-core span {
+  color: var(--text-soft) !important;
+}
+[data-theme="light"] .cat-donut-label {
+  background: #ffffff !important;
+  color: var(--text) !important;
+  /* keep the colored border defined by --cat-label-color */
+  box-shadow: 0 6px 14px rgba(20, 28, 60, 0.12);
+}
+
+/* Categories donut shadow is too dark on light */
+[data-theme="light"] .cat-donut {
+  box-shadow: 0 12px 28px rgba(20, 28, 60, 0.08);
+}
+
+/* Legend text in light mode */
+[data-theme="light"] .cat-legend-dot { box-shadow: none; }
+
+/* ── STATISTICS donut center + recharts wrapper backgrounds ── */
+[data-theme="light"] .stats-donut-center,
+[data-theme="light"] .stats-summary-card,
+[data-theme="light"] .stats-summary-tile,
+[data-theme="light"] .stats-chart-grid > *,
+[data-theme="light"] .stats-chart-grid-3 > *,
+[data-theme="light"] .stats-chart-grid-mixed > * {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+
+/* Recharts default tick text — if we can't reach via JS,
+   at least force fill where possible via CSS attribute. */
+[data-theme="light"] .recharts-text,
+[data-theme="light"] .recharts-cartesian-axis-tick text,
+[data-theme="light"] .recharts-polar-angle-axis-tick text,
+[data-theme="light"] .recharts-pie-label-text,
+[data-theme="light"] .recharts-legend-item-text {
+  fill: var(--text) !important;
+  color: var(--text) !important;
+}
+[data-theme="light"] .recharts-cartesian-grid line {
+  stroke: rgba(20, 28, 60, 0.08) !important;
+}
+[data-theme="light"] .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+/* ── USERS create modal (already covered but reinforce) ────── */
+[data-theme="light"] .users-create-modal label,
+[data-theme="light"] .users-create-modal .form-label { color: var(--text-soft); }
+
+/* ── Settings page — panels already use .panel which is covered.
+       Reinforce key text colors. ──────────────────────────────── */
+[data-theme="light"] .settings-readonly-note,
+[data-theme="light"] .page-header-sub { color: var(--text-soft); }
+[data-theme="light"] .page-header-title { color: var(--text); }
+[data-theme="light"] .settings-profile-meta,
+[data-theme="light"] .settings-profile-top { color: var(--text); }
+
+/* ── Inputs/buttons inside any .panel ───────────────────────── */
+[data-theme="light"] .panel .form-input,
+[data-theme="light"] .panel input[type="text"],
+[data-theme="light"] .panel input[type="email"],
+[data-theme="light"] .panel input[type="password"],
+[data-theme="light"] .panel input[type="number"],
+[data-theme="light"] .panel input[type="date"],
+[data-theme="light"] .panel textarea,
+[data-theme="light"] .panel select {
+  background: #ffffff !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+[data-theme="light"] .panel .form-input::placeholder,
+[data-theme="light"] .panel input::placeholder,
+[data-theme="light"] .panel textarea::placeholder { color: var(--text-muted); }

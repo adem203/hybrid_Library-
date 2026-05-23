@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 
@@ -8,6 +9,24 @@ const ROLE_EMOJI = {
 
 export default function Sidebar({ items, activeItem, onItemClick, badges = {} }) {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
+
+  // Items may declare an `i18nKey` (e.g. "sidebar.items.users" or
+  // "sidebar.sections.main"). If a translation exists, use it,
+  // otherwise fall back to the static `label` already provided.
+  // Also tries a sensible default from the item id (sidebar.items.<id>).
+  const tLabel = (item, fallback) => {
+    if (item.i18nKey) {
+      const translated = t(item.i18nKey, { defaultValue: fallback });
+      if (translated && translated !== item.i18nKey) return translated;
+    }
+    if (item.id) {
+      const guess = `sidebar.items.${item.id}`;
+      const translated = t(guess, { defaultValue: fallback });
+      if (translated && translated !== guess) return translated;
+    }
+    return fallback;
+  };
 
   return (
     <aside className="sidebar">
@@ -35,7 +54,9 @@ export default function Sidebar({ items, activeItem, onItemClick, badges = {} })
         {items.map((item, i) => {
           if (item.type === 'section') {
             return (
-              <div key={i} className="sidebar-section-label">{item.label}</div>
+              <div key={i} className="sidebar-section-label">
+                {tLabel(item, item.label)}
+              </div>
             );
           }
           return (
@@ -45,7 +66,7 @@ export default function Sidebar({ items, activeItem, onItemClick, badges = {} })
               onClick={() => onItemClick(item.id)}
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
-              {item.label}
+              {tLabel(item, item.label)}
               {badges[item.id] > 0 && (
                 <span className="sidebar-nav-badge">{badges[item.id]}</span>
               )}
@@ -58,7 +79,7 @@ export default function Sidebar({ items, activeItem, onItemClick, badges = {} })
       <div className="sidebar-footer">
         <button className="sidebar-logout-btn" onClick={logout}>
           <span>🚪</span>
-          Se déconnecter
+          {t('sidebar.logout', 'Se déconnecter')}
         </button>
       </div>
     </aside>

@@ -1,0 +1,121 @@
+/* ============================================================
+   LanguageThemeSwitcher — pills FR/EN + dark/light
+   Utilisable :
+     - floating  : top-right de la landing
+     - inline    : à l'intérieur du Navbar (toutes les dashboards)
+   Le composant utilise uniquement les variables CSS globales,
+   donc il s'adapte tout seul au thème actif.
+   ============================================================ */
+
+.lts {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lts-floating {
+  position: fixed;
+  top: 22px;
+  right: 28px;
+  z-index: 50;
+}
+
+.lts-lang,
+.lts-theme {
+  display: inline-flex;
+  align-items: center;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.lts-lang:hover,
+.lts-theme:hover {
+  border-color: var(--glass-border-gold);
+}
+
+.lts-lang-btn {
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.lts-lang-btn:hover {
+  color: var(--text-primary);
+}
+
+.lts-lang-btn.is-active {
+  background: var(--gold);
+  color: var(--navy-deepest);
+  box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.4), 0 4px 12px rgba(201, 168, 76, 0.22);
+}
+
+.lts-theme {
+  gap: 2px;
+  padding: 3px 5px;
+}
+
+.lts-theme-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity var(--transition-fast), background var(--transition-fast),
+              transform var(--transition-fast);
+}
+
+.lts-theme-icon.is-active {
+  opacity: 1;
+  background: var(--gold-dim);
+  transform: scale(1.05);
+}
+
+.lts-theme:hover .lts-theme-icon:not(.is-active) {
+  opacity: 0.8;
+}
+
+/* Larger pills (landing) */
+.lts-md .lts-lang-btn {
+  font-size: 0.78rem;
+  padding: 6px 14px;
+}
+
+.lts-md .lts-theme {
+  padding: 4px 6px;
+}
+
+.lts-md .lts-theme-icon {
+  width: 26px;
+  height: 26px;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 520px) {
+  .lts-floating {
+    top: 14px;
+    right: 14px;
+    gap: 8px;
+  }
+  .lts-lang-btn {
+    padding: 5px 10px;
+    font-size: 0.72rem;
+  }
+}

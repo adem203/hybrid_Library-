@@ -14,3 +14,4 @@ backend/.env
 backend/.env.*
 backend/uploads/*
 !backend/uploads/.gitkeep
+.claude_old/

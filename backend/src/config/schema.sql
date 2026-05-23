@@ -15,7 +15,9 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     email VARCHAR(150) UNIQUE NOT NULL,
     mot_de_passe VARCHAR(255) NOT NULL,
     role VARCHAR(30) NOT NULL CHECK (role IN ('ETUDIANT', 'ENSEIGNANT', 'BIBLIOTHECAIRE', 'ADMIN')),
+    matricule VARCHAR(20) UNIQUE,
     est_bloque BOOLEAN DEFAULT FALSE,
+    password_changed_at TIMESTAMP NULL,
     date_creation TIMESTAMP DEFAULT NOW(),
     date_modification TIMESTAMP DEFAULT NOW()
 );
@@ -114,13 +116,135 @@ CREATE TABLE IF NOT EXISTS historique_lectures (
 );
 
 -- =========================================================
+-- TABLE : password_reset_codes
+-- =========================================================
+CREATE TABLE IF NOT EXISTS password_reset_codes (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
+    code_hash TEXT NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used_at TIMESTAMP NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- =========================================================
+-- TABLE : pending_registrations (inscriptions en attente OTP)
+-- =========================================================
+CREATE TABLE IF NOT EXISTS pending_registrations (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    mot_de_passe_hash VARCHAR(255) NOT NULL,
+    nom VARCHAR(100) NOT NULL,
+    prenom VARCHAR(100) NOT NULL,
+    role VARCHAR(30) NOT NULL CHECK (role IN ('ETUDIANT', 'ENSEIGNANT', 'BIBLIOTHECAIRE')),
+    code_hash TEXT NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    last_sent_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- =========================================================
+-- TABLE : login_otps (2FA email pour chaque connexion)
+-- =========================================================
+CREATE TABLE IF NOT EXISTS login_otps (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
+    code_hash TEXT NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used_at TIMESTAMP NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    last_sent_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- =========================================================
 -- INDEX pour les recherches fréquentes
 -- =========================================================
+-- =========================================================
+-- TABLE : support_tickets
+-- =========================================================
+CREATE TABLE IF NOT EXISTS support_tickets (
+    id_ticket SERIAL PRIMARY KEY,
+    id_user INTEGER NOT NULL REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
+    sujet VARCHAR(255) NOT NULL,
+    type_probleme VARCHAR(100) NOT NULL,
+    message TEXT NOT NULL,
+    related_text VARCHAR(255),
+    statut VARCHAR(50) NOT NULL DEFAULT 'EN_ATTENTE'
+        CHECK (statut IN ('EN_ATTENTE', 'REPONDU', 'FERME')),
+    reponse_admin TEXT,
+    date_creation TIMESTAMP DEFAULT NOW(),
+    date_reponse TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_ressources_titre ON ressources USING gin(to_tsvector('french', titre));
 CREATE INDEX IF NOT EXISTS idx_ressources_auteur ON ressources(auteur);
 CREATE INDEX IF NOT EXISTS idx_emprunts_user ON emprunts(id_user);
 CREATE INDEX IF NOT EXISTS idx_emprunts_statut ON emprunts(statut);
 CREATE INDEX IF NOT EXISTS idx_emprunts_retard ON emprunts(date_retour_prevue) WHERE statut = 'EN_COURS';
+CREATE INDEX IF NOT EXISTS idx_password_reset_codes_user_unused ON password_reset_codes(user_id, created_at DESC) WHERE used_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_password_reset_codes_expires_at ON password_reset_codes(expires_at);
+CREATE INDEX IF NOT EXISTS idx_pending_registrations_expires_at ON pending_registrations(expires_at);
+CREATE INDEX IF NOT EXISTS idx_login_otps_user_unused ON login_otps(user_id, created_at DESC) WHERE used_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_login_otps_expires_at ON login_otps(expires_at);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_user_created ON support_tickets(id_user, date_creation DESC);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_statut ON support_tickets(statut);
+
+-- =========================================================
+-- TABLE : notifications (admin inbox)
+-- =========================================================
+CREATE TABLE IF NOT EXISTS notifications (
+    id              SERIAL PRIMARY KEY,
+    title           VARCHAR(255) NOT NULL,
+    message         TEXT         NOT NULL,
+    type            VARCHAR(50)  NOT NULL
+        CHECK (type IN ('BOOK_RESERVATION', 'SUPPORT_TICKET',
+                        'DOCUMENT_UPLOAD',  'OVERDUE_LOAN',
+                        'BOOK_LOAN_REQUEST', 'GENERAL')),
+    recipient_role  VARCHAR(30)
+        CHECK (recipient_role IN ('ADMIN', 'BIBLIOTHECAIRE', 'ENSEIGNANT', 'ETUDIANT')),
+    recipient_id    INTEGER REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
+    is_read         BOOLEAN NOT NULL DEFAULT FALSE,
+    related_entity_type VARCHAR(50),
+    related_entity_id   INTEGER,
+    target_url      VARCHAR(255),
+    created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+    read_at         TIMESTAMP,
+    CHECK (recipient_role IS NOT NULL OR recipient_id IS NOT NULL)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS notifications_dedup_unique
+    ON notifications (
+        type,
+        COALESCE(related_entity_type, ''),
+        COALESCE(related_entity_id, 0),
+        COALESCE(recipient_role, ''),
+        COALESCE(recipient_id, 0)
+    );
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient_role_unread
+    ON notifications(recipient_role, is_read, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient_id_unread
+    ON notifications(recipient_id, is_read, created_at DESC);
+
+DO $$
+DECLARE
+    app_role text := 'biblio_user';
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = app_role) THEN
+        EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE password_reset_codes TO %I', app_role);
+        EXECUTE format('GRANT USAGE, SELECT ON SEQUENCE password_reset_codes_id_seq TO %I', app_role);
+        EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE pending_registrations TO %I', app_role);
+        EXECUTE format('GRANT USAGE, SELECT ON SEQUENCE pending_registrations_id_seq TO %I', app_role);
+        EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE login_otps TO %I', app_role);
+        EXECUTE format('GRANT USAGE, SELECT ON SEQUENCE login_otps_id_seq TO %I', app_role);
+        EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE support_tickets TO %I', app_role);
+        EXECUTE format('GRANT USAGE, SELECT ON SEQUENCE support_tickets_id_ticket_seq TO %I', app_role);
+        EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE notifications TO %I', app_role);
+        EXECUTE format('GRANT USAGE, SELECT ON SEQUENCE notifications_id_seq TO %I', app_role);
+    END IF;
+END $$;
 
 -- =========================================================
 -- DONNÉES INITIALES (seed)

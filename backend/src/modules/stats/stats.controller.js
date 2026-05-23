@@ -223,16 +223,19 @@ const getMesCours = async (req, res) => {
   try {
     const result = await query(`
       SELECT
-        r.id_ressource, r.titre, r.date_creation,
-        dn.format, dn.taille_ko,
+        r.id_ressource, r.titre, r.auteur, r.description, r.id_categorie, r.date_publication, r.date_creation,
+        c.libelle AS categorie,
+        dn.nom_fichier, dn.format, dn.taille_ko,
         dn.nb_consultations,
         dn.est_telechargeable,
-        COUNT(hl.id) AS nb_lecteurs_uniques
+        MAX(hl.date_lecture) AS derniere_consultation,
+        COUNT(DISTINCT hl.id_user) AS nb_lecteurs_uniques
       FROM documents_numeriques dn
       INNER JOIN ressources r ON r.id_ressource = dn.id_ressource
+      LEFT JOIN categories c ON c.id_categorie = r.id_categorie
       LEFT JOIN historique_lectures hl ON hl.id_document = dn.id_ressource
       WHERE dn.id_uploade_par = $1
-      GROUP BY r.id_ressource, dn.id_ressource
+      GROUP BY r.id_ressource, c.libelle, dn.id_ressource
       ORDER BY r.date_creation DESC
     `, [req.user.id_user]);
 
@@ -243,10 +246,117 @@ const getMesCours = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────
+// GET /api/v1/stats/admin
+// Stats admin : utilisateurs par rôle, réservations, formats documents
+// ─────────────────────────────────────────────
+const getAdminStats = async (req, res) => {
+  try {
+    const [usersParRole, reservationsParStatut, documentsParFormat] = await Promise.all([
+      query(`
+        SELECT role, COUNT(*) AS total
+        FROM utilisateurs
+        GROUP BY role
+        ORDER BY total DESC
+      `),
+      query(`
+        SELECT statut, COUNT(*) AS total
+        FROM reservations
+        GROUP BY statut
+        ORDER BY
+          CASE statut
+            WHEN 'EN_ATTENTE' THEN 1
+            WHEN 'CONFIRMEE' THEN 2
+            WHEN 'ANNULEE' THEN 3
+            WHEN 'EXPIREE' THEN 4
+            ELSE 5
+          END,
+          statut ASC
+      `),
+      query(`
+        SELECT format, COUNT(*) AS total
+        FROM documents_numeriques
+        GROUP BY format
+        ORDER BY total DESC
+      `),
+    ]);
+
+    const totalUsers = usersParRole.rows.reduce((acc, r) => acc + parseInt(r.total), 0);
+    const totalReservations = reservationsParStatut.rows.reduce((acc, r) => acc + parseInt(r.total), 0);
+    const reservationsEnAttente = parseInt(
+      reservationsParStatut.rows.find(r => r.statut === 'EN_ATTENTE')?.total || 0
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        users: {
+          total: totalUsers,
+          par_role: usersParRole.rows,
+        },
+        reservations: {
+          total: totalReservations,
+          en_attente: reservationsEnAttente,
+          par_statut: reservationsParStatut.rows,
+        },
+        documents_formats: documentsParFormat.rows,
+      },
+    });
+  } catch (error) {
+    console.error('Erreur getAdminStats:', error);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+};
+
+// ─────────────────────────────────────────────────────
+// GET /api/v1/stats/reservations
+// Statistiques des réservations par statut
+// ─────────────────────────────────────────────────────
+const getStatsReservations = async (req, res) => {
+  try {
+    const reservationsParStatut = await query(`
+      SELECT statut, COUNT(*) AS total
+      FROM reservations
+      GROUP BY statut
+      ORDER BY
+        CASE statut
+          WHEN 'EN_ATTENTE' THEN 1
+          WHEN 'CONFIRMEE' THEN 2
+          WHEN 'ANNULEE' THEN 3
+          WHEN 'EXPIREE' THEN 4
+          ELSE 5
+        END,
+        statut ASC
+    `);
+
+    const totalReservations = reservationsParStatut.rows.reduce(
+      (acc, r) => acc + parseInt(r.total),
+      0
+    );
+    const reservationsEnAttente = parseInt(
+      reservationsParStatut.rows.find(r => r.statut === 'EN_ATTENTE')?.total || 0
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        total: totalReservations,
+        en_attente: reservationsEnAttente,
+        par_statut: reservationsParStatut.rows,
+      },
+    });
+  } catch (error) {
+    console.error('Erreur getStatsReservations:', error);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getStatsEmprunts,
   getRessourcesPopulaires,
   getRepartition,
   getMesCours,
+  getStatsReservations,
+  getAdminStats,
 };

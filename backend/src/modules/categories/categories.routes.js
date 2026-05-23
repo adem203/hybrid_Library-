@@ -11,8 +11,9 @@ const categorieValidation = [
 
 router.get('/', authMiddleware, categoriesController.getAllCategories);
 router.get('/:id', authMiddleware, categoriesController.getCategorieById);
+router.get('/:id/ressources', authMiddleware, categoriesController.getCategorieRessources);
 router.post('/', authMiddleware, isBibliothecaire, categorieValidation, categoriesController.createCategorie);
-router.put('/:id', authMiddleware, isBibliothecaire, categoriesController.updateCategorie);
+router.put('/:id', authMiddleware, isBibliothecaire, categorieValidation, categoriesController.updateCategorie);
 router.delete('/:id', authMiddleware, isBibliothecaire, categoriesController.deleteCategorie);
 
 module.exports = router;

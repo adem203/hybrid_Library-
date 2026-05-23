@@ -22,7 +22,7 @@ router.get('/:id', authMiddleware, livresController.getLivreById);
 
 // Routes bibliothécaire seulement
 router.post('/', authMiddleware, isBibliothecaire, uploadImage, livreValidation, livresController.createLivre);
-router.put('/:id', authMiddleware, isBibliothecaire, uploadImage, livresController.updateLivre);
+router.put('/:id', authMiddleware, isBibliothecaire, uploadImage, livreValidation, livresController.updateLivre);
 router.delete('/:id', authMiddleware, isBibliothecaire, livresController.deleteLivre);
 
 module.exports = router;

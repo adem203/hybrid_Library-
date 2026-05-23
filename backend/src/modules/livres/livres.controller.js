@@ -14,6 +14,7 @@ const getAllLivres = async (req, res) => {
       categorie,
       disponible,
       rayon,
+      q,
       sort = 'date_creation',
       order = 'DESC',
     } = req.query;
@@ -33,6 +34,14 @@ const getAllLivres = async (req, res) => {
     if (rayon) {
       whereConditions.push(`lp.emplacement_rayon ILIKE $${paramIndex++}`);
       params.push(`%${rayon}%`);
+    }
+    if (q && q.trim().length > 0) {
+      const term = `%${q.trim()}%`;
+      whereConditions.push(
+        `(r.titre ILIKE $${paramIndex} OR r.auteur ILIKE $${paramIndex} OR lp.isbn ILIKE $${paramIndex})`
+      );
+      params.push(term);
+      paramIndex++;
     }
 
     const whereClause = 'WHERE ' + whereConditions.join(' AND ');
@@ -245,6 +254,11 @@ const createLivre = async (req, res) => {
 // Modifier un livre
 // ─────────────────────────────────────────────
 const updateLivre = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ success: false, errors: errors.array() });
+  }
+
   const { id } = req.params;
   const {
     titre, auteur, date_publication, description, id_categorie,
@@ -255,14 +269,35 @@ const updateLivre = async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // Vérifier que le livre existe
+    // Vérifier que le livre existe + récupérer les stocks actuels
     const exists = await client.query(
-      "SELECT id_ressource FROM ressources WHERE id_ressource = $1 AND type_ressource = 'PHYSIQUE'",
+      `SELECT lp.stock_total, lp.stock_disponible
+       FROM ressources r
+       INNER JOIN livres_physiques lp ON lp.id_ressource = r.id_ressource
+       WHERE r.id_ressource = $1 AND r.type_ressource = 'PHYSIQUE'`,
       [id]
     );
     if (exists.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ success: false, message: 'Livre introuvable.' });
+    }
+
+    // Cohérence des stocks : stock_disponible <= stock_total
+    const newStockTotal = stock_total != null && stock_total !== ''
+      ? parseInt(stock_total) : exists.rows[0].stock_total;
+    const newStockDispo = stock_disponible != null && stock_disponible !== ''
+      ? parseInt(stock_disponible) : exists.rows[0].stock_disponible;
+    if (Number.isNaN(newStockTotal) || newStockTotal < 0
+        || Number.isNaN(newStockDispo) || newStockDispo < 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ success: false, message: 'Les stocks doivent être des entiers positifs.' });
+    }
+    if (newStockDispo > newStockTotal) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({
+        success: false,
+        message: 'Le stock disponible ne peut pas dépasser le stock total.',
+      });
     }
 
     // Mettre à jour la couverture si uploadée
@@ -315,6 +350,9 @@ const updateLivre = async (req, res) => {
 
   } catch (error) {
     await client.query('ROLLBACK');
+    if (error.code === '23505') {
+      return res.status(409).json({ success: false, message: 'Un livre avec cet ISBN existe déjà.' });
+    }
     console.error('Erreur updateLivre:', error);
     return res.status(500).json({ success: false, message: 'Erreur serveur.' });
   } finally {
@@ -339,6 +377,19 @@ const deleteLivre = async (req, res) => {
       return res.status(409).json({
         success: false,
         message: `Impossible de supprimer : ${activeLoans.rows.length} emprunt(s) en cours sur ce livre.`,
+      });
+    }
+
+    // Vérifier qu'il n'y a pas de réservations actives
+    const activeReservations = await query(
+      "SELECT id_reservation FROM reservations WHERE id_livre = $1 AND statut IN ('EN_ATTENTE', 'CONFIRMEE')",
+      [id]
+    );
+
+    if (activeReservations.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: `Impossible de supprimer : ${activeReservations.rows.length} réservation(s) active(s) sur ce livre.`,
       });
     }
 
