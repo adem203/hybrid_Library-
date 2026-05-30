@@ -88,6 +88,13 @@ const getMyNotifications = async (req, res) => {
 // GET /api/v1/notifications/unread-count
 // ─────────────────────────────────────────────
 const getUnreadCount = async (req, res) => {
+  if (!req.user || !req.user.id_user || !req.user.role) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentification requise.',
+    });
+  }
+
   try {
     const vis = buildVisibilityClause(req.user, 1);
     const result = await query(

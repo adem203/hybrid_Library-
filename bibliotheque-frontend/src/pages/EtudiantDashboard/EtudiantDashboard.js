@@ -571,8 +571,80 @@ const getSupportProblemTypeLabel = (value, t) => {
   return type ? t(type.i18nKey) : (value || '—');
 };
 
+// ── Student home icons ──────────────────────────────────────
+// Inline SVGs in a consistent Lucide-style family (24×24 viewBox,
+// stroke 1.75, round caps/joins, no fill). Sized via 1em so they
+// scale with the parent container's font-size.
+const STUDENT_ICON_PATHS = {
+  // Open book → active loans
+  loan: (
+    <>
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+    </>
+  ),
+  // Bookmark → pending reservations
+  reservation: (
+    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+  ),
+  // File-text → viewed documents
+  document: (
+    <>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <line x1="10" y1="9" x2="8" y2="9" />
+    </>
+  ),
+  // Clock with rewind arrow → reading history
+  history: (
+    <>
+      <path d="M3 12a9 9 0 1 0 9-9 9.74 9.74 0 0 0-6.74 2.74L3 8" />
+      <polyline points="3 3 3 8 8 8" />
+      <polyline points="12 7 12 12 16 14" />
+    </>
+  ),
+  // Search → catalog quick action
+  search: (
+    <>
+      <circle cx="11" cy="11" r="7" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </>
+  ),
+  // Library / column chart → digital library quick action
+  library: (
+    <>
+      <line x1="4"  y1="4"  x2="4"  y2="20" />
+      <line x1="8"  y1="8"  x2="8"  y2="20" />
+      <line x1="12" y1="6"  x2="12" y2="20" />
+      <line x1="16" y1="10" x2="16" y2="20" />
+      <line x1="20" y1="6"  x2="20" y2="20" />
+    </>
+  ),
+};
+
 function StudentHomeIcon({ name }) {
-  return <span className={`student-home-icon icon-${name}`} aria-hidden="true" />;
+  const paths = STUDENT_ICON_PATHS[name];
+  if (!paths) {
+    // Fallback for any legacy name → keeps the old CSS-char rendering.
+    return <span className={`student-home-icon icon-${name}`} aria-hidden="true" />;
+  }
+  return (
+    <span className={`student-home-icon icon-${name}`} aria-hidden="true">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        focusable="false"
+      >
+        {paths}
+      </svg>
+    </span>
+  );
 }
 
 function Pagination({ page, totalPages, total, onChange, itemLabelKey = 'student.catalog.bookCount' }) {
@@ -1531,29 +1603,53 @@ export default function EtudiantDashboard() {
             <div className="student-home-page">
               <section className="student-home-hero">
                 <div className="student-home-hero-copy">
-                  <div className="student-home-kicker">{t('student.welcome.kicker')}</div>
+                  <div className="student-home-kicker">
+                    {t('student.welcome.kicker')}
+                    <span className="kicker-spark" aria-hidden="true">✦</span>
+                  </div>
                   <h1>{t('student.hello')}, <span>{getStudentName(user, t)}</span></h1>
                   <p>{t('student.welcome.intro')}</p>
                   <p className="student-home-hero-subline">{t('student.welcome.subline')}</p>
                 </div>
+                <div className="student-home-hero-action">
+                  <button className="student-home-primary" type="button" onClick={() => setActiveItem('catalogue')}>
+                    <StudentHomeIcon name="search" />
+                    {t('student.welcome.searchBook')}
+                  </button>
+                </div>
                 <div className="student-home-hero-visual" aria-hidden="true">
-                  <div className="student-hero-book">
-                    <span />
-                    <span />
-                  </div>
-                  <div className="student-hero-building">
-                    <span />
-                    <span />
-                    <span />
-                    <span />
+                  {/* Flat academic illustration: stacked books, classical
+                      columns, desk lamp, open book and a small plant. */}
+                  <div className="student-hero-scene">
+                    <span className="hero-art hero-art-shelf hero-art-shelf-1" />
+                    <span className="hero-art hero-art-shelf hero-art-shelf-2" />
+                    <span className="hero-art hero-art-shelf hero-art-shelf-3" />
+                    <div className="hero-art hero-art-column">
+                      <span className="hero-art-column-cap" />
+                      <span className="hero-art-column-base" />
+                    </div>
+                    <div className="hero-art hero-art-lamp">
+                      <span className="hero-art-lamp-shade" />
+                      <span className="hero-art-lamp-arm" />
+                      <span className="hero-art-lamp-base" />
+                    </div>
+                    <div className="hero-art hero-art-openbook">
+                      <span className="hero-art-openbook-left" />
+                      <span className="hero-art-openbook-right" />
+                    </div>
+                    <div className="hero-art hero-art-plant">
+                      <span className="hero-art-plant-pot" />
+                      <span className="hero-art-plant-leaf hero-art-plant-leaf-l" />
+                      <span className="hero-art-plant-leaf hero-art-plant-leaf-r" />
+                      <span className="hero-art-plant-leaf hero-art-plant-leaf-c" />
+                    </div>
                   </div>
                   <i className="student-hero-spark spark-one" />
                   <i className="student-hero-spark spark-two" />
+                  <i className="student-hero-spark spark-three" />
+                  <i className="student-hero-spark spark-four" />
+                  <i className="student-hero-spark spark-five" />
                 </div>
-                <button className="student-home-primary" type="button" onClick={() => setActiveItem('catalogue')}>
-                  <StudentHomeIcon name="search" />
-                  {t('student.welcome.searchBook')}
-                </button>
               </section>
 
               {homeLoading ? (

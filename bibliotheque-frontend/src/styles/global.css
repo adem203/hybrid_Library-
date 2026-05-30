@@ -626,6 +626,34 @@ ul, ol { list-style: none; }
   color: var(--text);
 }
 
+/* ── Native <select> dropdown: dark-mode parity ───────────
+   Browsers paint <option> with OS defaults (white + dark text)
+   unless we explicitly set background-color/color. The light
+   override above already handles light mode for .form-select.
+   The block below covers BOTH .form-input and .form-select in
+   dark mode (default theme), so the open dropdown list on the
+   Books page filters reads cleanly on the dark canvas.
+   Hover/selected states are paint-controlled by the OS on most
+   browsers and cannot be styled reliably from CSS, so we keep
+   the safest minimal contract: dark bg + light text. */
+select.form-input option,
+select.form-select option {
+  background-color: var(--surface-2);
+  color: var(--text-primary);
+}
+
+/* Explicit light-mode parity for .form-input selects, mirroring
+   the .form-select rule above so the Books page filters behave
+   identically regardless of which class they carry. */
+[data-theme="light"] select.form-input option {
+  background-color: #ffffff;
+  color: var(--text);
+}
+
+/* Closed-state focus ring for <select.form-input> reuses the
+   gold accent already defined on .form-input:focus — no extra
+   rule needed. */
+
 /* ── Modals (auth reset, OTP, generic) ────────────────── */
 [data-theme="light"] .reset-modal-backdrop {
   background: rgba(20, 28, 60, 0.45);

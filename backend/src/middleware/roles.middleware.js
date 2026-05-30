@@ -20,6 +20,9 @@ const requireRole = (...roles) => {
 };
 
 // Raccourcis pratiques
+// GUEST is intentionally absent from every shortcut below: guests can only
+// log in and call /auth/me. All resource routes guarded by these helpers
+// deny GUEST by default (via requireRole's not-in-list 403).
 const isAdmin = requireRole('ADMIN', 'BIBLIOTHECAIRE');
 const isBibliothecaire = requireRole('BIBLIOTHECAIRE', 'ADMIN');
 const isEnseignant = requireRole('ENSEIGNANT', 'ADMIN');

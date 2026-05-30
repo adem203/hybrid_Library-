@@ -19,28 +19,38 @@ function ProtectedRoute({ children, allowedRoles }) {
   return children;
 }
 
+// Roles that own a private dashboard. GUEST does not — guests stay on the
+// public landing page until staff converts their account to STUDENT/TEACHER.
+const ROLE_DASHBOARD_ROUTES = {
+  ADMIN: '/admin',
+  BIBLIOTHECAIRE: '/bibliothecaire',
+  ETUDIANT: '/etudiant',
+  ENSEIGNANT: '/enseignant',
+};
+
 // Redirection automatique selon le rôle
 function RoleRedirect() {
   const { user } = useAuth();
   if (!user) return <Navigate to="/" replace />;
-  const routes = {
-    ADMIN: '/admin',
-    BIBLIOTHECAIRE: '/bibliothecaire',
-    ETUDIANT: '/etudiant',
-    ENSEIGNANT: '/enseignant',
-  };
-  return <Navigate to={routes[user.role] || '/'} replace />;
+  const target = ROLE_DASHBOARD_ROUTES[user.role];
+  // GUEST (or any unknown role) has no dashboard: render the landing page.
+  if (!target) return <LandingPage />;
+  return <Navigate to={target} replace />;
 }
 
 function AppRoutes() {
   const { user } = useAuth();
+  const hasDashboard = user && ROLE_DASHBOARD_ROUTES[user.role];
 
   return (
     <Routes>
-      {/* Page publique d'accueil / login */}
+      {/* Page publique d'accueil / login.
+          - Anonymous user → landing.
+          - GUEST (no dashboard) → landing as well.
+          - STUDENT / TEACHER / LIBRARIAN / ADMIN → redirect to their dashboard. */}
       <Route
         path="/"
-        element={user ? <RoleRedirect /> : <LandingPage />}
+        element={hasDashboard ? <RoleRedirect /> : <LandingPage />}
       />
 
       {/* Admin */}

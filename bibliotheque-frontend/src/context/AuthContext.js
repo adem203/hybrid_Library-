@@ -33,7 +33,16 @@ export const AuthProvider = ({ children }) => {
     return setSession(token, userData);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Best-effort: tell the backend so it can record last_logout_at. Local
+    // sign-out must still happen even if the network call fails.
+    try {
+      if (localStorage.getItem('token')) {
+        await authAPI.logout();
+      }
+    } catch (_e) {
+      /* ignore — proceed with local sign-out */
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);

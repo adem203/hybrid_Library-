@@ -6,7 +6,14 @@ const { validationResult } = require('express-validator');
 const { assertBrevoConfig, sendPasswordResetCode, sendEmailVerificationCode } = require('../../services/brevo.service');
 
 const STUDENT_ROLE = 'ETUDIANT';
-const MATRICULE_PREFIX = 'ETU';
+const GUEST_ROLE = 'GUEST';
+const PUBLIC_REGISTRATION_ROLE = GUEST_ROLE;
+const MATRICULE_PREFIXES = Object.freeze({
+  ETUDIANT: 'ETU',
+  ENSEIGNANT: 'ENS',
+  ADMIN: 'ADM',
+  BIBLIOTHECAIRE: 'ADM',
+});
 const USER_EDITABLE_ROLES = ['ETUDIANT', 'ENSEIGNANT'];
 const PROTECTED_ADMIN_ROLES = ['ADMIN', 'BIBLIOTHECAIRE'];
 const PASSWORD_CHANGE_INTERVAL_DAYS = 30;
@@ -17,6 +24,22 @@ const OTP_MAX_ATTEMPTS = 5;
 const OTP_RESEND_COOLDOWN_SECONDS = 60;
 
 const isStudentRole = (role) => role === STUDENT_ROLE;
+
+const getMatriculePrefix = (role) => MATRICULE_PREFIXES[role] || null;
+const roleNeedsMatricule = (role) => Boolean(getMatriculePrefix(role));
+
+// Stable advisory-lock key per (prefix, year) to serialize sequence generation
+// for the same bucket. Falls inside Postgres bigint range and never collides
+// with the legacy student-only key shape (which lived around 202600000+year).
+const matriculeAdvisoryLockKey = (prefix, year) => {
+  const safePrefix = String(prefix).padEnd(4, '_').slice(0, 4);
+  let prefixHash = 0;
+  for (let i = 0; i < safePrefix.length; i += 1) {
+    prefixHash = (prefixHash * 131 + safePrefix.charCodeAt(i)) >>> 0;
+  }
+  // 0x70000000 keeps the key in a fixed positive range distinct from year-only keys
+  return (0x70000000 + (prefixHash % 1000) * 100000 + (year % 100000));
+};
 
 const addDays = (date, days) => {
   const nextDate = new Date(date);
@@ -296,32 +319,45 @@ const validateResetCodeForUser = async ({ userId, code, client = null, lock = fa
   return { valid: true, resetCode };
 };
 
-const formatStudentMatricule = (year, sequence) => (
-  `${MATRICULE_PREFIX}-${year}-${String(sequence).padStart(4, '0')}`
+const formatMatricule = (prefix, year, sequence) => (
+  `${prefix}-${year}-${String(sequence).padStart(4, '0')}`
 );
 
-const generateStudentMatricule = async (client, accountCreationDate = new Date()) => {
+// Generate the next matricule for a given role, scoped per (prefix, year).
+// Returns null for roles that do not get a matricule (e.g. GUEST).
+const generateMatricule = async (client, role, accountCreationDate = new Date()) => {
+  const prefix = getMatriculePrefix(role);
+  if (!prefix) return null;
+
   const year = new Date(accountCreationDate).getFullYear();
+  await client.query(
+    'SELECT pg_advisory_xact_lock($1::bigint)',
+    [matriculeAdvisoryLockKey(prefix, year)]
+  );
 
-  await client.query('SELECT pg_advisory_xact_lock($1::bigint)', [202600000 + year]);
-
+  // Look across all rows whose matricule matches this (prefix, year) bucket —
+  // prefixes are role-disjoint (ADM covers ADMIN + BIBLIOTHECAIRE), so a
+  // pattern match is sufficient and avoids gaps when a role moves.
   const result = await client.query(
     `SELECT COALESCE(MAX((substring(matricule FROM $1))::integer), 0) AS max_num
      FROM utilisateurs
-     WHERE role = $2
-       AND matricule LIKE $3`,
-    [`^${MATRICULE_PREFIX}-${year}-([0-9]{4})$`, STUDENT_ROLE, `${MATRICULE_PREFIX}-${year}-%`]
+     WHERE matricule LIKE $2`,
+    [`^${prefix}-${year}-([0-9]{4})$`, `${prefix}-${year}-%`]
   );
 
   const nextSequence = parseInt(result.rows[0]?.max_num || 0, 10) + 1;
   if (nextSequence > 9999) {
-    throw new Error(`Limite annuelle de matricules atteinte pour ${year}.`);
+    throw new Error(`Limite annuelle de matricules atteinte pour ${prefix}-${year}.`);
   }
 
-  return formatStudentMatricule(year, nextSequence);
+  return formatMatricule(prefix, year, nextSequence);
 };
 
-const assignMissingStudentMatricule = async (idUser) => {
+// Back-compat alias — student call sites still read clearer with this name.
+const generateStudentMatricule = (client, accountCreationDate = new Date()) =>
+  generateMatricule(client, STUDENT_ROLE, accountCreationDate);
+
+const assignMissingMatricule = async (idUser) => {
   const client = await getClient();
 
   try {
@@ -336,12 +372,12 @@ const assignMissingStudentMatricule = async (idUser) => {
     );
 
     const user = userResult.rows[0];
-    if (!user || !isStudentRole(user.role) || user.matricule) {
+    if (!user || !roleNeedsMatricule(user.role) || user.matricule) {
       await client.query('COMMIT');
       return user?.matricule || null;
     }
 
-    const matricule = await generateStudentMatricule(client, user.date_creation);
+    const matricule = await generateMatricule(client, user.role, user.date_creation);
     await client.query(
       `UPDATE utilisateurs
        SET matricule = $1, date_modification = NOW()
@@ -370,9 +406,12 @@ const register = async (req, res) => {
     return res.status(400).json({ success: false, errors: errors.array() });
   }
 
-  const { nom, prenom, email, mot_de_passe, role } = req.body;
+  // SECURITY: public self-registration always creates a GUEST account.
+  // Any role sent from the client is ignored. STUDENT/TEACHER accounts
+  // must be created by staff via POST /auth/users.
+  const { nom, prenom, email, mot_de_passe } = req.body;
   const normalizedEmail = normalizeEmail(email);
-  const assignedRole = role || STUDENT_ROLE;
+  const assignedRole = PUBLIC_REGISTRATION_ROLE;
   const ttlMinutes = getOtpTtlMinutes();
 
   try {
@@ -512,14 +551,14 @@ const verifyRegistration = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Code invalide ou expiré.' });
     }
 
-    const matricule = isStudentRole(pending.role)
-      ? await generateStudentMatricule(client)
+    const matricule = roleNeedsMatricule(pending.role)
+      ? await generateMatricule(client, pending.role)
       : null;
 
     const insertResult = await client.query(
-      `INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, role, matricule)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id_user, nom, prenom, email, role, matricule, password_changed_at, date_creation`,
+      `INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, role, matricule, last_login_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+       RETURNING id_user, nom, prenom, email, role, matricule, password_changed_at, date_creation, last_login_at`,
       [pending.nom, pending.prenom, pending.email, pending.mot_de_passe_hash, pending.role, matricule]
     );
 
@@ -527,6 +566,9 @@ const verifyRegistration = async (req, res) => {
     await client.query('COMMIT');
 
     const user = insertResult.rows[0];
+    // TEMP DEBUG — remove once login tracking is confirmed in production.
+    console.log('[LOGIN TRACKING] route=/auth/verify-registration id_user=%s last_login_at=%s',
+      user.id_user, user.last_login_at);
     const token = issueAuthToken(user);
 
     return res.status(201).json({
@@ -819,7 +861,19 @@ const verifyLogin = async (req, res) => {
     }
 
     await client.query('UPDATE login_otps SET used_at = NOW() WHERE id = $1', [otp.id]);
+    const loginUpdate = await client.query(
+      `UPDATE utilisateurs
+       SET last_login_at = NOW(),
+           date_modification = NOW()
+       WHERE id_user = $1
+       RETURNING last_login_at`,
+      [user.id_user]
+    );
     await client.query('COMMIT');
+
+    // TEMP DEBUG — remove once login tracking is confirmed in production.
+    console.log('[LOGIN TRACKING] route=/auth/verify-login id_user=%s rowCount=%s last_login_at=%s',
+      user.id_user, loginUpdate.rowCount, loginUpdate.rows[0]?.last_login_at);
 
     const token = issueAuthToken(user);
 
@@ -933,6 +987,42 @@ const resendLoginCode = async (req, res) => {
     logAuthError('Erreur resendLoginCode:', error);
     const response = getOtpServerErrorResponse(error);
     return res.status(response.status).json(response.body);
+  }
+};
+
+// ─────────────────────────────────────────────
+// POST /api/v1/auth/logout
+// Enregistre l'horodatage de la déconnexion explicite de l'utilisateur connecté.
+// Le JWT reste valide jusqu'à expiration côté serveur ; ce endpoint sert
+// uniquement à tracer la date de dernière déconnexion.
+// ─────────────────────────────────────────────
+const logout = async (req, res) => {
+  try {
+    const result = await query(
+      `UPDATE utilisateurs
+       SET last_logout_at = NOW(),
+           date_modification = NOW()
+       WHERE id_user = $1
+       RETURNING last_logout_at`,
+      [req.user.id_user]
+    );
+
+    // TEMP DEBUG — remove once logout tracking is confirmed in production.
+    console.log('[LOGOUT TRACKING] route=/auth/logout id_user=%s rowCount=%s last_logout_at=%s',
+      req.user.id_user, result.rowCount, result.rows[0]?.last_logout_at);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Déconnexion enregistrée.',
+      last_logout_at: result.rows[0].last_logout_at,
+    });
+  } catch (error) {
+    console.error('Erreur logout:', error);
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
   }
 };
 
@@ -1156,8 +1246,8 @@ const getMe = async (req, res) => {
     );
 
     const user = result.rows[0];
-    if (user && isStudentRole(user.role) && !user.matricule) {
-      user.matricule = await assignMissingStudentMatricule(user.id_user);
+    if (user && roleNeedsMatricule(user.role) && !user.matricule) {
+      user.matricule = await assignMissingMatricule(user.id_user);
     }
 
     return res.status(200).json({
@@ -1404,7 +1494,8 @@ const getAllUsers = async (req, res) => {
     params.push(offset);
 
     const result = await query(
-      `SELECT id_user, nom, prenom, email, role, matricule, est_bloque, date_creation
+      `SELECT id_user, nom, prenom, email, role, matricule, est_bloque,
+              date_creation, last_login_at, last_logout_at
        FROM utilisateurs ${whereClause}
        ORDER BY date_creation DESC
        LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
@@ -1465,7 +1556,7 @@ const createUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(req.body.mot_de_passe, 10);
     const matricule = requestedMatricule || (
-      isStudentRole(role) ? await generateStudentMatricule(client) : null
+      roleNeedsMatricule(role) ? await generateMatricule(client, role) : null
     );
 
     const result = await client.query(
@@ -1555,9 +1646,10 @@ const updateUser = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Rôle invalide.' });
     }
 
-    const matricule = requestedMatricule || (
-      isStudentRole(nextRole) ? (existing.matricule || await generateStudentMatricule(client)) : null
-    );
+    // Never overwrite an existing matricule; only generate when missing and the role qualifies.
+    const matricule = requestedMatricule
+      || existing.matricule
+      || (roleNeedsMatricule(nextRole) ? await generateMatricule(client, nextRole) : null);
 
     const params = [nom, prenom, normalizedEmail, nextRole, matricule, id];
     let passwordSetClause = '';
@@ -1652,6 +1744,7 @@ module.exports = {
   forgotPassword,
   verifyResetCode,
   resetPassword,
+  logout,
   getMe,
   updateMe,
   changePassword,

@@ -13,6 +13,10 @@ import EmpruntsView from './EmpruntsView';
 import ReservationsView from './ReservationsView';
 import AdminSupportView from './AdminSupportView';
 import DateField from '../../components/DateField/DateField';
+import totalUsersIcon from '../../assets/users-stats/total-users.png';
+import studentsIcon from '../../assets/users-stats/students.png';
+import teachersIcon from '../../assets/users-stats/teachers.png';
+import blockedIcon from '../../assets/users-stats/blocked.png';
 import './AdminDashboard.css';
 
 const SIDEBAR_ITEMS = [
@@ -38,15 +42,15 @@ const toDashboardNumber = (value) => {
   return Number.isFinite(numericValue) ? numericValue : null;
 };
 
-const formatDashboardNumber = (value) => {
-  if (value === null || value === undefined) return 'Non disponible';
+const formatDashboardNumber = (value, fallback = '—') => {
+  if (value === null || value === undefined) return fallback;
   return new Intl.NumberFormat('fr-FR').format(value);
 };
 
-const formatDashboardDateTime = (value) => {
-  if (!value) return 'Date non disponible';
+const formatDashboardDateTime = (value, fallback = '—') => {
+  if (!value) return fallback;
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Date non disponible';
+  if (Number.isNaN(date.getTime())) return fallback;
 
   const day = date.toLocaleDateString('fr-FR', {
     day: '2-digit',
@@ -61,38 +65,33 @@ const formatDashboardDateTime = (value) => {
   return `${day} ${time}`;
 };
 
+const DASHBOARD_STATUS_META = {
+  EN_COURS:   { labelKey: 'admin.dashboard.status.enCours',   tone: 'success' },
+  EN_ATTENTE: { labelKey: 'admin.dashboard.status.enAttente', tone: 'warning' },
+  EN_RETARD:  { labelKey: 'admin.dashboard.status.enRetard',  tone: 'danger' },
+  RETOURNE:   { labelKey: 'admin.dashboard.status.retourne',  tone: 'info' },
+  CONFIRMEE:  { labelKey: 'admin.dashboard.status.confirmee', tone: 'success' },
+  ANNULEE:    { labelKey: 'admin.dashboard.status.annulee',   tone: 'muted' },
+  EXPIREE:    { labelKey: 'admin.dashboard.status.expiree',   tone: 'muted' },
+  REFUSE:     { labelKey: 'admin.dashboard.status.refuse',    tone: 'danger' },
+};
+
 const getDashboardStatusMeta = (status) => {
   const normalized = String(status || '').toUpperCase();
-  switch (normalized) {
-    case 'EN_COURS':
-      return { label: 'Emprunt', tone: 'success' };
-    case 'EN_ATTENTE':
-      return { label: 'En attente', tone: 'warning' };
-    case 'EN_RETARD':
-      return { label: 'En retard', tone: 'danger' };
-    case 'RETOURNE':
-      return { label: 'Retour', tone: 'info' };
-    case 'CONFIRMEE':
-      return { label: 'Confirmée', tone: 'success' };
-    case 'ANNULEE':
-      return { label: 'Annulée', tone: 'muted' };
-    case 'EXPIREE':
-      return { label: 'Expirée', tone: 'muted' };
-    case 'REFUSE':
-      return { label: 'Refusé', tone: 'danger' };
-    default:
-      return { label: normalized || 'Statut non disponible', tone: 'muted' };
-  }
+  const meta = DASHBOARD_STATUS_META[normalized];
+  if (meta) return meta;
+  return { labelKey: 'admin.dashboard.status.unknown', fallback: normalized || null, tone: 'muted' };
 };
 
 function DashboardMetricCard({ label, value, subtitle, tone, icon }) {
+  const { t } = useTranslation();
   return (
     <article className={`dashboard-stat-card dashboard-tone-${tone}`}>
       <div className="dashboard-stat-symbol" aria-hidden="true">{icon}</div>
       <div className="dashboard-stat-copy">
         <span>{label}</span>
         <strong className={value === null ? 'dashboard-value-unavailable' : ''}>
-          {formatDashboardNumber(value)}
+          {formatDashboardNumber(value, t('admin.dashboard.notAvailable'))}
         </strong>
         <em>{subtitle}</em>
       </div>
@@ -134,12 +133,12 @@ function DashboardView({ stats, loadingStats }) {
     : null;
   const repartitionData = [
     {
-      name: 'Livres physiques',
+      name: t('admin.dashboard.physicalBooks'),
       value: livresPhysiquesValue,
       color: '#d6a76b',
     },
     {
-      name: 'Documents numériques',
+      name: t('admin.dashboard.digitalDocuments'),
       value: documentsNumeriquesValue,
       color: '#38bdf8',
     },
@@ -160,60 +159,60 @@ function DashboardView({ stats, loadingStats }) {
       value: empruntsActifs,
       subtitle: t('admin.dashboard.activeLoans'),
       tone: 'green',
-      icon: 'EA',
+      icon: '📖',
     },
     {
       label: t('admin.dashboard.pendingReservations'),
       value: reservationsEnAttente,
       subtitle: t('admin.dashboard.requestsToProcess'),
       tone: 'gold',
-      icon: 'RA',
+      icon: '⏳',
     },
     {
       label: t('admin.dashboard.overdueLoans'),
       value: retards,
       subtitle: t('admin.dashboard.overdueLoans'),
       tone: 'red',
-      icon: 'RT',
+      icon: '⚠️',
     },
     {
       label: t('admin.dashboard.booksInStock'),
       value: livresEnStock,
       subtitle: t('admin.dashboard.availableCopies'),
       tone: 'blue',
-      icon: 'LS',
+      icon: '📚',
     },
     {
       label: t('admin.dashboard.digitalDocuments'),
       value: documentsNumeriques,
       subtitle: t('admin.dashboard.registeredDocuments'),
       tone: 'purple',
-      icon: 'DN',
+      icon: '📄',
     },
     {
       label: t('admin.dashboard.totalViews'),
       value: consultations,
       subtitle: t('admin.dashboard.totalRealViews'),
       tone: 'amber',
-      icon: 'CT',
+      icon: '👁',
     },
   ];
 
   const alerts = [
     retards > 0
       ? {
-          title: `${formatDashboardNumber(retards)} emprunt(s) en retard`,
-          text: 'Prêt(s) à relancer ou régulariser.',
+          title: t('admin.dashboard.overdueLoansAlertTitle', { count: retards, formatted: formatDashboardNumber(retards) }),
+          text: t('admin.dashboard.overdueLoansAlertText'),
           tone: 'danger',
-          short: 'RT',
+          short: '⚠️',
         }
       : null,
     reservationsEnAttente > 0
       ? {
-          title: `${formatDashboardNumber(reservationsEnAttente)} réservation(s) en attente`,
-          text: 'Demande(s) à traiter.',
+          title: t('admin.dashboard.pendingReservationsAlertTitle', { count: reservationsEnAttente, formatted: formatDashboardNumber(reservationsEnAttente) }),
+          text: t('admin.dashboard.pendingReservationsAlertText'),
           tone: 'warning',
-          short: 'RA',
+          short: '⏳',
         }
       : null,
   ].filter(Boolean);
@@ -236,7 +235,7 @@ function DashboardView({ stats, loadingStats }) {
         <div className="loading-spinner"><div className="spinner" /></div>
       ) : (
         <>
-          <section className="dashboard-stat-grid" aria-label="Statistiques principales">
+          <section className="dashboard-stat-grid" aria-label={t('admin.dashboard.mainStatsAriaLabel')}>
             {metricCards.map(card => (
               <DashboardMetricCard key={card.label} {...card} />
             ))}
@@ -255,9 +254,12 @@ function DashboardView({ stats, loadingStats }) {
                 <div className="dashboard-activity-list">
                   {recentActivity.map((activity, index) => {
                     const borrower = [activity.prenom, activity.nom].filter(Boolean).join(' ')
-                      || 'Utilisateur non disponible';
-                    const title = activity.titre || 'Titre non disponible';
+                      || t('admin.dashboard.userUnavailable');
+                    const title = activity.titre || t('admin.dashboard.titleUnavailable');
                     const statusMeta = getDashboardStatusMeta(activity.statut);
+                    const statusLabel = statusMeta.labelKey
+                      ? t(statusMeta.labelKey)
+                      : (statusMeta.fallback || t('admin.dashboard.status.unknown'));
 
                     return (
                       <div
@@ -271,9 +273,9 @@ function DashboardView({ stats, loadingStats }) {
                         </div>
                         <div className="dashboard-activity-meta">
                           <span className={`dashboard-status-badge dashboard-status-${statusMeta.tone}`}>
-                            {statusMeta.label}
+                            {statusLabel}
                           </span>
-                          <time>{formatDashboardDateTime(activity.date_creation)}</time>
+                          <time>{formatDashboardDateTime(activity.date_creation, t('admin.dashboard.dateUnavailable'))}</time>
                         </div>
                       </div>
                     );
@@ -281,8 +283,8 @@ function DashboardView({ stats, loadingStats }) {
                 </div>
               ) : (
                 <DashboardEmptyState
-                  title="Aucune activité récente disponible"
-                  text="Les derniers emprunts apparaîtront ici dès qu'ils seront fournis par le backend."
+                  title={t('admin.dashboard.emptyActivityTitle')}
+                  text={t('admin.dashboard.emptyActivityText')}
                 />
               )}
             </article>
@@ -321,8 +323,8 @@ function DashboardView({ stats, loadingStats }) {
                         </PieChart>
                       </ResponsiveContainer>
                       <div className="dashboard-donut-center">
-                        <span>Total</span>
-                        <strong>{formatDashboardNumber(repartitionTotal)}</strong>
+                        <span>{t('admin.dashboard.total')}</span>
+                        <strong>{formatDashboardNumber(repartitionTotal, t('admin.dashboard.notAvailable'))}</strong>
                       </div>
                     </div>
 
@@ -352,8 +354,8 @@ function DashboardView({ stats, loadingStats }) {
                   </div>
                 ) : (
                   <DashboardEmptyState
-                    title="Répartition non disponible"
-                    text="Les volumes de livres et documents ne sont pas disponibles dans les données reçues."
+                    title={t('admin.dashboard.emptyDistributionTitle')}
+                    text={t('admin.dashboard.emptyDistributionText')}
                   />
                 )}
               </article>
@@ -381,7 +383,7 @@ function DashboardView({ stats, loadingStats }) {
                     ))}
                   </div>
                 ) : (
-                  <DashboardEmptyState title="Aucune alerte pour le moment" />
+                  <DashboardEmptyState title={t('admin.dashboard.emptyAlertsTitle')} />
                 )}
               </article>
             </div>
@@ -443,6 +445,8 @@ const userIdDisplay = (user) => {
 const userMatriculeDisplay = (user) => userMatriculeOf(user) || '—';
 const userMatriculeOrId = (user) => userMatriculeOf(user) || (userIdOf(user) != null ? String(userIdOf(user)) : '—');
 const userCreatedAt = (user) => user?.date_creation ?? user?.created_at ?? user?.createdAt ?? null;
+const userLastLoginAt = (user) => user?.last_login_at ?? user?.lastLoginAt ?? null;
+const userLastLogoutAt = (user) => user?.last_logout_at ?? user?.lastLogoutAt ?? null;
 const isTruthyBackendFlag = (value) => {
   if (typeof value === 'boolean') return value;
   if (typeof value === 'number') return value === 1;
@@ -532,52 +536,27 @@ const userEmailSearchText = (user) => normalizeSearch(user?.email);
 const userMatriculeSearchText = (user) => normalizeSearch(userMatriculeOf(user));
 const userIdSearchText = (user) => normalizeSearch(userIdOf(user));
 
-const EMAIL_QUERY_MARKERS = ['gmail', 'yahoo', 'hotmail', 'outlook', 'icloud', 'protonmail'];
-const ROLE_QUERY_VALUES = ['etudiant', 'student', 'enseignant', 'teacher', 'admin', 'administrateur', 'bibliothecaire', 'librarian'];
-const STATUS_QUERY_VALUES = ['actif', 'active', 'bloque', 'blocked', 'inactif', 'inactive'];
-
-const termMatchesToken = (text, term) => text
-  .split(' ')
-  .filter(Boolean)
-  .some(token => token.startsWith(term));
-
-const termsMatchText = (text, terms) => terms.every(term => text.includes(term));
-const termsMatchTokens = (text, terms) => terms.every(term => termMatchesToken(text, term));
-
-const looksLikeEmailQuery = (query) => {
-  if (!query || query.includes(' ')) return false;
-  if (query.includes('@')) return true;
-  if (/^[a-z0-9._%+-]+\.[a-z]{2,}$/.test(query)) return true;
-  if (EMAIL_QUERY_MARKERS.includes(query)) return true;
-  return /[a-z]/.test(query) && /\d/.test(query) && !query.includes('-');
-};
-
-const looksLikeMatriculeQuery = (query) => /^[a-z]{2,5}-?\d{4}-?\d+/.test(query);
-const looksLikeIdQuery = (query) => /^\d+$/.test(query);
-const looksLikeRoleQuery = (terms) => ROLE_QUERY_VALUES.some(value => termsMatchTokens(value, terms));
-const looksLikeStatusQuery = (terms) => STATUS_QUERY_VALUES.some(value => termsMatchTokens(value, terms));
+// Search-by-text matches the placeholder contract:
+// "Search by name, email, registration number, or ID".
+// Each term must appear (as a substring) in at least one of those fields.
+const userPrimarySearchText = (user) => normalizeSearch([
+  userNameSearchText(user),
+  userEmailSearchText(user),
+  userMatriculeSearchText(user),
+  userIdSearchText(user),
+].filter(Boolean).join(' '));
 
 const getUserSearchQuery = (search) => {
   const query = normalizeSearch(search);
   const terms = query.split(' ').filter(Boolean);
-  if (terms.length === 0) return { type: 'empty', query, terms };
-  if (looksLikeIdQuery(query)) return { type: 'id', query, terms };
-  if (looksLikeMatriculeQuery(query)) return { type: 'matricule', query, terms };
-  if (looksLikeEmailQuery(query)) return { type: 'email', query, terms };
-  if (looksLikeRoleQuery(terms)) return { type: 'role', query, terms };
-  if (looksLikeStatusQuery(terms)) return { type: 'status', query, terms };
-  return { type: 'name', query, terms };
+  return { query, terms };
 };
 
 const userMatchesSearchQuery = (user, searchQuery) => {
-  const { type, query, terms } = searchQuery;
-  if (type === 'empty') return true;
-  if (type === 'id') return userIdSearchText(user) === query;
-  if (type === 'matricule') return userMatriculeSearchText(user).includes(query);
-  if (type === 'email') return userEmailSearchText(user).includes(query);
-  if (type === 'role') return termsMatchTokens(userRoleSearchText(user), terms);
-  if (type === 'status') return termsMatchTokens(userStatusSearchText(user), terms);
-  return termsMatchText(userNameSearchText(user), terms);
+  const { terms } = searchQuery;
+  if (terms.length === 0) return true;
+  const haystack = userPrimarySearchText(user);
+  return terms.every(term => haystack.includes(term));
 };
 
 const userEditableRoleValue = (role) => {
@@ -1140,10 +1119,10 @@ function UsersView({ users = [], loading, error, onToggleBlock, onCreateUser, on
       )}
 
       <div className="users-stats-grid">
-        <UserStatCard label={t('admin.users.totalUsers')}      value={stats.total}    meta={t('admin.users.allConfounded')} tone="purple" icon="👥" />
-        <UserStatCard label={t('admin.users.students')}        value={stats.students} meta={`${pct(stats.students)}% ${t('admin.users.ofTotal')}`} tone="blue" icon="◇" />
-        <UserStatCard label={t('admin.users.teachers')}        value={stats.teachers} meta={`${pct(stats.teachers)}% ${t('admin.users.ofTotal')}`} tone="gold" icon="◎" />
-        <UserStatCard label={t('admin.users.blockedAccounts')} value={stats.blocked}  meta={`${pct(stats.blocked)}% ${t('admin.users.ofTotal')}`} tone="red" icon="□" />
+        <UserStatCard label={t('admin.users.totalUsers')}      value={stats.total}    meta={t('admin.users.allConfounded')} tone="purple" icon={<img src={totalUsersIcon} alt="" />} />
+        <UserStatCard label={t('admin.users.students')}        value={stats.students} meta={`${pct(stats.students)}% ${t('admin.users.ofTotal')}`} tone="blue" icon={<img src={studentsIcon} alt="" />} />
+        <UserStatCard label={t('admin.users.teachers')}        value={stats.teachers} meta={`${pct(stats.teachers)}% ${t('admin.users.ofTotal')}`} tone="gold" icon={<img src={teachersIcon} alt="" />} />
+        <UserStatCard label={t('admin.users.blockedAccounts')} value={stats.blocked}  meta={`${pct(stats.blocked)}% ${t('admin.users.ofTotal')}`} tone="red" icon={<img src={blockedIcon} alt="" />} />
       </div>
 
       <div className="users-dashboard-grid">
@@ -1189,6 +1168,8 @@ function UsersView({ users = [], loading, error, onToggleBlock, onCreateUser, on
                     <th>{t('admin.users.tableRole')}</th>
                     <th>{t('admin.users.tableStatus')}</th>
                     <th>{t('admin.users.tableRegisteredOn')}</th>
+                    <th>{t('admin.users.tableLastLogin')}</th>
+                    <th>{t('admin.users.tableLastLogout')}</th>
                     <th>{t('admin.common.actions')}</th>
                   </tr>
                 </thead>
@@ -1221,6 +1202,8 @@ function UsersView({ users = [], loading, error, onToggleBlock, onCreateUser, on
                           </span>
                         </td>
                         <td className="users-mono">{formatAdminDate(userCreatedAt(user))}</td>
+                        <td className="users-mono">{userLastLoginAt(user) ? formatAdminDate(userLastLoginAt(user)) : '—'}</td>
+                        <td className="users-mono">{userLastLogoutAt(user) ? formatAdminDate(userLastLogoutAt(user)) : '—'}</td>
                         <td>
                           <div className="users-actions">
                             <button type="button" className="action-btn action-btn-info" onClick={() => setSelected(user)} disabled={busyId === id}>
@@ -2711,7 +2694,13 @@ function DocumentDetailsModal({ doc, onClose }) {
         type: response.headers['content-type'] || 'application/octet-stream',
       });
       const url = URL.createObjectURL(blob);
-      const opened = window.open(url, '_blank', 'noopener,noreferrer');
+      // NOTE: do NOT pass 'noopener,noreferrer' here. In modern browsers
+      // `window.open` returns null whenever `noopener` is set — even on
+      // success — which would surface a false "popup blocked" warning
+      // every time View works. Modern browsers already disconnect the
+      // opener for `_blank` automatically, and the blob URL is same-origin
+      // and revoked after 60 s, so dropping the flag is safe.
+      const opened = window.open(url, '_blank');
       if (!opened) {
         setFileActionError(t('admin.documents.errors.allowPopups'));
       }

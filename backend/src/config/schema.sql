@@ -14,10 +14,12 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     prenom VARCHAR(100) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
     mot_de_passe VARCHAR(255) NOT NULL,
-    role VARCHAR(30) NOT NULL CHECK (role IN ('ETUDIANT', 'ENSEIGNANT', 'BIBLIOTHECAIRE', 'ADMIN')),
+    role VARCHAR(30) NOT NULL CHECK (role IN ('ETUDIANT', 'ENSEIGNANT', 'BIBLIOTHECAIRE', 'ADMIN', 'GUEST')),
     matricule VARCHAR(20) UNIQUE,
     est_bloque BOOLEAN DEFAULT FALSE,
     password_changed_at TIMESTAMP NULL,
+    last_login_at TIMESTAMP NULL,
+    last_logout_at TIMESTAMP NULL,
     date_creation TIMESTAMP DEFAULT NOW(),
     date_modification TIMESTAMP DEFAULT NOW()
 );
@@ -137,7 +139,7 @@ CREATE TABLE IF NOT EXISTS pending_registrations (
     mot_de_passe_hash VARCHAR(255) NOT NULL,
     nom VARCHAR(100) NOT NULL,
     prenom VARCHAR(100) NOT NULL,
-    role VARCHAR(30) NOT NULL CHECK (role IN ('ETUDIANT', 'ENSEIGNANT', 'BIBLIOTHECAIRE')),
+    role VARCHAR(30) NOT NULL CHECK (role IN ('ETUDIANT', 'ENSEIGNANT', 'BIBLIOTHECAIRE', 'GUEST')),
     code_hash TEXT NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     attempts INTEGER NOT NULL DEFAULT 0,

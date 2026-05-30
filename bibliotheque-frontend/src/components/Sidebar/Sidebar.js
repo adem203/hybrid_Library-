@@ -33,7 +33,7 @@ export default function Sidebar({ items, activeItem, onItemClick, badges = {} })
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="sidebar-logo-text">Educated<span>.</span></div>
-        <div className="sidebar-logo-sub">Bibliothèque Hybride</div>
+        <div className="sidebar-logo-sub">{t('sidebar.logoSubtitle', 'Bibliothèque Hybride')}</div>
       </div>
 
       {/* Profil */}

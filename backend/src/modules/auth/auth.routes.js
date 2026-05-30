@@ -5,7 +5,9 @@ const authController = require('./auth.controller');
 const authMiddleware = require('../../middleware/auth.middleware');
 const { isBibliothecaire } = require('../../middleware/roles.middleware');
 
-// Validation pour register
+// Validation pour register (public sign-up). The `role` field is intentionally
+// not validated/accepted here: the controller forces GUEST regardless of what
+// the client sends. STUDENT/TEACHER accounts are created by staff via /users.
 const registerValidation = [
   body('nom').trim().notEmpty().withMessage('Le nom est requis'),
   body('prenom').trim().notEmpty().withMessage('Le prénom est requis'),
@@ -13,10 +15,6 @@ const registerValidation = [
   body('mot_de_passe')
     .isLength({ min: 6 })
     .withMessage('Le mot de passe doit contenir au moins 6 caractères'),
-  body('role')
-    .optional()
-    .isIn(['ETUDIANT', 'ENSEIGNANT', 'BIBLIOTHECAIRE'])
-    .withMessage('Rôle invalide'),
 ];
 
 // Validation pour login
@@ -107,6 +105,7 @@ router.post('/verify-reset-code', verifyResetCodeValidation, authController.veri
 router.post('/reset-password', resetPasswordValidation, authController.resetPassword);
 
 // Routes protégées
+router.post('/logout', authMiddleware, authController.logout);
 router.get('/me', authMiddleware, authController.getMe);
 router.put('/me', authMiddleware, authController.updateMe);
 router.put('/change-password', authMiddleware, authController.changePassword);

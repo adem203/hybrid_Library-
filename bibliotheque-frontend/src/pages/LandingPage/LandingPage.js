@@ -6,21 +6,64 @@ import { authAPI } from '../../api/api';
 import LanguageThemeSwitcher from '../../components/LanguageThemeSwitcher/LanguageThemeSwitcher';
 import './LandingPage.css';
 
-// Static (icon + delay) metadata for features; their textual content
+// Static (icon + tone) metadata for features; their textual content
 // is fetched from the translation file at render time.
 const FEATURE_KEYS = [
-  { key: 'catalog', icon: '📚', delay: 1 },
-  { key: 'loans',   icon: '🔄', delay: 2 },
-  { key: 'digital', icon: '📄', delay: 3 },
-  { key: 'bi',      icon: '📊', delay: 4 },
-  { key: 'alerts',  icon: '🔔', delay: 5 },
-  { key: 'secure',  icon: '🔐', delay: 6 },
+  { key: 'catalog', icon: '📚', tone: 'gold' },
+  { key: 'loans',   icon: '🔄', tone: 'navy' },
+  { key: 'digital', icon: '📄', tone: 'navy' },
+  { key: 'bi',      icon: '📊', tone: 'gold' },
+  { key: 'alerts',  icon: '🔔', tone: 'gold' },
+  { key: 'secure',  icon: '🔐', tone: 'navy' },
+  { key: 'support', icon: '🎧', tone: 'navy' },
+  { key: 'notif',   icon: '✉️', tone: 'gold' },
 ];
 
 const ROLE_KEYS = [
   { key: 'etudiant',       emoji: '🎓' },
   { key: 'enseignant',     emoji: '👨‍🏫' },
   { key: 'bibliothecaire', emoji: '📖' },
+];
+
+const STAT_ITEMS = [
+  { key: 'resources',    icon: '📚', value: '10k+',  tone: 'navy' },
+  { key: 'accessTypes',  icon: '🎓', value: '4',     tone: 'navy' },
+  { key: 'uptime',       icon: '🛡️', value: '99%',   tone: 'navy' },
+  { key: 'access',       icon: '🌐', value: '24/7',  tone: 'navy' },
+];
+
+const ROLE_CARDS = [
+  {
+    key: 'student',
+    icon: '🎓',
+    accent: 'navy',
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=480&h=600&q=80',
+  },
+  {
+    key: 'teacher',
+    icon: '👨‍🏫',
+    accent: 'gold',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=480&h=600&q=80',
+  },
+  {
+    key: 'admin',
+    icon: '🛡️',
+    accent: 'plum',
+    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=480&h=600&q=80',
+  },
+];
+
+const HOW_STEPS = [
+  { key: 'create',  icon: '👤' },
+  { key: 'explore', icon: '🔍' },
+  { key: 'borrow',  icon: '📖' },
+  { key: 'return',  icon: '🔁' },
+];
+
+const DASHBOARD_PREVIEWS = [
+  { key: 'student', variant: 'navy' },
+  { key: 'teacher', variant: 'gold' },
+  { key: 'admin',   variant: 'violet' },
 ];
 
 // ── Formulaire de connexion ──────────────────────────────────
@@ -521,12 +564,15 @@ function OtpVerificationModal({ email, purpose, onVerify, onResend, onClose }) {
   );
 }
 
-// ── Formulaire d'inscription ─────────────────────────────────
+// ── Formulaire d'inscription (compte invité uniquement) ──────
+// Les comptes étudiant/enseignant sont créés par l'administration
+// via la page de gestion des utilisateurs. Le backend force le rôle
+// GUEST quoi qu'envoie le client ; on n'expose donc pas de sélecteur.
 function SignUpForm({ onSuccess }) {
+  const { t } = useTranslation();
   const { setSession } = useAuth();
   const [form, setForm] = useState({
-    nom: '', prenom: '', email: '', mot_de_passe: '',
-    confirm_password: '', role: 'ETUDIANT',
+    nom: '', prenom: '', email: '', mot_de_passe: '', confirm_password: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -541,34 +587,35 @@ function SignUpForm({ onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.nom || !form.prenom || !form.email || !form.mot_de_passe) {
-      setError('Veuillez remplir tous les champs obligatoires.');
+      setError(t('landing.auth.signup.errors.required'));
       return;
     }
     if (form.mot_de_passe.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères.');
+      setError(t('landing.auth.signup.errors.minPassword'));
       return;
     }
     if (form.mot_de_passe !== form.confirm_password) {
-      setError('Les mots de passe ne correspondent pas.');
+      setError(t('landing.auth.signup.errors.passwordMismatch'));
       return;
     }
     setLoading(true);
     try {
+      // No `role` field is sent: the backend forces GUEST. Sending one would
+      // be ignored anyway, but we omit it to make intent explicit.
       const res = await authAPI.register({
         nom: form.nom,
         prenom: form.prenom,
         email: form.email,
         mot_de_passe: form.mot_de_passe,
-        role: form.role,
       });
       if (res.data?.requireOtp) {
         setOtpEmail(res.data.email || form.email);
-        setInfo('Un code de vérification a été envoyé à votre email.');
+        setInfo(t('landing.auth.signup.otpSent'));
       } else {
         onSuccess();
       }
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Erreur lors de la création du compte.'));
+      setError(getApiErrorMessage(err, t('landing.auth.signup.errors.generic')));
     } finally {
       setLoading(false);
     }
@@ -588,65 +635,66 @@ function SignUpForm({ onSuccess }) {
   return (
     <>
     <form onSubmit={handleSubmit} style={{ maxHeight: '65vh', overflowY: 'auto', paddingRight: 4 }}>
-      <div className="auth-form-title">Créer un compte</div>
-      <div className="auth-form-subtitle">Rejoignez la communauté Educated</div>
+      <div className="auth-form-title">{t('landing.auth.signup.title')}</div>
+      <div className="auth-form-subtitle">{t('landing.auth.signup.subtitle')}</div>
+
+      <div className="auth-alert auth-alert-info" style={{ marginTop: 12 }}>
+        ℹ️ {t('landing.auth.signup.infoMessage')}
+      </div>
 
       {error && <div className="auth-alert auth-alert-error">⚠️ {error}</div>}
       {info && <div className="auth-alert auth-alert-info">{info}</div>}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         <div className="form-group">
-          <label className="form-label">Nom *</label>
+          <label className="form-label">{t('landing.auth.signup.labels.lastName')} *</label>
           <input type="text" name="nom" className="form-input"
-            placeholder="Ben Ali" value={form.nom} onChange={handleChange} />
+            placeholder={t('landing.auth.signup.placeholders.lastName')}
+            value={form.nom} onChange={handleChange} />
         </div>
         <div className="form-group">
-          <label className="form-label">Prénom *</label>
+          <label className="form-label">{t('landing.auth.signup.labels.firstName')} *</label>
           <input type="text" name="prenom" className="form-input"
-            placeholder="Mohamed" value={form.prenom} onChange={handleChange} />
+            placeholder={t('landing.auth.signup.placeholders.firstName')}
+            value={form.prenom} onChange={handleChange} />
         </div>
       </div>
 
       <div className="form-group">
-        <label className="form-label">Email *</label>
+        <label className="form-label">{t('landing.auth.signup.labels.email')} *</label>
         <div className="input-wrapper">
           <span className="input-icon">✉️</span>
           <input type="email" name="email" className="form-input with-icon"
-            placeholder="votre@email.tn" value={form.email} onChange={handleChange} />
+            placeholder={t('landing.auth.signup.placeholders.email')}
+            value={form.email} onChange={handleChange} />
         </div>
       </div>
 
       <div className="form-group">
-        <label className="form-label">Je suis *</label>
-        <select name="role" className="form-select" value={form.role} onChange={handleChange}>
-          <option value="ETUDIANT">🎓 Étudiant</option>
-          <option value="ENSEIGNANT">👨‍🏫 Enseignant</option>
-        </select>
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">Mot de passe *</label>
+        <label className="form-label">{t('landing.auth.signup.labels.password')} *</label>
         <div className="input-wrapper">
           <span className="input-icon">🔒</span>
           <input type="password" name="mot_de_passe" className="form-input with-icon"
-            placeholder="Min. 6 caractères" value={form.mot_de_passe} onChange={handleChange} />
+            placeholder={t('landing.auth.signup.placeholders.password')}
+            value={form.mot_de_passe} onChange={handleChange} />
         </div>
       </div>
 
       <div className="form-group">
-        <label className="form-label">Confirmer le mot de passe *</label>
+        <label className="form-label">{t('landing.auth.signup.labels.confirmPassword')} *</label>
         <div className="input-wrapper">
           <span className="input-icon">🔒</span>
           <input type="password" name="confirm_password" className="form-input with-icon"
-            placeholder="Répéter le mot de passe" value={form.confirm_password} onChange={handleChange} />
+            placeholder={t('landing.auth.signup.placeholders.confirmPassword')}
+            value={form.confirm_password} onChange={handleChange} />
         </div>
       </div>
 
       <button type="submit" className="auth-submit-btn" disabled={loading}>
         {loading ? (
-          <><span className="btn-spinner" />Création en cours...</>
+          <><span className="btn-spinner" />{t('landing.auth.signup.buttonLoading')}</>
         ) : (
-          "Créer mon compte →"
+          `${t('landing.auth.signup.button')} →`
         )}
       </button>
     </form>
@@ -664,6 +712,11 @@ function SignUpForm({ onSuccess }) {
 }
 
 // ── Composant principal LandingPage ─────────────────────────
+const scrollToId = (id) => {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
 export default function LandingPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -671,11 +724,12 @@ export default function LandingPage() {
   const [activeTab, setActiveTab] = useState('login');
   const authRef = useRef(null);
 
-  const handleGetStarted = () => {
+  const openAuth = (tab = 'login') => {
+    setActiveTab(tab);
     setShowAuth(true);
     setTimeout(() => {
       authRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 100);
+    }, 80);
   };
 
   const handleLoginSuccess = (user) => {
@@ -697,210 +751,408 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="landing">
-      {/* Switchers FR/EN + dark/light (haut droite, flottant) */}
-      <LanguageThemeSwitcher variant="floating" size="md" />
+    <div className="landing landing-v2">
+      {/* ── TOP NAVBAR ───────────────────── */}
+      <header className="lv-nav">
+        <div className="lv-nav-inner">
+          <a
+            href="#top"
+            className="lv-brand"
+            onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          >
+            <span className="lv-brand-mark" aria-hidden="true">📘</span>
+            Educated<span className="lv-brand-dot">.</span>
+          </a>
 
-      {/* Particules de fond */}
-      <div className="landing-particles">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="particle" />
-        ))}
-      </div>
+          <nav className="lv-nav-links" aria-label="Primary">
+            <button type="button" onClick={() => scrollToId('features')}>{t('landing.nav.features')}</button>
+            <button type="button" onClick={() => scrollToId('roles')}>{t('landing.nav.roles')}</button>
+            <button type="button" onClick={() => scrollToId('how')}>{t('landing.nav.how')}</button>
+            <button type="button" onClick={() => scrollToId('dashboards')}>{t('landing.nav.platform')}</button>
+            <button type="button" onClick={() => scrollToId('final-cta')}>{t('landing.nav.contact')}</button>
+          </nav>
 
-      {/* ── SECTION HERO ─────────────────── */}
-      <section className="hero-section">
-        <div className="hero-content">
-          {/* Côté gauche */}
-          <div className="hero-left">
-            <div className="hero-badge">
-              <div className="hero-badge-dot" />
-              {t('landing.badge')}
-            </div>
-
-            <h1 className="hero-title">
-              {t('landing.hero.title_1')} <br />
-              <span>{t('landing.hero.title_highlight')}</span> {t('landing.hero.title_2')}<br />
-              {t('landing.hero.title_3')}
-            </h1>
-
-            <p className="hero-description">
-              {t('landing.hero.description')}
-            </p>
-
-            <div className="hero-stats">
-              <div className="hero-stat">
-                <span className="hero-stat-number">10k+</span>
-                <span className="hero-stat-label">{t('landing.hero.stats.resources')}</span>
-              </div>
-              <div className="hero-stat">
-                <span className="hero-stat-number">4</span>
-                <span className="hero-stat-label">{t('landing.hero.stats.accessTypes')}</span>
-              </div>
-              <div className="hero-stat">
-                <span className="hero-stat-number">99%</span>
-                <span className="hero-stat-label">{t('landing.hero.stats.uptime')}</span>
-              </div>
-            </div>
-
-            <div className="hero-cta-group">
-              <button className="cta-btn" onClick={handleGetStarted}>
-                {t('landing.hero.ctaPrimary')}
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={() => {
-                  document.querySelector('.features-section')
-                    ?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                {t('landing.hero.ctaSecondary')}
-              </button>
-            </div>
-          </div>
-
-          {/* Scène 3D */}
-          <div className="hero-right">
-            <div className="scene-3d">
-              <div className="orbit-ring"><div className="orbit-dot" /></div>
-              <div className="orbit-ring orbit-ring-2" />
-
-              <div className="book-3d">
-                <div className="book-spine" />
-                <div className="book-front">
-                  <div className="book-icon">📚</div>
-                  <div className="book-title-3d">{t('landing.hero.scene.bookTitle')}</div>
-                  <div className="book-subtitle-3d">{t('landing.hero.scene.bookSubtitle')}</div>
-                </div>
-                <div className="book-pages" />
-                <div className="book-back" />
-              </div>
-
-              {/* Éléments flottants */}
-              <div className="floating-elements">
-                <div className="float-el">
-                  <div className="float-el-dot" />
-                  <span>{t('landing.hero.scene.pdfBadge')}</span>
-                </div>
-                <div className="float-el">
-                  <span>{t('landing.hero.scene.loansBadge')}</span>
-                </div>
-                <div className="float-el">
-                  <span>{t('landing.hero.scene.returnBadge')}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── SECTION FEATURES ─────────────── */}
-      <section className="features-section">
-        <div className="section-header">
-          <span className="section-label">{t('landing.features.label')}</span>
-          <h2 className="section-title">
-            {t('landing.features.title')}
-          </h2>
-          <p className="section-desc">
-            {t('landing.features.desc')}
-          </p>
-        </div>
-
-        <div className="features-grid">
-          {FEATURE_KEYS.map((f, i) => (
-            <div
-              key={f.key}
-              className="feature-card animate-slideUp"
-              style={{ animationDelay: `${f.delay * 0.1}s` }}
-            >
-              <div className="feature-icon-wrap">{f.icon}</div>
-              <div className="feature-title">{t(`landing.features.items.${f.key}.title`)}</div>
-              <div className="feature-desc">{t(`landing.features.items.${f.key}.desc`)}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── SECTION GET STARTED (CTA) ─────── */}
-      {!showAuth && (
-        <section className="cta-section">
-          <div className="cta-card">
-            <div className="section-label">{t('landing.cta.label')}</div>
-            <h2 className="cta-title">
-              {t('landing.cta.title_1')}<br />
-              <span className="text-gradient-gold">{t('landing.cta.title_highlight')}</span>
-            </h2>
-            <p className="cta-desc">
-              {t('landing.cta.desc')}
-            </p>
-            <button className="cta-btn" onClick={handleGetStarted}>
-              {t('landing.cta.button')}
+          <div className="lv-nav-actions">
+            <button type="button" className="lv-btn lv-btn-ghost" onClick={() => openAuth('login')}>
+              {t('landing.nav.login')}
             </button>
+            <button type="button" className="lv-btn lv-btn-primary" onClick={() => openAuth('signup')}>
+              {t('landing.nav.getStarted')} →
+            </button>
+            <LanguageThemeSwitcher variant="inline" size="sm" className="lv-switcher" />
+          </div>
+        </div>
+      </header>
+
+      <main id="top" className="lv-main">
+        {/* ── HERO ───────────────────────── */}
+        <section className="lv-hero">
+          <div className="lv-hero-grid">
+            <div className="lv-hero-left">
+              <div className="lv-hero-badge">
+                <span className="lv-hero-badge-dot" />
+                {t('landing.badge')}
+              </div>
+
+              <h1 className="lv-hero-title">
+                {t('landing.hero.title_1')}<br />
+                <span className="lv-gold">{t('landing.hero.title_highlight')}</span> {t('landing.hero.title_2')}<br />
+                {t('landing.hero.title_3')}
+              </h1>
+
+              <p className="lv-hero-desc">{t('landing.hero.description')}</p>
+
+              <div className="lv-hero-actions">
+                <button type="button" className="lv-btn lv-btn-primary lv-btn-lg" onClick={() => openAuth('signup')}>
+                  {t('landing.hero.ctaPrimary')}
+                </button>
+                <button
+                  type="button"
+                  className="lv-btn lv-btn-outline lv-btn-lg"
+                  onClick={() => scrollToId('features')}
+                >
+                  {t('landing.hero.ctaSecondary')}
+                </button>
+              </div>
+
+              <div className="lv-hero-trust">
+                <div className="lv-hero-avatars" aria-hidden="true">
+                  <span className="lv-avatar lv-avatar-1" />
+                  <span className="lv-avatar lv-avatar-2" />
+                  <span className="lv-avatar lv-avatar-3" />
+                  <span className="lv-avatar lv-avatar-4" />
+                </div>
+                <p>{t('landing.hero.trustedBy')}</p>
+              </div>
+            </div>
+
+            <div className="lv-hero-right" aria-hidden="true">
+              <div className="lv-scene">
+                <div className="lv-scene-orbit lv-scene-orbit-1" />
+                <div className="lv-scene-orbit lv-scene-orbit-2" />
+                <span className="lv-scene-dot lv-scene-dot-1" />
+                <span className="lv-scene-dot lv-scene-dot-2" />
+                <span className="lv-scene-dot lv-scene-dot-3" />
+                <span className="lv-scene-dot lv-scene-dot-4" />
+
+                <div className="lv-book">
+                  <div className="lv-book-spine" />
+                  <div className="lv-book-cover">
+                    <div className="lv-book-emblem">
+                      <span className="lv-book-emblem-stripe lv-stripe-1" />
+                      <span className="lv-book-emblem-stripe lv-stripe-2" />
+                      <span className="lv-book-emblem-stripe lv-stripe-3" />
+                    </div>
+                    <div className="lv-book-title">{t('landing.hero.scene.bookTitle')}</div>
+                    <div className="lv-book-subtitle">{t('landing.hero.scene.bookSubtitle')}</div>
+                  </div>
+                  <div className="lv-book-pedestal" />
+                </div>
+
+                <div className="lv-floating lv-floating-1">
+                  <div className="lv-floating-icon lv-floating-icon-gold">📄</div>
+                  <div>
+                    <div className="lv-floating-title">{t('landing.hero.scene.pdfTitle')}</div>
+                    <div className="lv-floating-sub">{t('landing.hero.scene.pdfSubtitle')}</div>
+                  </div>
+                </div>
+                <div className="lv-floating lv-floating-2">
+                  <div className="lv-floating-icon lv-floating-icon-navy">📖</div>
+                  <div>
+                    <div className="lv-floating-title">{t('landing.hero.scene.loansTitle')}</div>
+                    <div className="lv-floating-sub">{t('landing.hero.scene.loansSubtitle')}</div>
+                  </div>
+                </div>
+                <div className="lv-floating lv-floating-3">
+                  <div className="lv-floating-icon lv-floating-icon-success">✓</div>
+                  <div>
+                    <div className="lv-floating-title">{t('landing.hero.scene.returnTitle')}</div>
+                    <div className="lv-floating-sub">{t('landing.hero.scene.returnSubtitle')}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── STATS BAR ──────────────────── */}
+          <div className="lv-stats">
+            {STAT_ITEMS.map((s) => (
+              <div key={s.key} className="lv-stat">
+                <div className={`lv-stat-icon lv-stat-icon-${s.tone}`}>{s.icon}</div>
+                <div className="lv-stat-copy">
+                  <div className="lv-stat-value">{s.value}</div>
+                  <div className="lv-stat-title">{t(`landing.stats.${s.key}Title`)}</div>
+                  <div className="lv-stat-desc">{t(`landing.stats.${s.key}Desc`)}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
-      )}
 
-      {/* ── SECTION AUTH ─────────────────── */}
-      {showAuth && (
-        <section className="auth-section" ref={authRef}>
-          <div className="auth-container">
-            {/* Info côté gauche */}
-            <div className="auth-info">
-              <h2 className="auth-info-title">
-                {t('landing.auth.infoTitle_1')}<br />
-                <span className="text-gradient-gold">{t('landing.auth.infoTitle_highlight')}</span>
-              </h2>
-              <p className="auth-info-desc">
-                {t('landing.auth.infoDesc')}
-              </p>
-              <div className="auth-roles">
-                {ROLE_KEYS.map((r) => (
-                  <div key={r.key} className="auth-role-item">
-                    <span className="auth-role-emoji">{r.emoji}</span>
-                    <div>
-                      <div className="auth-role-name">{t(`landing.auth.roles.${r.key}.name`)}</div>
-                      <div className="auth-role-desc">{t(`landing.auth.roles.${r.key}.desc`)}</div>
+        {/* ── ROLES SECTION ────────────────── */}
+        <section id="roles" className="lv-section lv-roles">
+          <div className="lv-section-head">
+            <span className="lv-eyebrow">{t('landing.roles.label')}</span>
+            <h2 className="lv-section-title">{t('landing.roles.title')}</h2>
+          </div>
+          <div className="lv-roles-grid">
+            {ROLE_CARDS.map((r) => (
+              <article key={r.key} className={`lv-role-card lv-role-${r.accent}`}>
+                <div className="lv-role-content">
+                  <div className="lv-role-icon" aria-hidden="true">{r.icon}</div>
+                  <h3 className="lv-role-title">{t(`landing.roles.${r.key}.title`)}</h3>
+                  <p className="lv-role-desc">{t(`landing.roles.${r.key}.desc`)}</p>
+                  <button
+                    type="button"
+                    className="lv-role-link"
+                    onClick={() => openAuth('signup')}
+                  >
+                    {t(`landing.roles.${r.key}.link`)}
+                  </button>
+                </div>
+                <div className="lv-role-photo" aria-hidden="true">
+                  <img src={r.image} alt="" loading="lazy" />
+                  <span className="lv-role-photo-glow" />
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* ── FEATURES SECTION ─────────────── */}
+        <section id="features" className="lv-section lv-features">
+          <div className="lv-section-head">
+            <span className="lv-eyebrow">{t('landing.features.label')}</span>
+            <h2 className="lv-section-title">{t('landing.features.title')}</h2>
+          </div>
+          <div className="lv-features-grid">
+            {FEATURE_KEYS.map((f) => (
+              <article key={f.key} className="lv-feature-card">
+                <div className={`lv-feature-icon lv-feature-icon-${f.tone}`}>{f.icon}</div>
+                <h3 className="lv-feature-title">{t(`landing.features.items.${f.key}.title`)}</h3>
+                <p className="lv-feature-desc">{t(`landing.features.items.${f.key}.desc`)}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* ── HOW IT WORKS ─────────────────── */}
+        <section id="how" className="lv-section lv-how">
+          <div className="lv-section-head">
+            <span className="lv-eyebrow">{t('landing.how.label')}</span>
+            <h2 className="lv-section-title">{t('landing.how.title')}</h2>
+          </div>
+          <ol className="lv-how-steps">
+            {HOW_STEPS.map((s, idx) => (
+              <li key={s.key} className={`lv-how-step ${idx % 2 === 1 ? 'is-accent' : ''}`}>
+                <div className="lv-how-step-circle">
+                  <span className="lv-how-step-num">{String(idx + 1).padStart(2, '0')}</span>
+                  <span className="lv-how-step-icon">{s.icon}</span>
+                </div>
+                <div className="lv-how-step-copy">
+                  <h3>{t(`landing.how.steps.${s.key}.title`)}</h3>
+                  <p>{t(`landing.how.steps.${s.key}.desc`)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* ── DASHBOARD PREVIEWS ───────────── */}
+        <section id="dashboards" className="lv-section lv-dashboards">
+          <div className="lv-section-head">
+            <span className="lv-eyebrow">{t('landing.dashboards.label')}</span>
+            <h2 className="lv-section-title">{t('landing.dashboards.title')}</h2>
+            <p className="lv-section-sub">{t('landing.dashboards.subtitle')}</p>
+          </div>
+          <div className="lv-dashboards-grid">
+            {DASHBOARD_PREVIEWS.map((d) => (
+              <article key={d.key} className={`lv-dash-card lv-dash-${d.variant}`}>
+                <div className="lv-dash-preview" aria-hidden="true">
+                  <div className="lv-dash-window">
+                    <div className="lv-dash-window-bar">
+                      <span /><span /><span />
+                      <span className="lv-dash-window-title">Educated</span>
+                    </div>
+                    <div className="lv-dash-window-body">
+                      <aside className="lv-dash-sidebar">
+                        <span className="lv-dash-row is-active" />
+                        <span className="lv-dash-row" />
+                        <span className="lv-dash-row" />
+                        <span className="lv-dash-row" />
+                      </aside>
+                      <div className="lv-dash-main">
+                        <div className="lv-dash-kpis">
+                          <span /><span /><span /><span />
+                        </div>
+                        {d.variant === 'gold' ? (
+                          <div className="lv-dash-chart-bars">
+                            {Array.from({ length: 7 }).map((_, i) => (
+                              <span key={i} style={{ height: `${40 + (i * 9) % 55}%` }} />
+                            ))}
+                          </div>
+                        ) : d.variant === 'violet' ? (
+                          <div className="lv-dash-chart-pie">
+                            <div className="lv-dash-pie" />
+                            <div className="lv-dash-bars-mini">
+                              <span /><span /><span /><span />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="lv-dash-table">
+                            <span className="lv-dash-thead" />
+                            <span /><span /><span />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                ))}
+                </div>
+                <div className="lv-dash-foot">
+                  <div>
+                    <h3>{t(`landing.dashboards.${d.key}.title`)}</h3>
+                    <p>{t(`landing.dashboards.${d.key}.desc`)}</p>
+                  </div>
+                  <button type="button" className="lv-dash-cta" aria-label={t('landing.dashboards.label')} onClick={() => openAuth('signup')}>→</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* ── FINAL CTA (dark navy) ────────── */}
+        <section id="final-cta" className="lv-section lv-final-cta-wrap">
+          <div className="lv-final-cta">
+            <div className="lv-final-particles" aria-hidden="true">
+              {Array.from({ length: 14 }).map((_, i) => (
+                <span key={i} className={`lv-final-spark lv-final-spark-${i + 1}`} />
+              ))}
+            </div>
+            <div className="lv-final-book" aria-hidden="true">
+              <span className="lv-final-book-glow" />
+              <span className="lv-final-book-rays" />
+              <div className="lv-final-book-stage">
+                <span className="lv-final-book-page lv-final-book-page-l" />
+                <span className="lv-final-book-page lv-final-book-page-r" />
+                <span className="lv-final-book-spine" />
+                <span className="lv-final-book-shine" />
               </div>
             </div>
-
-            {/* Formulaire */}
-            <div className="auth-form-card">
-              <div className="auth-tabs">
-                <button
-                  className={`auth-tab ${activeTab === 'login' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('login')}
-                  type="button"
-                >
-                  {t('landing.auth.tabs.login')}
-                </button>
-                <button
-                  className={`auth-tab ${activeTab === 'signup' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('signup')}
-                  type="button"
-                >
-                  {t('landing.auth.tabs.signup')}
-                </button>
-              </div>
-
-              {activeTab === 'login' ? (
-                <LoginForm onSuccess={handleLoginSuccess} />
-              ) : (
-                <SignUpForm onSuccess={handleSignupSuccess} />
-              )}
+            <div className="lv-final-copy">
+              <span className="lv-final-eyebrow">{t('landing.cta.label')}</span>
+              <h2>
+                {t('landing.cta.title_1')}<br />
+                <span className="lv-gold">{t('landing.cta.title_highlight')}</span>
+              </h2>
+              <p>{t('landing.cta.desc')}</p>
+            </div>
+            <div className="lv-final-action">
+              <button type="button" className="lv-btn lv-btn-primary lv-btn-lg" onClick={() => openAuth('signup')}>
+                {t('landing.cta.button')} →
+              </button>
             </div>
           </div>
         </section>
-      )}
 
-      {/* ── FOOTER ─────────────────────────── */}
-      <footer className="landing-footer">
-        <div className="footer-brand">
-          Educated<span>.</span>
+        {/* ── AUTH (inline expanded when triggered) ── */}
+        {showAuth && (
+          <section className="lv-section auth-section" ref={authRef}>
+            <div className="auth-container">
+              <div className="auth-info">
+                <h2 className="auth-info-title">
+                  {t('landing.auth.infoTitle_1')}<br />
+                  <span className="text-gradient-gold">{t('landing.auth.infoTitle_highlight')}</span>
+                </h2>
+                <p className="auth-info-desc">{t('landing.auth.infoDesc')}</p>
+                <div className="auth-roles">
+                  {ROLE_KEYS.map((r) => (
+                    <div key={r.key} className="auth-role-item">
+                      <span className="auth-role-emoji">{r.emoji}</span>
+                      <div>
+                        <div className="auth-role-name">{t(`landing.auth.roles.${r.key}.name`)}</div>
+                        <div className="auth-role-desc">{t(`landing.auth.roles.${r.key}.desc`)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="auth-form-card">
+                <div className="auth-tabs">
+                  <button
+                    className={`auth-tab ${activeTab === 'login' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('login')}
+                    type="button"
+                  >
+                    {t('landing.auth.tabs.login')}
+                  </button>
+                  <button
+                    className={`auth-tab ${activeTab === 'signup' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('signup')}
+                    type="button"
+                  >
+                    {t('landing.auth.tabs.signup')}
+                  </button>
+                </div>
+
+                {activeTab === 'login' ? (
+                  <LoginForm onSuccess={handleLoginSuccess} />
+                ) : (
+                  <SignUpForm onSuccess={handleSignupSuccess} />
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
+
+      {/* ── FOOTER ──────────────────────────── */}
+      <footer className="lv-footer">
+        <div className="lv-footer-grid">
+          <div className="lv-footer-brand-col">
+            <div className="lv-brand">
+              <span className="lv-brand-mark" aria-hidden="true">📘</span>
+              Educated<span className="lv-brand-dot">.</span>
+            </div>
+            <p className="lv-footer-tagline">{t('landing.footer.tagline')}</p>
+          </div>
+
+          <div className="lv-footer-col">
+            <h4>{t('landing.footer.quickLinks')}</h4>
+            <ul>
+              <li><button type="button" onClick={() => scrollToId('features')}>{t('landing.footer.links.features')}</button></li>
+              <li><button type="button" onClick={() => scrollToId('roles')}>{t('landing.footer.links.roles')}</button></li>
+              <li><button type="button" onClick={() => scrollToId('how')}>{t('landing.footer.links.how')}</button></li>
+              <li><button type="button" onClick={() => scrollToId('dashboards')}>{t('landing.footer.links.platform')}</button></li>
+              <li><button type="button" onClick={() => scrollToId('final-cta')}>{t('landing.footer.links.contact')}</button></li>
+            </ul>
+          </div>
+
+          <div className="lv-footer-col">
+            <h4>{t('landing.footer.resources')}</h4>
+            <ul>
+              <li><a href="#help">{t('landing.footer.res.help')}</a></li>
+              <li><a href="#docs">{t('landing.footer.res.docs')}</a></li>
+              <li><a href="#privacy">{t('landing.footer.res.privacy')}</a></li>
+              <li><a href="#terms">{t('landing.footer.res.terms')}</a></li>
+            </ul>
+          </div>
+
+          <div className="lv-footer-col">
+            <h4>{t('landing.footer.project')}</h4>
+            <ul>
+              <li>{t('landing.footer.proj.author')}</li>
+              <li>{t('landing.footer.proj.pfe')}</li>
+              <li>{t('landing.footer.proj.module')}</li>
+            </ul>
+            <div className="lv-footer-social" aria-label="Social">
+              <a href="#linkedin" aria-label="LinkedIn">in</a>
+              <a href="#github" aria-label="GitHub">{'</>'}</a>
+              <a href="#email" aria-label="Email">@</a>
+            </div>
+          </div>
         </div>
-        <div className="footer-copy">
+        <div className="lv-footer-bottom">
           {t('landing.footer.copy')}
         </div>
       </footer>

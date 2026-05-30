@@ -656,6 +656,7 @@ export default function EmpruntsView() {
                   <th>{t('admin.loans.tableBook')}</th>
                   <th>{t('admin.loans.tableBookId')}</th>
                   <th>{t('admin.loans.tableBorrower')}</th>
+                  <th>{t('admin.loans.tableBorrowerEmail')}</th>
                   <th>{t('admin.loans.tableLoanDate')}</th>
                   <th>{t('admin.loans.tableExpectedReturn')}</th>
                   <th>{t('admin.loans.tableActualReturn')}</th>
@@ -673,8 +674,8 @@ export default function EmpruntsView() {
                       <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                         {loanDisplayId(e)}
                       </td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        <div>{borrowerDisplayId(e)}</div>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                        <div style={{ whiteSpace: 'nowrap' }}>{borrowerDisplayId(e)}</div>
                         {borrowerRole(e) && (
                           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2 }}>
                             {borrowerRole(e)}
@@ -689,6 +690,19 @@ export default function EmpruntsView() {
                         {bookDisplayId(e)}
                       </td>
                       <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{borrowerDisplayName(e) || '—'}</td>
+                      <td
+                        title={borrowerEmail(e) || ''}
+                        style={{
+                          color: 'var(--text-secondary)',
+                          fontSize: '0.82rem',
+                          maxWidth: 220,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {borrowerEmail(e) || '—'}
+                      </td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{formatDDMMYYYY(e.date_emprunt)}</td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{formatDDMMYYYY(e.date_retour_prevue)}</td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{formatDDMMYYYY(e.date_retour_effectif)}</td>

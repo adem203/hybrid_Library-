@@ -1,12 +1,21 @@
 {
   "landing": {
     "badge": "ERP Educated — Capstone 2025-2026",
+    "nav": {
+      "features": "Features",
+      "roles": "Roles",
+      "how": "How it works",
+      "platform": "Platform",
+      "contact": "Contact",
+      "login": "Log in",
+      "getStarted": "Get started"
+    },
     "hero": {
       "title_1": "The Hybrid",
       "title_highlight": "Library",
       "title_2": "of",
       "title_3": "Tomorrow",
-      "description": "A unified platform to manage your physical and digital resources. Borrow, read, explore — all in one place.",
+      "description": "Educated is a unified platform to manage your physical and digital resources. Borrow, read, explore — all in one place.",
       "stats": {
         "resources": "Resources",
         "accessTypes": "Access types",
@@ -14,17 +23,54 @@
       },
       "ctaPrimary": "Get started now →",
       "ctaSecondary": "Discover the features",
+      "trustedBy": "Trusted by students, teachers and institutions",
       "scene": {
         "bookTitle": "Educated Library",
         "bookSubtitle": "Hybrid Library",
         "pdfBadge": "📄 15 PDFs available",
         "loansBadge": "📖 3 active loans",
-        "returnBadge": "✅ Return confirmed"
+        "returnBadge": "✅ Return confirmed",
+        "pdfTitle": "15 PDFs available",
+        "pdfSubtitle": "New resources added",
+        "loansTitle": "3 active loans",
+        "loansSubtitle": "Track your books",
+        "returnTitle": "Return confirmed",
+        "returnSubtitle": "Item returned"
+      }
+    },
+    "stats": {
+      "label": "Educated in numbers",
+      "resourcesTitle": "Resources",
+      "resourcesDesc": "Physical & digital books and documents",
+      "accessTypesTitle": "Access types",
+      "accessTypesDesc": "Student, Teacher, Admin, Guest",
+      "uptimeTitle": "Uptime",
+      "uptimeDesc": "Reliable platform you can count on",
+      "accessTitle": "Access",
+      "accessDesc": "Your library, anytime, anywhere"
+    },
+    "roles": {
+      "label": "Built for every role",
+      "title": "One platform, every need",
+      "student": {
+        "title": "Student Space",
+        "desc": "Find, borrow and read with ease. Access everything you need to succeed.",
+        "link": "Explore student space →"
+      },
+      "teacher": {
+        "title": "Teacher Space",
+        "desc": "Manage resources, track loans and create better learning experiences.",
+        "link": "Explore teacher space →"
+      },
+      "admin": {
+        "title": "Admin Space",
+        "desc": "Control, monitor and optimize your library with advanced tools.",
+        "link": "Explore admin space →"
       }
     },
     "features": {
-      "label": "Features",
-      "title": "Everything you need",
+      "label": "Powerful features",
+      "title": "Everything you need in one place",
       "desc": "A complete solution to modernize your institution's document management.",
       "items": {
         "catalog": {
@@ -41,7 +87,7 @@
         },
         "bi": {
           "title": "BI Dashboard",
-          "desc": "Advanced statistics on loans, popular resources and reading trends."
+          "desc": "Advanced analytics on loans, popular resources and reading trends."
         },
         "alerts": {
           "title": "Smart Alerts",
@@ -50,15 +96,41 @@
         "secure": {
           "title": "Secure Access",
           "desc": "JWT authentication with role-based access control. Your data is protected."
+        },
+        "support": {
+          "title": "Support Center",
+          "desc": "Get help anytime with our support center and knowledge base."
+        },
+        "notif": {
+          "title": "Notifications",
+          "desc": "Stay informed with in-app and email notifications about your activities."
         }
       }
+    },
+    "how": {
+      "label": "How it works",
+      "title": "Simple steps to a smarter library",
+      "steps": {
+        "create": { "title": "Create an account", "desc": "Sign up in seconds and choose your role." },
+        "explore": { "title": "Explore & search", "desc": "Find books, PDFs and resources effortlessly." },
+        "borrow": { "title": "Borrow or read", "desc": "Borrow physical books or read online instantly." },
+        "return": { "title": "Return & repeat", "desc": "Return items on time and keep learning." }
+      }
+    },
+    "dashboards": {
+      "label": "Smart dashboards",
+      "title": "Everything at a glance",
+      "subtitle": "Preview each workspace with clean dashboards, statistics, and smart actions.",
+      "student": { "title": "Student Dashboard", "desc": "Track loans, discover resources, and continue learning." },
+      "teacher": { "title": "Teacher Dashboard", "desc": "Manage resources, monitor views, and support your students." },
+      "admin": { "title": "Admin Dashboard", "desc": "Oversee operations, users, and performance." }
     },
     "cta": {
       "label": "Ready to start?",
       "title_1": "Join the platform",
       "title_highlight": "Educated today",
       "desc": "Create your account in seconds and access all the resources of your library, wherever you are.",
-      "button": "🚀 Get started — it's free"
+      "button": "Get started — it's free"
     },
     "auth": {
       "infoTitle_1": "Your personalized",
@@ -72,10 +144,60 @@
       "tabs": {
         "login": "Sign in",
         "signup": "Sign up"
+      },
+      "signup": {
+        "title": "Create a guest account",
+        "subtitle": "Join Educated as a guest. Student and teacher accounts are created by the administration.",
+        "infoMessage": "Are you a student or teacher? Please use the credentials provided by the administration.",
+        "labels": {
+          "lastName": "Last name",
+          "firstName": "First name",
+          "email": "Email",
+          "password": "Password",
+          "confirmPassword": "Confirm password"
+        },
+        "placeholders": {
+          "lastName": "Ben Ali",
+          "firstName": "Mohamed",
+          "email": "your@email.com",
+          "password": "Min. 6 characters",
+          "confirmPassword": "Repeat the password"
+        },
+        "button": "Create guest account",
+        "buttonLoading": "Creating account...",
+        "errors": {
+          "required": "Please fill in all required fields.",
+          "minPassword": "Password must be at least 6 characters.",
+          "passwordMismatch": "Passwords do not match.",
+          "generic": "Could not create the account."
+        },
+        "otpSent": "A verification code has been sent to your email."
       }
     },
     "footer": {
-      "copy": "Capstone 2025-2026 — Adem Laadhari — Hybrid Library Module"
+      "tagline": "The hybrid library platform designed for modern education.",
+      "quickLinks": "Quick links",
+      "links": {
+        "features": "Features",
+        "roles": "Roles",
+        "how": "How it works",
+        "platform": "Platform",
+        "contact": "Contact"
+      },
+      "resources": "Resources",
+      "res": {
+        "help": "Help Center",
+        "docs": "Documentation",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service"
+      },
+      "project": "Capstone 2025-2026",
+      "proj": {
+        "author": "Adem Laadhari",
+        "pfe": "PFE Project",
+        "module": "Hybrid Library Module"
+      },
+      "copy": "© 2026 Educated. All rights reserved."
     }
   },
   "switch": {
@@ -117,6 +239,7 @@
   },
   "sidebar": {
     "logout": "Sign out",
+    "logoSubtitle": "Hybrid Library",
     "sections": {
       "main": "Main",
       "management": "Management",
@@ -749,7 +872,35 @@
       "availableCopies": "Available copies",
       "registeredDocuments": "Registered documents",
       "totalRealViews": "Total real views",
-      "viewAll": "View all"
+      "viewAll": "View all",
+      "physicalBooks": "Physical books",
+      "digitalDocuments": "Digital documents",
+      "total": "Total",
+      "notAvailable": "Not available",
+      "dateUnavailable": "Date unavailable",
+      "userUnavailable": "User unavailable",
+      "titleUnavailable": "Title unavailable",
+      "mainStatsAriaLabel": "Main statistics",
+      "emptyActivityTitle": "No recent activity available",
+      "emptyActivityText": "The latest loans will appear here as soon as they are provided by the backend.",
+      "emptyDistributionTitle": "Distribution not available",
+      "emptyDistributionText": "Book and document volumes are not available in the received data.",
+      "emptyAlertsTitle": "No alerts for now",
+      "overdueLoansAlertTitle": "{{formatted}} overdue loan(s)",
+      "overdueLoansAlertText": "Loan(s) to chase up or settle.",
+      "pendingReservationsAlertTitle": "{{formatted}} pending reservation(s)",
+      "pendingReservationsAlertText": "Request(s) to process.",
+      "status": {
+        "enCours": "Borrowed",
+        "enAttente": "Pending",
+        "enRetard": "Overdue",
+        "retourne": "Returned",
+        "confirmee": "Confirmed",
+        "annulee": "Cancelled",
+        "expiree": "Expired",
+        "refuse": "Refused",
+        "unknown": "Unknown status"
+      }
     },
     "users": {
       "title": "User Management",
@@ -770,6 +921,8 @@
       "tableRole": "Role",
       "tableStatus": "Status",
       "tableRegisteredOn": "Registered on",
+      "tableLastLogin": "Last Login",
+      "tableLastLogout": "Last Logout",
       "block": "Block",
       "unblock": "Unblock",
       "processing": "Processing...",
@@ -1012,7 +1165,7 @@
         "sessionExpired": "Session expired. Please sign in again.",
         "fileNotFound": "File not found.",
         "accessDenied": "Access denied.",
-        "allowPopups": "Allow pop-ups to open this document.",
+        "allowPopups": "Your browser blocked the document popup. Please allow pop-ups to open this document.",
         "openFailed": "Unable to open this document.",
         "downloadFailed": "Unable to download this document."
       }
@@ -1042,6 +1195,7 @@
       "tableLoanId": "Loan ID",
       "tableBorrowerRegistration": "Borrower registration number",
       "tableBorrower": "Borrower",
+      "tableBorrowerEmail": "Borrower Email",
       "tableBook": "Book",
       "tableBookId": "Book ID / ISBN",
       "tableAuthor": "Author",
@@ -1501,9 +1655,9 @@
       "perPage": "{{count}} per page"
     },
     "welcome": {
-      "kicker": "WELCOME",
+      "kicker": "WELCOME BACK",
       "intro": "Welcome to your student space",
-      "subline": "Explore, learn, and let your curiosity guide you",
+      "subline": "Explore, learn, and let your curiosity guide you.",
       "searchBook": "Search for a book"
     },
     "home": {

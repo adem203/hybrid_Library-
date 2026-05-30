@@ -1,12 +1,21 @@
 {
   "landing": {
     "badge": "ERP Educated — PFE 2025-2026",
+    "nav": {
+      "features": "Fonctionnalités",
+      "roles": "Rôles",
+      "how": "Comment ça marche",
+      "platform": "Plateforme",
+      "contact": "Contact",
+      "login": "Connexion",
+      "getStarted": "Commencer"
+    },
     "hero": {
       "title_1": "La Bibliothèque",
       "title_highlight": "Hybride",
       "title_2": "de",
       "title_3": "Demain",
-      "description": "Une plateforme unifiée pour gérer vos ressources physiques et numériques. Empruntez, lisez, explorez — tout en un seul endroit.",
+      "description": "Educated est une plateforme unifiée pour gérer vos ressources physiques et numériques. Empruntez, lisez, explorez — tout en un seul endroit.",
       "stats": {
         "resources": "Ressources",
         "accessTypes": "Types d'accès",
@@ -14,17 +23,54 @@
       },
       "ctaPrimary": "Commencer maintenant →",
       "ctaSecondary": "Découvrir les fonctionnalités",
+      "trustedBy": "Adoptée par étudiants, enseignants et institutions",
       "scene": {
         "bookTitle": "Educated Library",
         "bookSubtitle": "Bibliothèque Hybride",
         "pdfBadge": "📄 15 PDF disponibles",
         "loansBadge": "📖 3 emprunts actifs",
-        "returnBadge": "✅ Retour validé"
+        "returnBadge": "✅ Retour validé",
+        "pdfTitle": "15 PDF disponibles",
+        "pdfSubtitle": "Nouvelles ressources ajoutées",
+        "loansTitle": "3 emprunts actifs",
+        "loansSubtitle": "Suivez vos livres",
+        "returnTitle": "Retour validé",
+        "returnSubtitle": "Article retourné"
+      }
+    },
+    "stats": {
+      "label": "Educated en chiffres",
+      "resourcesTitle": "Ressources",
+      "resourcesDesc": "Livres et documents physiques & numériques",
+      "accessTypesTitle": "Types d'accès",
+      "accessTypesDesc": "Étudiant, Enseignant, Admin, Invité",
+      "uptimeTitle": "Disponibilité",
+      "uptimeDesc": "Une plateforme fiable, sur laquelle compter",
+      "accessTitle": "Accès",
+      "accessDesc": "Votre bibliothèque, à tout moment, partout"
+    },
+    "roles": {
+      "label": "Conçue pour chaque rôle",
+      "title": "Une plateforme, chaque besoin",
+      "student": {
+        "title": "Espace Étudiant",
+        "desc": "Trouvez, empruntez et lisez en toute simplicité. Accédez à tout ce qu'il vous faut pour réussir.",
+        "link": "Découvrir l'espace étudiant →"
+      },
+      "teacher": {
+        "title": "Espace Enseignant",
+        "desc": "Gérez vos ressources, suivez les emprunts et créez de meilleures expériences d'apprentissage.",
+        "link": "Découvrir l'espace enseignant →"
+      },
+      "admin": {
+        "title": "Espace Admin",
+        "desc": "Contrôlez, supervisez et optimisez votre bibliothèque avec des outils avancés.",
+        "link": "Découvrir l'espace admin →"
       }
     },
     "features": {
-      "label": "Fonctionnalités",
-      "title": "Tout ce dont vous avez besoin",
+      "label": "Fonctionnalités puissantes",
+      "title": "Tout ce qu'il vous faut, au même endroit",
       "desc": "Une solution complète pour moderniser la gestion documentaire de votre établissement.",
       "items": {
         "catalog": {
@@ -50,15 +96,41 @@
         "secure": {
           "title": "Accès Sécurisé",
           "desc": "Authentification JWT avec contrôle d'accès par rôle. Vos données sont protégées."
+        },
+        "support": {
+          "title": "Centre de Support",
+          "desc": "Obtenez de l'aide à tout moment via notre centre de support et notre base de connaissances."
+        },
+        "notif": {
+          "title": "Notifications",
+          "desc": "Restez informé grâce aux notifications in-app et e-mail liées à vos activités."
         }
       }
+    },
+    "how": {
+      "label": "Comment ça marche",
+      "title": "Des étapes simples pour une bibliothèque plus intelligente",
+      "steps": {
+        "create": { "title": "Créer un compte", "desc": "Inscrivez-vous en quelques secondes et choisissez votre rôle." },
+        "explore": { "title": "Explorer & rechercher", "desc": "Trouvez livres, PDF et ressources sans effort." },
+        "borrow": { "title": "Emprunter ou lire", "desc": "Empruntez les livres physiques ou lisez en ligne instantanément." },
+        "return": { "title": "Rendre & recommencer", "desc": "Retournez les articles à temps et continuez à apprendre." }
+      }
+    },
+    "dashboards": {
+      "label": "Tableaux de bord intelligents",
+      "title": "Tout en un coup d'œil",
+      "subtitle": "Prévisualisez chaque espace avec des tableaux de bord clairs, des statistiques et des actions intelligentes.",
+      "student": { "title": "Tableau de bord étudiant", "desc": "Suivez vos emprunts, découvrez des ressources et continuez à apprendre." },
+      "teacher": { "title": "Tableau de bord enseignant", "desc": "Gérez vos ressources, suivez les consultations et accompagnez vos étudiants." },
+      "admin": { "title": "Tableau de bord admin", "desc": "Supervisez les opérations, les utilisateurs et les performances." }
     },
     "cta": {
       "label": "Prêt à commencer ?",
       "title_1": "Rejoignez la plateforme",
       "title_highlight": "Educated aujourd'hui",
       "desc": "Créez votre compte en quelques secondes et accédez à toutes les ressources de votre bibliothèque, où que vous soyez.",
-      "button": "🚀 Commencer — c'est gratuit"
+      "button": "Commencer — c'est gratuit"
     },
     "auth": {
       "infoTitle_1": "Votre espace",
@@ -72,10 +144,60 @@
       "tabs": {
         "login": "Connexion",
         "signup": "Inscription"
+      },
+      "signup": {
+        "title": "Créer un compte invité",
+        "subtitle": "Rejoignez Educated en tant qu'invité. Les comptes étudiants et enseignants sont créés par l'administration.",
+        "infoMessage": "Vous êtes étudiant ou enseignant ? Utilisez les identifiants fournis par l'administration.",
+        "labels": {
+          "lastName": "Nom",
+          "firstName": "Prénom",
+          "email": "Email",
+          "password": "Mot de passe",
+          "confirmPassword": "Confirmer le mot de passe"
+        },
+        "placeholders": {
+          "lastName": "Ben Ali",
+          "firstName": "Mohamed",
+          "email": "votre@email.tn",
+          "password": "Min. 6 caractères",
+          "confirmPassword": "Répéter le mot de passe"
+        },
+        "button": "Créer un compte invité",
+        "buttonLoading": "Création en cours...",
+        "errors": {
+          "required": "Veuillez remplir tous les champs obligatoires.",
+          "minPassword": "Le mot de passe doit contenir au moins 6 caractères.",
+          "passwordMismatch": "Les mots de passe ne correspondent pas.",
+          "generic": "Impossible de créer le compte."
+        },
+        "otpSent": "Un code de vérification a été envoyé à votre email."
       }
     },
     "footer": {
-      "copy": "PFE 2025-2026 — Adem Laadhari — Module Bibliothèque Hybride"
+      "tagline": "La plateforme de bibliothèque hybride pensée pour l'éducation moderne.",
+      "quickLinks": "Liens rapides",
+      "links": {
+        "features": "Fonctionnalités",
+        "roles": "Rôles",
+        "how": "Comment ça marche",
+        "platform": "Plateforme",
+        "contact": "Contact"
+      },
+      "resources": "Ressources",
+      "res": {
+        "help": "Centre d'aide",
+        "docs": "Documentation",
+        "privacy": "Politique de confidentialité",
+        "terms": "Conditions d'utilisation"
+      },
+      "project": "PFE 2025-2026",
+      "proj": {
+        "author": "Adem Laadhari",
+        "pfe": "Projet PFE",
+        "module": "Module Bibliothèque Hybride"
+      },
+      "copy": "© 2026 Educated. Tous droits réservés."
     }
   },
   "switch": {
@@ -117,6 +239,7 @@
   },
   "sidebar": {
     "logout": "Se déconnecter",
+    "logoSubtitle": "Bibliothèque Hybride",
     "sections": {
       "main": "Principal",
       "management": "Gestion",
@@ -749,7 +872,35 @@
       "availableCopies": "Exemplaires disponibles",
       "registeredDocuments": "Documents enregistrés",
       "totalRealViews": "Total réel des consultations",
-      "viewAll": "Voir tout"
+      "viewAll": "Voir tout",
+      "physicalBooks": "Livres physiques",
+      "digitalDocuments": "Documents numériques",
+      "total": "Total",
+      "notAvailable": "Non disponible",
+      "dateUnavailable": "Date non disponible",
+      "userUnavailable": "Utilisateur non disponible",
+      "titleUnavailable": "Titre non disponible",
+      "mainStatsAriaLabel": "Statistiques principales",
+      "emptyActivityTitle": "Aucune activité récente disponible",
+      "emptyActivityText": "Les derniers emprunts apparaîtront ici dès qu'ils seront fournis par le backend.",
+      "emptyDistributionTitle": "Répartition non disponible",
+      "emptyDistributionText": "Les volumes de livres et documents ne sont pas disponibles dans les données reçues.",
+      "emptyAlertsTitle": "Aucune alerte pour le moment",
+      "overdueLoansAlertTitle": "{{formatted}} emprunt(s) en retard",
+      "overdueLoansAlertText": "Prêt(s) à relancer ou régulariser.",
+      "pendingReservationsAlertTitle": "{{formatted}} réservation(s) en attente",
+      "pendingReservationsAlertText": "Demande(s) à traiter.",
+      "status": {
+        "enCours": "Emprunt",
+        "enAttente": "En attente",
+        "enRetard": "En retard",
+        "retourne": "Retour",
+        "confirmee": "Confirmée",
+        "annulee": "Annulée",
+        "expiree": "Expirée",
+        "refuse": "Refusé",
+        "unknown": "Statut non disponible"
+      }
     },
     "users": {
       "title": "Gestion des Utilisateurs",
@@ -770,6 +921,8 @@
       "tableRole": "Rôle",
       "tableStatus": "Statut",
       "tableRegisteredOn": "Inscrit le",
+      "tableLastLogin": "Dernière connexion",
+      "tableLastLogout": "Dernière déconnexion",
       "block": "Bloquer",
       "unblock": "Débloquer",
       "processing": "Traitement...",
@@ -1012,7 +1165,7 @@
         "sessionExpired": "Session expirée. Veuillez vous reconnecter.",
         "fileNotFound": "Fichier introuvable.",
         "accessDenied": "Accès non autorisé.",
-        "allowPopups": "Autorisez les fenêtres pop-up pour ouvrir ce document.",
+        "allowPopups": "Votre navigateur a bloqué l'ouverture du document. Veuillez autoriser les fenêtres pop-up pour ouvrir ce document.",
         "openFailed": "Impossible d’ouvrir ce document.",
         "downloadFailed": "Impossible de télécharger ce document."
       }
@@ -1042,6 +1195,7 @@
       "tableLoanId": "ID emprunt",
       "tableBorrowerRegistration": "Matricule emprunteur",
       "tableBorrower": "Emprunteur",
+      "tableBorrowerEmail": "Email de l’emprunteur",
       "tableBook": "Livre",
       "tableBookId": "ID livre / ISBN",
       "tableAuthor": "Auteur",
