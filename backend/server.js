@@ -38,20 +38,33 @@ app.use(helmet({
 // CORS - Autoriser le frontend
 // En production, définir FRONTEND_URL (ex: https://mon-app.vercel.app).
 // Plusieurs origines possibles via une liste séparée par des virgules.
+// Robustesse : on ignore un éventuel slash final et on autorise
+// automatiquement tous les sous-domaines *.vercel.app (déploiements preview).
+const normalizeOrigin = (o) => String(o || '').trim().replace(/\/+$/, '');
+
 const allowedOrigins = [
   'http://localhost:3000',   // React
   'http://localhost:4200',   // Angular
   'http://localhost:8080',
   ...(process.env.FRONTEND_URL
-    ? process.env.FRONTEND_URL.split(',').map((o) => o.trim()).filter(Boolean)
+    ? process.env.FRONTEND_URL.split(',').map(normalizeOrigin).filter(Boolean)
     : []),
 ];
+
+const isAllowedOrigin = (origin) => {
+  const o = normalizeOrigin(origin);
+  if (allowedOrigins.includes(o)) return true;
+  // Autorise le domaine de production et les previews Vercel.
+  if (/^https:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(o)) return true;
+  return false;
+};
 
 app.use(cors({
   origin: (origin, callback) => {
     // Autoriser les requêtes sans origine (curl, health checks, apps mobiles)
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error(`Origine non autorisée par CORS : ${origin}`));
+    if (!origin || isAllowedOrigin(origin)) return callback(null, true);
+    // Refus propre : pas d'en-têtes CORS, mais pas d'erreur 500 non plus.
+    return callback(null, false);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
