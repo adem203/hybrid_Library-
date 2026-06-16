@@ -1,6 +1,7 @@
 const { query, getClient } = require('../../config/db');
 const { validationResult } = require('express-validator');
 const path = require('path');
+const { uploadBuffer } = require('../../services/storage.service');
 
 // ─────────────────────────────────────────────
 // GET /api/v1/livres
@@ -191,9 +192,20 @@ const createLivre = async (req, res) => {
     isbn, emplacement_rayon, stock_total,
   } = req.body;
 
-  const image_couverture = req.file
-    ? `/uploads/images/${req.file.filename}`
-    : null;
+  let image_couverture = null;
+  if (req.file) {
+    try {
+      const uploaded = await uploadBuffer(req.file.buffer, {
+        folder: 'bibliotheque/couvertures',
+        mimetype: req.file.mimetype,
+        originalname: req.file.originalname,
+      });
+      image_couverture = uploaded.url;
+    } catch (error) {
+      console.error('Erreur upload couverture (createLivre):', error);
+      return res.status(500).json({ success: false, message: 'Erreur lors de l\'envoi de l\'image.' });
+    }
+  }
 
   const client = await getClient();
   try {
@@ -300,8 +312,16 @@ const updateLivre = async (req, res) => {
       });
     }
 
-    // Mettre à jour la couverture si uploadée
-    const image_couverture = req.file ? `/uploads/images/${req.file.filename}` : undefined;
+    // Mettre à jour la couverture si uploadée (envoi vers Cloudinary)
+    let image_couverture;
+    if (req.file) {
+      const uploaded = await uploadBuffer(req.file.buffer, {
+        folder: 'bibliotheque/couvertures',
+        mimetype: req.file.mimetype,
+        originalname: req.file.originalname,
+      });
+      image_couverture = uploaded.url;
+    }
 
     // Mettre à jour ressources
     await client.query(

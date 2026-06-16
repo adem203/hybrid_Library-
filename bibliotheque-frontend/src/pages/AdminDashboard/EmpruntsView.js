@@ -1,22 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  AreaChart, Area,
-  PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer,
-} from 'recharts';
 import { empruntsAPI, statsAPI, authAPI, livresAPI } from '../../api/api';
-import { useChartTheme } from '../../utils/chartTheme';
 import {
   EMP_STATUTS,
-  STATUT_BADGE,
-  STATUT_COLOR,
   formatStatus,
   isEmpruntEnRetard,
   DetailsModal,
 } from './circulationShared';
 import DateField from '../../components/DateField/DateField';
+import {
+  IconLoanMark, IconBook, IconCheckCircle, IconClock, IconLayers,
+  IconFileText, IconExport, IconPlus, IconSearch, IconReset, IconCheck,
+  IconKebab, IconChevronLeft, IconChevronRight, IconReturn, IconExtend, IconX,
+} from './loansIcons';
 import './EmpruntsView.css';
 
 // ─────────────────────────────────────────────
@@ -253,17 +249,136 @@ export function getMatchedVisibleFacet(loan, terms) {
 // ─────────────────────────────────────────────
 // Stat card
 // ─────────────────────────────────────────────
-function StatBox({ label, value, icon, accent, loading }) {
+function StatCard({ label, value, desc, icon, tone, loading }) {
   return (
-    <div className="emp-stat" style={{ '--accent': accent }}>
-      <div className="emp-stat-icon">{icon}</div>
-      <div className="emp-stat-text">
-        <div className="emp-stat-value">
-          {loading ? <span className="emp-stat-skel" /> : (value ?? 0)}
-        </div>
-        <div className="emp-stat-label">{label}</div>
+    <div className={`loans-stat loans-stat-${tone}`}>
+      <span className="loans-stat-icon">{icon}</span>
+      <div className="loans-stat-body">
+        <span className="loans-stat-label">{label}</span>
+        <strong>{loading ? <span className="loans-stat-skel" /> : (value ?? 0)}</strong>
+        <em>{desc}</em>
       </div>
     </div>
+  );
+}
+
+// Status badge mapping for the redesigned table.
+const LOAN_STATUS_CLASS = {
+  EN_ATTENTE: 'loans-st-pending',
+  EN_COURS: 'loans-st-active',
+  RETOURNE: 'loans-st-returned',
+  EN_RETARD: 'loans-st-overdue',
+  ANNULE: 'loans-st-cancelled',
+  REFUSE: 'loans-st-rejected',
+};
+
+const APPROVAL_ERROR_KEYS = {
+  LOAN_ALREADY_APPROVED: 'admin.loans.alreadyApproved',
+  LOAN_ALREADY_RETURNED: 'admin.loans.alreadyReturned',
+  LOAN_NOT_PENDING: 'admin.loans.cannotApprove',
+  LOAN_NOT_FOUND: 'admin.loans.cannotApprove',
+  BOOK_UNAVAILABLE: 'admin.loans.bookUnavailable',
+};
+
+function approvalErrorMessage(error, t) {
+  const code = error.response?.data?.code;
+  return APPROVAL_ERROR_KEYS[code]
+    ? t(APPROVAL_ERROR_KEYS[code])
+    : (error.response?.data?.message || t('admin.loans.cannotApprove'));
+}
+
+// Translate a backend role code to a readable label (safe fallback).
+function roleLabel(role, t) {
+  const r = String(role || '').toUpperCase();
+  if (r === 'ETUDIANT' || r === 'STUDENT') return t('admin.roles.student');
+  if (r === 'ENSEIGNANT' || r === 'TEACHER') return t('admin.roles.teacher');
+  if (r === 'ADMIN' || r === 'ADMINISTRATEUR') return t('admin.roles.admin');
+  if (r === 'BIBLIOTHECAIRE' || r === 'LIBRARIAN') return t('admin.loans.staff');
+  return role || '—';
+}
+
+function avatarInitials(loan) {
+  const a = borrowerFirstName(loan)?.[0] || '';
+  const b = borrowerLastName(loan)?.[0] || '';
+  return ((a + b) || borrowerEmail(loan)?.[0] || '?').toUpperCase();
+}
+
+// Deterministic avatar tint from the borrower id/name.
+function avatarTone(loan) {
+  const seed = String(borrowerUserId(loan) ?? borrowerDisplayName(loan) ?? '');
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  return ['blue', 'gold', 'green', 'purple'][hash % 4];
+}
+
+// Kebab (⋮) row menu. Positioned with `fixed` from the button rect so it is
+// never clipped by the table's horizontal scroll container.
+function RowMenu({ actions }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDoc = (e) => {
+      if (
+        menuRef.current && !menuRef.current.contains(e.target)
+        && btnRef.current && !btnRef.current.contains(e.target)
+      ) setOpen(false);
+    };
+    const onScroll = () => setOpen(false);
+    document.addEventListener('mousedown', onDoc);
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [open]);
+
+  const toggle = () => {
+    if (!open && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 6, left: Math.max(8, r.right - 184) });
+    }
+    setOpen(o => !o);
+  };
+
+  const disabled = !actions || actions.length === 0;
+
+  return (
+    <>
+      <button
+        type="button"
+        ref={btnRef}
+        className="loans-kebab"
+        onClick={toggle}
+        disabled={disabled}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={t('admin.loans.tableActions')}
+      >
+        <IconKebab size={16} />
+      </button>
+      {open && !disabled && (
+        <div ref={menuRef} className="loans-menu" style={{ top: pos.top, left: pos.left }} role="menu">
+          {actions.map((a) => (
+            <button
+              type="button"
+              key={a.key}
+              className={`loans-menu-item ${a.danger ? 'is-danger' : ''}`}
+              onClick={() => { setOpen(false); a.onClick(); }}
+              role="menuitem"
+            >
+              {a.icon}{a.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -423,9 +538,25 @@ function NouvelEmpruntModal({ onClose, onCreated }) {
 // ─────────────────────────────────────────────
 // Main page
 // ─────────────────────────────────────────────
+const LOANS_PAGE_SIZE = 8;
+
+// Windowed page numbers with ellipsis markers.
+function buildPageNumbers(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const set = new Set([1, total, current, current - 1, current + 1]);
+  const sorted = [...set].filter(n => n >= 1 && n <= total).sort((a, b) => a - b);
+  const out = [];
+  let prev = 0;
+  sorted.forEach(n => {
+    if (n - prev > 1) out.push(`gap-${n}`);
+    out.push(n);
+    prev = n;
+  });
+  return out;
+}
+
 export default function EmpruntsView() {
   const { t } = useTranslation();
-  const chartTheme = useChartTheme();
   // Table state
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -433,55 +564,47 @@ export default function EmpruntsView() {
   const [statut, setStatut] = useState('');
   const [dateMin, setDateMin] = useState('');
   const [dateMax, setDateMax] = useState('');
+  const [borrowerFilter, setBorrowerFilter] = useState('');
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [pagination, setPagination] = useState({ total: 0, totalPages: 0 });
   const [selected, setSelected] = useState(null);
   const [flash, setFlash] = useState(null);
   const [showNewModal, setShowNewModal] = useState(false);
+  const [approvingId, setApprovingId] = useState(null);
+  // Custom in-app confirmation modals (replace native window.confirm / window.prompt)
+  const [returnTarget, setReturnTarget] = useState(null);
+  const [returnSubmitting, setReturnSubmitting] = useState(false);
+  const [extendTarget, setExtendTarget] = useState(null);
+  const [extendDays, setExtendDays] = useState('7');
+  const [extendError, setExtendError] = useState(null);
+  const [extendSubmitting, setExtendSubmitting] = useState(false);
 
-  // Dashboard data — raw API payloads (axios → response.data → backend { success, data: {...} })
+  // Stat-card data — raw API payloads (axios → response.data → backend { success, data }).
   const [dashboard, setDashboard] = useState(null);
   const [empStats, setEmpStats] = useState(null);
-  const [topLivres, setTopLivres] = useState([]);
   const [statsLoading, setStatsLoading] = useState(true);
 
-  // When search or date filter is active we widen the API limit so the client
-  // has the full result set to match against. The search itself is applied
-  // client-side (see filteredItems below) so we can reason about exactly what
-  // fields each row exposes.
-  const filterActive = !!(search || dateMin || dateMax);
-
+  // All filtering + pagination is client-side, so load the full set once.
   const loadList = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await empruntsAPI.getAll({
-        page: filterActive ? 1 : page,
-        limit: filterActive ? 10000 : limit,
-        ...(statut ? { statut } : {}),
-      });
-      setItems(r.data.data);
-      setPagination(r.data.pagination || { total: 0, totalPages: 0 });
+      const r = await empruntsAPI.getAll({ page: 1, limit: 10000 });
+      setItems(r.data.data || []);
     } catch (err) {
       setFlash({ type: 'error', text: err.response?.data?.message || t('admin.loans.errors.loadFailed') });
     } finally { setLoading(false); }
-  }, [page, limit, statut, filterActive, t]);
+  }, [t]);
 
   const loadWidgets = useCallback(async () => {
     setStatsLoading(true);
     try {
-      const [d, s, p] = await Promise.all([
+      const [d, s] = await Promise.all([
         statsAPI.getDashboard(),
         statsAPI.getStatsEmprunts(),
-        statsAPI.getRessourcesPopulaires(),
       ]);
-      // The backend wraps payload as { success, data: {...} }. axios then wraps as
-      // { data: { success, data: {...} } } so the real fields live under .data.data.
       setDashboard(d.data?.data || null);
       setEmpStats(s.data?.data || null);
-      setTopLivres((p.data?.data?.top_livres || []).slice(0, 5));
     } catch (_err) {
-      // Widgets are optional. Leave them null; the cards show 0.
+      // Stat widgets are optional; the cards fall back to 0.
     } finally {
       setStatsLoading(false);
     }
@@ -489,58 +612,113 @@ export default function EmpruntsView() {
 
   useEffect(() => { loadList(); }, [loadList]);
   useEffect(() => { loadWidgets(); }, [loadWidgets]);
-  useEffect(() => { setPage(1); }, [search, statut, dateMin, dateMax]);
+  useEffect(() => { setPage(1); }, [search, statut, dateMin, dateMax, borrowerFilter]);
 
+  // Distinct borrowers for the "All borrowers" filter.
+  const borrowerOptions = (() => {
+    const map = new Map();
+    items.forEach(e => {
+      const id = borrowerUserId(e);
+      if (id != null && !map.has(id)) map.set(id, borrowerDisplayName(e) || borrowerDisplayId(e));
+    });
+    return [...map.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  })();
 
   // Multi-term AND search inside a SINGLE facet (loan / borrower / book).
-  // Cross-facet hits — e.g. one term matching the borrower name while
-  // another matches the book author — are intentionally rejected to keep
-  // results aligned with what the user reads in the cells.
   const normalizedSearch = normalizeSearch(search);
   const searchTerms = normalizedSearch.split(' ').filter(Boolean);
   const searchMode = getVisibleSearchMode(items, searchTerms);
   const filteredItems = items.filter(e => {
     if (searchTerms.length > 0 && !loanMatchesQuery(e, searchTerms, searchMode)) return false;
+    if (statut && e.statut !== statut) return false;
+    if (borrowerFilter && String(borrowerUserId(e)) !== String(borrowerFilter)) return false;
     if (e.date_emprunt) {
-      const t = new Date(e.date_emprunt).getTime();
-      if (dateMin) {
-        const min = new Date(dateMin).getTime();
-        if (t < min) return false;
-      }
-      if (dateMax) {
-        const max = new Date(dateMax).getTime() + 24 * 3600 * 1000 - 1;
-        if (t > max) return false;
-      }
+      const ts = new Date(e.date_emprunt).getTime();
+      if (dateMin && ts < new Date(dateMin).getTime()) return false;
+      if (dateMax && ts > new Date(dateMax).getTime() + 24 * 3600 * 1000 - 1) return false;
     }
     return true;
   });
 
-  const retourner = async (e) => {
-    if (!window.confirm(t('admin.loans.confirmReturn'))) return;
-    try {
-      const r = await empruntsAPI.retourner(e.id_emprunt);
-      setFlash({ type: 'success', text: r.data.message + (r.data.penalite ? ` ${r.data.penalite}` : '') });
-      loadList(); loadWidgets();
-    } catch (err) { setFlash({ type: 'error', text: err.response?.data?.message || t('admin.loans.errors.generic') }); }
-  };
-  const prolonger = async (e) => {
-    const jours = window.prompt(t('admin.loans.extendPrompt'), '7');
-    if (!jours) return;
-    const joursParsed = parseInt(jours, 10);
-    if (!Number.isInteger(joursParsed) || joursParsed < 1) {
-      setFlash({ type: 'error', text: t('admin.loans.errors.invalidDays') });
-      return;
-    }
-    try {
-      const r = await empruntsAPI.prolonger(e.id_emprunt, { jours: joursParsed });
-      setFlash({ type: 'success', text: r.data.message || t('admin.loans.loanExtended', { count: joursParsed }) });
-      loadList();
-    } catch (err) { setFlash({ type: 'error', text: err.response?.data?.message || t('admin.loans.errors.generic') }); }
+  const hasActiveFilters = !!(search || statut || dateMin || dateMax || borrowerFilter);
+
+  // Client-side pagination
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / LOANS_PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * LOANS_PAGE_SIZE;
+  const pageItems = filteredItems.slice(startIndex, startIndex + LOANS_PAGE_SIZE);
+  const rangeStart = filteredItems.length === 0 ? 0 : startIndex + 1;
+  const rangeEnd = startIndex + pageItems.length;
+  const pageList = buildPageNumbers(currentPage, totalPages);
+
+  const resetFilters = () => {
+    setSearch(''); setStatut(''); setDateMin(''); setDateMax(''); setBorrowerFilter(''); setPage(1);
   };
 
-  // ─── Stats sources (all real backend data) ───
-  // par_statut comes from GET /stats/emprunts and gives accurate counts
-  // for EN_COURS + EN_RETARD (active) and RETOURNE.
+  // Open the custom confirmation modal instead of a native popup.
+  const retourner = (e) => setReturnTarget(e);
+  const confirmReturn = async () => {
+    if (!returnTarget || returnSubmitting) return;
+    setReturnSubmitting(true);
+    try {
+      const r = await empruntsAPI.retourner(returnTarget.id_emprunt);
+      setFlash({ type: 'success', text: r.data.message + (r.data.penalite ? ` ${r.data.penalite}` : '') });
+      loadList(); loadWidgets();
+    } catch (err) {
+      setFlash({ type: 'error', text: err.response?.data?.message || t('admin.loans.errors.generic') });
+    } finally {
+      setReturnSubmitting(false);
+      setReturnTarget(null);
+    }
+  };
+
+  // Open the custom extend modal instead of a native prompt.
+  const prolonger = (e) => { setExtendDays('7'); setExtendError(null); setExtendTarget(e); };
+  const confirmExtend = async () => {
+    if (!extendTarget || extendSubmitting) return;
+    const joursParsed = parseInt(extendDays, 10);
+    if (!Number.isInteger(joursParsed) || joursParsed < 1) {
+      setExtendError(t('admin.loans.errors.invalidDays'));
+      return;
+    }
+    setExtendError(null);
+    setExtendSubmitting(true);
+    try {
+      const r = await empruntsAPI.prolonger(extendTarget.id_emprunt, { jours: joursParsed });
+      setFlash({ type: 'success', text: r.data.message || t('admin.loans.loanExtended', { count: joursParsed }) });
+      loadList();
+    } catch (err) {
+      setFlash({ type: 'error', text: err.response?.data?.message || t('admin.loans.errors.generic') });
+    } finally {
+      setExtendSubmitting(false);
+      setExtendTarget(null);
+    }
+  };
+  // Approve a pending loan → backend validerEmprunt (EN_ATTENTE → EN_COURS,
+  // re-checks stock and decrements it). No duplicate stock handling here.
+  const approuver = async (e) => {
+    if (e.statut !== 'EN_ATTENTE' || approvingId !== null) return;
+
+    setApprovingId(e.id_emprunt);
+    try {
+      const r = await empruntsAPI.valider(e.id_emprunt, {});
+      setItems(current => current.map(item => (
+        item.id_emprunt === e.id_emprunt
+          ? { ...item, ...(r.data?.data || {}), statut: 'EN_COURS' }
+          : item
+      )));
+      setFlash({ type: 'success', text: t('admin.loans.loanApproved') });
+      await Promise.all([loadList(), loadWidgets()]);
+    } catch (err) {
+      setFlash({ type: 'error', text: approvalErrorMessage(err, t) });
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
+  // ─── Stat-card sources (all real backend data) ───
   const parStatutMap = (empStats?.par_statut || []).reduce((acc, r) => {
     acc[r.statut] = Number(r.total) || 0;
     return acc;
@@ -550,297 +728,181 @@ export default function EmpruntsView() {
   const enRetard = Number(dashboard?.emprunts?.en_retard) ?? 0;
   const empruntsActifs = (parStatutMap.EN_COURS || 0) + (parStatutMap.EN_RETARD || 0);
 
-  // Chart data
-  const parMois = (empStats?.par_mois || []).map(m => ({
-    mois: m.mois,
-    total: Number(m.total_emprunts) || 0,
-  }));
-  const parStatut = (empStats?.par_statut || []).map(s => ({
-    statut: s.statut,
-    label: formatStatus(s.statut, t),
-    total: Number(s.total) || 0,
-    color: STATUT_COLOR[s.statut] || '#c9a84c',
-  }));
-
-  const activiteRecente = dashboard?.activite_recente || [];
-  const topMax = topLivres.reduce((m, l) => Math.max(m, Number(l.nb_emprunts) || 0), 0);
-
   return (
     <>
-      <div className="page-header">
-        <div className="page-header-title">{t('admin.loans.title')} 📗</div>
-        <div className="page-header-sub">
-          {t('admin.loans.intro')}
-        </div>
-      </div>
-
-      {flash && (
-        <div className={`auth-alert auth-alert-${flash.type === 'success' ? 'success' : 'error'}`}
-             style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>{flash.type === 'success' ? '✅' : '⚠️'} {flash.text}</span>
-          <button onClick={() => setFlash(null)} style={{ background: 'none', border: 0, color: 'inherit', cursor: 'pointer' }}>✕</button>
-        </div>
-      )}
-
-      <div className="emp-stats-row">
-        <StatBox label={t('admin.loans.availableBooks')} value={livresDispo != null ? Number(livresDispo) : 0}
-          icon="📚" accent="rgba(56,189,248,0.18)" loading={statsLoading} />
-        <StatBox label={t('admin.loans.returnedLoans')} value={empruntsRetournes}
-          icon="✅" accent="rgba(16,212,142,0.18)" loading={statsLoading} />
-        <StatBox label={t('admin.loans.overdue')} value={enRetard}
-          icon="⏰" accent="rgba(239,68,68,0.18)" loading={statsLoading} />
-        <StatBox label={t('admin.loans.activeLoans')} value={empruntsActifs}
-          icon="📗" accent="rgba(201,168,76,0.20)" loading={statsLoading} />
-      </div>
-
-      <div className="panel" style={{ marginBottom: 16 }}>
-        <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-          <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{t('admin.loans.tracking')}</div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button className="btn-secondary"
-              onClick={() => exportEmpruntsCSV(filteredItems, t)}
-              disabled={filteredItems.length === 0}
-              title={t('admin.loans.export')}>
-              ⬇️ {t('admin.loans.export')}
+      <div className="loans-page">
+        <div className="loans-header">
+          <div className="loans-header-left">
+            <span className="loans-title-mark"><IconLoanMark size={26} /></span>
+            <div>
+              <div className="loans-breadcrumb">{t('sidebar.items.dashboard')} <span>›</span> {t('admin.loans.title')}</div>
+              <h1>{t('admin.loans.title')}</h1>
+              <p>{t('admin.loans.intro')}</p>
+            </div>
+          </div>
+          <div className="loans-header-actions">
+            <button type="button" className="btn-secondary loans-hbtn" onClick={() => { setStatut('EN_RETARD'); setPage(1); }}>
+              <IconFileText size={16} /> {t('admin.loans.overdueReport')}
             </button>
-            <button className="btn-primary" onClick={() => setShowNewModal(true)}>
-              + {t('admin.loans.newLoan')}
+            <button type="button" className="btn-secondary loans-hbtn" onClick={() => exportEmpruntsCSV(filteredItems, t)} disabled={filteredItems.length === 0}>
+              <IconExport size={16} /> {t('admin.loans.export')}
+            </button>
+            <button type="button" className="btn-primary loans-hbtn" onClick={() => setShowNewModal(true)}>
+              <IconPlus size={16} /> {t('admin.loans.newLoan')}
             </button>
           </div>
         </div>
-        <div className="panel-body" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input className="form-input" placeholder={'🔍 ' + t('admin.common.search')}
-            style={{ flex: '1 1 240px', minWidth: 200 }}
-            value={search} onChange={e => setSearch(e.target.value)} />
-          <select className="form-select" style={{ maxWidth: 200 }}
-            value={statut} onChange={e => setStatut(e.target.value)}>
-            <option value="">{t('admin.loans.allStatuses')}</option>
-            {EMP_STATUTS.map(s => <option key={s} value={s}>{formatStatus(s, t)}</option>)}
-          </select>
-          <div className="emp-date-field">
-            <span className="emp-date-label">{t('admin.loans.from')}</span>
-            <DateField value={dateMin} onChange={setDateMin}
-              minYear={MIN_YEAR} maxYear={MAX_YEAR}
-              max={dateMax || ''}
-              ariaLabel={t('admin.loans.startDate')} />
-          </div>
-          <div className="emp-date-field">
-            <span className="emp-date-label">{t('admin.loans.to')}</span>
-            <DateField value={dateMax} onChange={setDateMax}
-              minYear={MIN_YEAR} maxYear={MAX_YEAR}
-              min={dateMin || ''}
-              ariaLabel={t('admin.loans.endDate')} />
-          </div>
-          {(search || statut || dateMin || dateMax) && (
-            <button className="btn-secondary"
-              onClick={() => { setSearch(''); setStatut(''); setDateMin(''); setDateMax(''); }}>
-              {t('admin.loans.reset')}
-            </button>
-          )}
-          <span className="pagination-info" style={{ marginLeft: 'auto' }}>
-            {filterActive
-              ? t('admin.loans.resultsCount', { count: filteredItems.length })
-              : t('admin.loans.loanCount', { count: pagination.total })}
-          </span>
-        </div>
-      </div>
 
-      <div className="panel">
-        {loading ? <div className="loading-spinner"><div className="spinner" /></div> : (
-          <div className="table-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>{t('admin.loans.tableLoanId')}</th>
-                  <th>{t('admin.loans.tableBorrowerRegistration')}</th>
-                  <th>{t('admin.loans.tableBook')}</th>
-                  <th>{t('admin.loans.tableBookId')}</th>
-                  <th>{t('admin.loans.tableBorrower')}</th>
-                  <th>{t('admin.loans.tableBorrowerEmail')}</th>
-                  <th>{t('admin.loans.tableLoanDate')}</th>
-                  <th>{t('admin.loans.tableExpectedReturn')}</th>
-                  <th>{t('admin.loans.tableActualReturn')}</th>
-                  <th>{t('admin.loans.tableStatus')}</th>
-                  <th>{t('admin.loans.tableDelay')}</th>
-                  <th>{t('admin.loans.tableActions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredItems.map(e => {
-                  const retard = isEmpruntEnRetard(e);
-                  const isActive = e.statut === 'EN_COURS' || e.statut === 'EN_RETARD';
-                  return (
-                    <tr key={e.id_emprunt}>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        {loanDisplayId(e)}
-                      </td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                        <div style={{ whiteSpace: 'nowrap' }}>{borrowerDisplayId(e)}</div>
-                        {borrowerRole(e) && (
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2 }}>
-                            {borrowerRole(e)}
-                          </div>
-                        )}
-                      </td>
-                      <td>
-                        <div style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{e.titre}</div>
-                        {e.auteur && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{e.auteur}</div>}
-                      </td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        {bookDisplayId(e)}
-                      </td>
-                      <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{borrowerDisplayName(e) || '—'}</td>
-                      <td
-                        title={borrowerEmail(e) || ''}
-                        style={{
-                          color: 'var(--text-secondary)',
-                          fontSize: '0.82rem',
-                          maxWidth: 220,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {borrowerEmail(e) || '—'}
-                      </td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{formatDDMMYYYY(e.date_emprunt)}</td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{formatDDMMYYYY(e.date_retour_prevue)}</td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{formatDDMMYYYY(e.date_retour_effectif)}</td>
-                      <td><span className={`badge ${STATUT_BADGE[e.statut] || 'badge-gold'}`}>{formatStatus(e.statut, t)}</span></td>
-                      <td>
-                        <span className={`badge ${retard ? 'badge-danger' : 'badge-success'}`}>
-                          {retard ? t('admin.loans.delayYes') : t('admin.loans.delayNo')}
-                        </span>
-                      </td>
-                      <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                        <button className="action-btn action-btn-info" onClick={() => setSelected(e)}>👁️ {t('admin.loans.details')}</button>
-                        {isActive && (
-                          <>
-                            <button className="action-btn action-btn-success" onClick={() => retourner(e)}>📥 {t('admin.loans.returnAction')}</button>
-                            <button className="action-btn action-btn-info" onClick={() => prolonger(e)}>⏱️ {t('admin.loans.extendAction')}</button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            {filteredItems.length === 0 && (
-              <div className="empty-state">
-                <div className="empty-state-icon">📭</div>
-                <div className="empty-state-text">{t('admin.loans.noLoans')}</div>
-              </div>
-            )}
+        {flash && (
+          <div className={`auth-alert auth-alert-${flash.type === 'success' ? 'success' : 'error'} loans-alert`}>
+            <span>{flash.text}</span>
+            <button type="button" onClick={() => setFlash(null)} aria-label={t('admin.common.close')}><IconX size={15} /></button>
           </div>
         )}
-        {!filterActive && (
-          <div className="pagination-bar">
-            <button className="btn-secondary" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>← {t('admin.loans.previous')}</button>
-            <span className="pagination-info">{t('admin.loans.pageSummary', { page, totalPages: Math.max(pagination.totalPages, 1) })}</span>
-            <button className="btn-secondary" disabled={page >= pagination.totalPages} onClick={() => setPage(p => p + 1)}>{t('admin.loans.next')} →</button>
-            <select className="form-select pagination-limit" value={limit} onChange={e => { setLimit(Number(e.target.value)); setPage(1); }}>
-              <option value={20}>20 / page</option>
-              <option value={50}>50 / page</option>
-              <option value={100}>100 / page</option>
+
+        <div className="loans-stats">
+          <StatCard tone="blue" loading={statsLoading} icon={<IconBook size={22} />} value={empruntsActifs}
+            label={t('admin.loans.activeLoans')} desc={t('admin.loans.activeLoansDesc')} />
+          <StatCard tone="green" loading={statsLoading} icon={<IconCheckCircle size={22} />} value={empruntsRetournes}
+            label={t('admin.loans.returnedLoans')} desc={t('admin.loans.returnedLoansDesc')} />
+          <StatCard tone="amber" loading={statsLoading} icon={<IconClock size={22} />} value={enRetard}
+            label={t('admin.loans.overdueLoans')} desc={t('admin.loans.overdueLoansDesc')} />
+          <StatCard tone="purple" loading={statsLoading} icon={<IconLayers size={22} />} value={livresDispo != null ? Number(livresDispo) : 0}
+            label={t('admin.loans.availableBooks')} desc={t('admin.loans.availableBooksDesc')} />
+        </div>
+
+        <div className="panel loans-card">
+          <div className="loans-card-head">
+            <h2><IconLoanMark size={18} /> {t('admin.loans.tracking')}</h2>
+            <span className="loans-count">{t('admin.loans.loanCount', { count: filteredItems.length })}</span>
+          </div>
+
+          <div className="loans-toolbar">
+            <div className="loans-search">
+              <IconSearch size={17} className="loans-search-icon" />
+              <input className="form-input" placeholder={t('admin.loans.searchPlaceholder')}
+                value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+            <select className="form-select loans-select" value={statut} onChange={e => setStatut(e.target.value)}>
+              <option value="">{t('admin.loans.allStatuses')}</option>
+              {EMP_STATUTS.map(s => <option key={s} value={s}>{formatStatus(s, t)}</option>)}
             </select>
+            <div className="loans-date">
+              <span>{t('admin.loans.from')}</span>
+              <DateField value={dateMin} onChange={setDateMin} minYear={MIN_YEAR} maxYear={MAX_YEAR} max={dateMax || ''} ariaLabel={t('admin.loans.startDate')} />
+            </div>
+            <div className="loans-date">
+              <span>{t('admin.loans.to')}</span>
+              <DateField value={dateMax} onChange={setDateMax} minYear={MIN_YEAR} maxYear={MAX_YEAR} min={dateMin || ''} ariaLabel={t('admin.loans.endDate')} />
+            </div>
+            <select className="form-select loans-select" value={borrowerFilter} onChange={e => setBorrowerFilter(e.target.value)}>
+              <option value="">{t('admin.loans.allBorrowers')}</option>
+              {borrowerOptions.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
+            <button type="button" className="btn-secondary loans-reset" onClick={resetFilters} disabled={!hasActiveFilters}>
+              <IconReset size={15} /> {t('admin.loans.resetFilters')}
+            </button>
           </div>
-        )}
-      </div>
 
-      <div className="emp-widgets-grid">
-        <div className="panel emp-widget">
-          <div className="panel-header"><div style={{ fontWeight: 600 }}>📚 {t('admin.loans.mostBorrowedBooks')}</div></div>
-          <div className="panel-body">
-            {topLivres.length === 0 ? (
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t('admin.loans.noDataYet')}</div>
-            ) : (
-              <ol className="emp-top-list">
-                {topLivres.map((l, i) => {
-                  const v = Number(l.nb_emprunts) || 0;
-                  const pct = topMax > 0 ? Math.round((v / topMax) * 100) : 0;
-                  return (
-                    <li key={l.id_ressource || i}>
-                      <div className="emp-top-rank">{i + 1}</div>
-                      <div className="emp-top-info">
-                        <div className="emp-top-title">{l.titre}</div>
-                        <div className="emp-top-sub">{l.auteur || '—'}</div>
-                        <div className="emp-top-bar"><div className="emp-top-bar-fill" style={{ width: `${pct}%` }} /></div>
-                      </div>
-                      <div className="emp-top-count">{v}</div>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </div>
-        </div>
+          {loading ? <div className="loading-spinner"><div className="spinner" /></div> : (
+            <>
+              <div className="table-wrapper loans-table-wrap">
+                <table className="data-table loans-table">
+                  <thead>
+                    <tr>
+                      <th>{t('admin.loans.tableLoanId')}</th>
+                      <th>{t('admin.loans.tableRegNo')}</th>
+                      <th>{t('admin.loans.tableBook')}</th>
+                      <th>{t('admin.loans.tableBorrower')}</th>
+                      <th>{t('admin.loans.tableBorrowerEmail')}</th>
+                      <th>{t('admin.loans.tableBorrowedOn')}</th>
+                      <th>{t('admin.loans.tableDueDate')}</th>
+                      <th>{t('admin.loans.tableReturnedOn')}</th>
+                      <th>{t('admin.loans.tableStatus')}</th>
+                      <th>{t('admin.loans.tableOverdue')}</th>
+                      <th style={{ textAlign: 'right' }}>{t('admin.loans.tableActions')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pageItems.map(e => {
+                      const retard = isEmpruntEnRetard(e);
+                      const isPending = e.statut === 'EN_ATTENTE';
+                      const isActive = e.statut === 'EN_COURS' || e.statut === 'EN_RETARD';
+                      const menuActions = [];
+                      if (isActive) {
+                        menuActions.push({ key: 'return', label: t('admin.loans.returnAction'), icon: <IconReturn size={15} />, onClick: () => retourner(e) });
+                        menuActions.push({ key: 'extend', label: t('admin.loans.extendAction'), icon: <IconExtend size={15} />, onClick: () => prolonger(e) });
+                      }
+                      return (
+                        <tr key={e.id_emprunt}>
+                          <td className="loans-mono">{loanDisplayId(e)}</td>
+                          <td className="loans-mono">{borrowerDisplayId(e)}</td>
+                          <td>
+                            <div className="loans-book">
+                              <strong>{e.titre}</strong>
+                              {e.auteur && <span>{e.auteur}</span>}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="loans-borrower">
+                              <span className={`loans-avatar loans-avatar-${avatarTone(e)}`}>{avatarInitials(e)}</span>
+                              <div className="loans-borrower-meta">
+                                <strong>{borrowerDisplayName(e) || '—'}</strong>
+                                <span>{roleLabel(borrowerRole(e), t)}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="loans-email" title={borrowerEmail(e) || ''}>{borrowerEmail(e) || '—'}</td>
+                          <td className="loans-mono">{formatDDMMYYYY(e.date_emprunt)}</td>
+                          <td className="loans-mono">{formatDDMMYYYY(e.date_retour_prevue)}</td>
+                          <td className="loans-mono">{formatDDMMYYYY(e.date_retour_effectif)}</td>
+                          <td><span className={`loans-badge ${LOAN_STATUS_CLASS[e.statut] || 'loans-st-pending'}`}>{formatStatus(e.statut, t)}</span></td>
+                          <td><span className={`loans-badge ${retard ? 'loans-ov-yes' : 'loans-ov-no'}`}>{retard ? t('admin.loans.delayYes') : t('admin.loans.delayNo')}</span></td>
+                          <td>
+                            <div className="loans-actions">
+                              <button type="button" className="loans-act loans-act-details" onClick={() => setSelected(e)}>{t('admin.loans.details')}</button>
+                              {isPending && (
+                                <button
+                                  type="button"
+                                  className="loans-act loans-act-approve"
+                                  onClick={() => approuver(e)}
+                                  disabled={approvingId !== null}
+                                >
+                                  <IconCheck size={14} /> {approvingId === e.id_emprunt ? t('admin.loans.approving') : t('admin.loans.approve')}
+                                </button>
+                              )}
+                              <RowMenu actions={menuActions} />
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {filteredItems.length === 0 && (
+                  <div className="empty-state">
+                    <div className="empty-state-icon"><IconLoanMark size={32} /></div>
+                    <div className="empty-state-text">{t('admin.loans.noLoans')}</div>
+                  </div>
+                )}
+              </div>
 
-        <div className="panel emp-widget">
-          <div className="panel-header"><div style={{ fontWeight: 600 }}>📈 {t('admin.loans.loanTrends')}</div></div>
-          <div className="panel-body" style={{ height: 240 }}>
-            {parMois.length === 0 ? (
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t('admin.loans.notEnoughData')}</div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={parMois} margin={{ top: 8, right: 12, left: -10, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="empAreaGold" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#c9a84c" stopOpacity={0.55} />
-                      <stop offset="100%" stopColor="#c9a84c" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
-                  <XAxis dataKey="mois" stroke={chartTheme.axis} fontSize={11} />
-                  <YAxis stroke={chartTheme.axis} fontSize={11} allowDecimals={false} />
-                  <Tooltip contentStyle={chartTheme.tooltip} />
-                  <Area type="monotone" dataKey="total" name={t('admin.loans.total')} stroke="#c9a84c" fill="url(#empAreaGold)" strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
-
-        <div className="panel emp-widget">
-          <div className="panel-header"><div style={{ fontWeight: 600 }}>🎯 {t('admin.loans.statusBreakdown')}</div></div>
-          <div className="panel-body" style={{ height: 240 }}>
-            {parStatut.length === 0 ? (
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t('admin.loans.noData')}</div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={parStatut} dataKey="total" nameKey="label" innerRadius={45} outerRadius={75} paddingAngle={2}>
-                    {parStatut.map((s, i) => <Cell key={i} fill={s.color} />)}
-                  </Pie>
-                  <Tooltip contentStyle={chartTheme.tooltip} />
-                  <Legend wrapperStyle={{ fontSize: 11, color: '#9ba3c4' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
-
-        <div className="panel emp-widget">
-          <div className="panel-header"><div style={{ fontWeight: 600 }}>🕒 {t('admin.loans.recentActivity')}</div></div>
-          <div className="panel-body">
-            {activiteRecente.length === 0 ? (
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t('admin.loans.noRecentActivity')}</div>
-            ) : (
-              <ul className="emp-activity-list">
-                {activiteRecente.slice(0, 6).map((a, i) => (
-                  <li key={a.id_emprunt || i}>
-                    <span className={`badge ${STATUT_BADGE[a.statut] || 'badge-gold'}`}>{formatStatus(a.statut, t)}</span>
-                    <div className="emp-activity-text">
-                      <div className="emp-activity-title">{a.titre}</div>
-                      <div className="emp-activity-sub">
-                        {a.prenom} {a.nom} · {formatDDMMYYYY(a.date_creation || a.date_emprunt)}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+              {filteredItems.length > 0 && (
+                <div className="loans-footer">
+                  <span>{t('admin.loans.showingSummary', { start: rangeStart, end: rangeEnd, total: filteredItems.length })}</span>
+                  <div className="loans-pager">
+                    <button type="button" className="loans-pager-nav" disabled={currentPage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))} aria-label={t('admin.loans.previous')}><IconChevronLeft size={15} /></button>
+                    {pageList.map(item => (
+                      typeof item === 'number'
+                        ? <button type="button" key={item} className={`loans-pager-btn ${item === currentPage ? 'is-active' : ''}`} onClick={() => setPage(item)} aria-current={item === currentPage ? 'page' : undefined}>{item}</button>
+                        : <span key={item} className="loans-pager-gap">…</span>
+                    ))}
+                    <button type="button" className="loans-pager-nav" disabled={currentPage >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} aria-label={t('admin.loans.next')}><IconChevronRight size={15} /></button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
@@ -854,6 +916,60 @@ export default function EmpruntsView() {
             loadList(); loadWidgets();
           }}
         />
+      )}
+
+      {/* Confirm book return — custom modal (replaces native window.confirm) */}
+      {returnTarget && (
+        <div className="modal-backdrop" onClick={() => { if (!returnSubmitting) setReturnTarget(null); }}>
+          <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
+            <div className="modal-header">
+              <h3 className="modal-title">{t('admin.loans.confirmReturnTitle')}</h3>
+              <button className="modal-close" onClick={() => setReturnTarget(null)} disabled={returnSubmitting} aria-label={t('admin.common.close')}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ margin: 0 }}>{t('admin.loans.confirmReturnMessage')}</p>
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button type="button" className="btn-secondary" onClick={() => setReturnTarget(null)} disabled={returnSubmitting}>
+                {t('admin.common.cancel')}
+              </button>
+              <button type="button" className="btn-primary" onClick={confirmReturn} disabled={returnSubmitting}>
+                {returnSubmitting ? t('admin.common.loading') : t('admin.loans.confirmReturnBtn')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Extend loan — custom modal (replaces native window.prompt) */}
+      {extendTarget && (
+        <div className="modal-backdrop" onClick={() => { if (!extendSubmitting) setExtendTarget(null); }}>
+          <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
+            <div className="modal-header">
+              <h3 className="modal-title">{t('admin.loans.extendTitle')}</h3>
+              <button className="modal-close" onClick={() => setExtendTarget(null)} disabled={extendSubmitting} aria-label={t('admin.common.close')}>✕</button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {extendError && (
+                <div className="auth-alert auth-alert-error" style={{ margin: 0 }}>⚠️ {extendError}</div>
+              )}
+              <p style={{ margin: 0 }}>{t('admin.loans.extendMessage')}</p>
+              <div className="emp-form-row">
+                <label className="emp-form-label">{t('admin.loans.extendDaysLabel')}</label>
+                <input type="number" className="form-input" min={1} disabled={extendSubmitting}
+                  value={extendDays} onChange={e => setExtendDays(e.target.value)} />
+              </div>
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button type="button" className="btn-secondary" onClick={() => setExtendTarget(null)} disabled={extendSubmitting}>
+                {t('admin.common.cancel')}
+              </button>
+              <button type="button" className="btn-primary" onClick={confirmExtend} disabled={extendSubmitting}>
+                {extendSubmitting ? t('admin.common.loading') : t('admin.loans.confirmExtendBtn')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

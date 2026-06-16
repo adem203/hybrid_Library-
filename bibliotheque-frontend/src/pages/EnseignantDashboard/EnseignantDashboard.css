@@ -4349,6 +4349,10 @@
 
 /* ── BANNER / EMPTY / LOADING ─────────────────────────────── */
 .cat-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 12px 16px;
   border-radius: 10px;
   font-size: 0.88rem;
@@ -4359,6 +4363,23 @@
   background: rgba(239, 68, 68, 0.10);
   border-color: rgba(239, 68, 68, 0.40);
   color: #fecaca;
+}
+
+.cat-banner-success {
+  background: rgba(16, 212, 142, 0.10);
+  border-color: rgba(16, 212, 142, 0.40);
+  color: #86efac;
+}
+
+.cat-banner-close {
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
 }
 
 .cat-loading {
@@ -4632,6 +4653,55 @@
 .cat-details-btn:hover {
   background: rgba(234, 179, 8, 0.10);
   transform: translateY(-1px);
+}
+
+/* ── CARD ACTIONS (borrow / reserve + details) ────────────── */
+.cat-card-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cat-card-actions .cat-details-btn {
+  margin-top: 0;
+}
+
+.cat-action-btn {
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 0.82rem;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.1s ease, filter 0.15s ease;
+}
+
+.cat-action-borrow {
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: var(--navy-deepest);
+  box-shadow: 0 10px 22px rgba(201, 168, 76, 0.20);
+}
+
+.cat-action-reserve {
+  background: rgba(234, 179, 8, 0.12);
+  border-color: rgba(234, 179, 8, 0.55);
+  color: var(--gold);
+}
+
+.cat-action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.cat-action-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
 }
 
 /* ── PAGINATION ───────────────────────────────────────────── */

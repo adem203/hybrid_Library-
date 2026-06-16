@@ -1,0 +1,1989 @@
+                      Acknowledgements
+
+Before presenting this report, I would like to express my sincere gratitude to all the individuals
+and institutions who contributed to the successful completion of my final year internship and
+the realization of this project.
+First, I would like to thank my academic supervisor, Mr. Adnen Rouatbi, for his guidance,
+support, and valuable advice throughout this work. His remarks and recommendations helped
+me improve the quality of my project and better organize my ideas during the development
+process.
+I would also like to express my sincere appreciation to my company supervisor, Mr. Najmed-
+dine Zagoub, for his availability, constructive feedback, and continuous encouragement during
+the internship period. His professional support helped me better understand the practical as-
+pects of software development and project realization.
+I would like to thank the members of the jury for accepting to evaluate this report. I am
+honored by their presence and grateful for the time and effort they devoted to reading and
+assessing my work. Their feedback will be valuable for my future improvement.
+Furthermore, I would like to extend my sincere thanks to the entire team at RiseUp for
+welcoming me into their professional environment and providing me with the opportunity to
+complete my internship under good conditions. This experience allowed me to improve my tech-
+nical skills, communication abilities, teamwork spirit, and understanding of real-world software
+development practices.
+I am also grateful to all the professors and administrative staff at École Polytechnique de
+Sousse for their teaching, guidance, and support throughout my academic journey. Their
+efforts helped me acquire the knowledge and skills required to complete this final year project.
+Finally, I would like to express my deepest gratitude to my family, friends, and all those who
+supported me directly or indirectly during this journey. Their encouragement, patience, and
+moral support helped me stay motivated and focused throughout my studies and internship
+period.
+To all those who contributed in any way, I extend my sincere appreciation and lasting gratitude.
+
+                                                            i
+                           Dedication
+
+                                   I dedicate this final year project report:
+
+To my beloved Mother and Father,
+No words can adequately express my gratitude for your endless love, your patience, and your
+countless sacrifices. You have been my greatest source of strength, inspiration, and guidance
+throughout my life and my academic journey. Thank you for your constant support, your wise
+counsel, and for providing me with the means to reach this milestone. I hope this achievement
+makes you both proud. May God bless you with health, happiness, and a long life.
+To my brother and sister,
+Thank you for your unconditional support, your encouragement, and the joy you bring into my
+life. Thank you for always being there for me, in both difficult and happy times.
+To my dear friends and classmates,
+Thank you for the shared moments, the late-night study sessions, the challenges we overcame
+together, and the unforgettable memories we created during our years at École Polytechnique
+de Sousse.
+To all those who believed in me,
+To anyone who contributed from near or far to the realization of this work, I dedicate this
+project.
+
+                                                            ii
+Contents
+
+List of Abbreviations                      viii
+
+General Introduction                       1
+
+1 General Project Context                  3
+
+1.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+
+1.2 Presentation of the Host Organization . . . . . . . . . . . . . . . . . . . . . . . 3
+
+1.2.1 The Company (RiseUp) . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+
+1.2.2 Software Solutions (Acursoft Suite) . . . . . . . . . . . . . . . . . . . . . 3
+
+1.2.3 RiseUp Departments . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+
+1.3 Project Context . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+
+1.3.1 Problem Statement . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+
+1.3.2 Study of Existing Solutions . . . . . . . . . . . . . . . . . . . . . . . . . 5
+
+1.3.3 Critique of Existing Solutions . . . . . . . . . . . . . . . . . . . . . . . . 6
+
+1.3.4 Summary of the Study of Existing Solutions . . . . . . . . . . . . . . . . 7
+
+1.3.5 Assessment of Existing Solutions . . . . . . . . . . . . . . . . . . . . . . 7
+
+1.4 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+
+2 Requirements Analysis and Specification  10
+
+2.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+
+2.2 Study of Development Methodology . . . . . . . . . . . . . . . . . . . . . . . . . 10
+
+2.2.1 Comparative Study of Development Methodologies . . . . . . . . . . . . 10
+
+2.2.2 Adopted Methodology: Agile/Scrum . . . . . . . . . . . . . . . . . . . . 10
+
+2.2.3 Product Backlog . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+
+2.2.4 Sprint Planning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+
+2.2.5 Project Planning and Management . . . . . . . . . . . . . . . . . . . . . 12
+
+2.3 Needs Analysis and Identification . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+
+2.3.1 Stakeholder Identification . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+
+2.3.2 Identification of Functional Requirements . . . . . . . . . . . . . . . . . . 14
+
+2.3.3 Identification of Non-Functional Requirements . . . . . . . . . . . . . . . 15
+
+2.4 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+
+3 Conceptual Study                         18
+
+3.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+
+3.2 Modeling Language . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+
+3.2.1 Unified Modeling Language . . . . . . . . . . . . . . . . . . . . . . . . . 18
+
+3.2.2 UML Diagrams . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+
+3.3 Refined Use Case Diagrams . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+
+3.3.1 Global Use Case Diagram . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+
+3.3.2 Use Case Diagram: Authentication . . . . . . . . . . . . . . . . . . . . . 20
+
+3.3.3 Use Case Diagram: Book Management . . . . . . . . . . . . . . . . . . . 21
+
+                           iii
+      3.3.4 Use Case Diagram: Admin Reservation Management . . . . . . . . . . . 22
+      3.3.5 Use Case Diagram: User Management . . . . . . . . . . . . . . . . . . . 23
+3.4 Class Diagram . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24
+3.5 Sequence Diagrams . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26
+      3.5.1 Sequence Diagram: Student Book Reservation . . . . . . . . . . . . . . . 26
+      3.5.2 Sequence Diagram: Teacher Document Upload . . . . . . . . . . . . . . . 27
+      3.5.3 Sequence Diagram: Admin Reservation Validation . . . . . . . . . . . . . 28
+3.6 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 28
+
+4 Implementation and Realization.      30
+
+4.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+
+4.2 Development Architecture . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+
+4.3 Development Environment . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+
+4.3.1 Hardware Environment . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+
+4.3.2 Software Environment . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+
+4.3.3 Technologies and Programming Languages . . . . . . . . . . . . . . . . . 34
+
+4.4 Security Implementation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36
+
+4.4.1 Authentication with JWT . . . . . . . . . . . . . . . . . . . . . . . . . . 36
+
+4.4.2 Password Protection . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+
+4.4.3 Role-Based Access Control . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+
+4.4.4 Protected Routes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+
+4.4.5 Input Validation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+
+4.4.6 Controlled Account Creation . . . . . . . . . . . . . . . . . . . . . . . . . 38
+
+4.4.7 Summary of Security Mechanisms . . . . . . . . . . . . . . . . . . . . . . 38
+
+4.5 Presentation of the Application Interfaces . . . . . . . . . . . . . . . . . . . . . 38
+
+4.5.1 Landing Page Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . 38
+
+4.5.2 Authentication Interfaces . . . . . . . . . . . . . . . . . . . . . . . . . . . 39
+
+4.5.3 Student Dashboard Interface . . . . . . . . . . . . . . . . . . . . . . . . . 40
+
+4.5.4 Teacher Dashboard Interface . . . . . . . . . . . . . . . . . . . . . . . . . 42
+
+4.5.5 Admin Dashboard Interface . . . . . . . . . . . . . . . . . . . . . . . . . 45
+
+4.6 API Testing with Thunder Client . . . . . . . . . . . . . . . . . . . . . . . . . . 47
+
+4.6.1 Admin Login Verification Test . . . . . . . . . . . . . . . . . . . . . . . . 47
+
+4.6.2 Protected Route Test . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 48
+
+4.7 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+
+General Conclusion                     50
+
+Webography                             51
+
+                                   iv
+List of Figures
+
+    1.1 Acursoft Software Suite Ecosystem . . . . . . . . . . . . . . . . . . . . . . . . . 4
+    1.2 Functional departments of RiseUp . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+    1.3 Internet Archive logo . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+    1.4 Open Library logo . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+    1.5 Wiley Online Library logo . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+    1.6 Project Gutenberg logo . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+    2.1 Scrum Process . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+    2.2 Gantt Chart for the Project Timeline . . . . . . . . . . . . . . . . . . . . . . . . 13
+    3.1 Global Use Case Diagram of the Secure Hybrid Library Platform . . . . . . . . 19
+    3.2 Use Case Diagram: Authentication . . . . . . . . . . . . . . . . . . . . . . . . . 20
+    3.3 Use Case Diagram: Book Management . . . . . . . . . . . . . . . . . . . . . . . 21
+    3.4 Use Case Diagram: Admin Reservation Management . . . . . . . . . . . . . . . 22
+    3.5 Use Case Diagram: User Management . . . . . . . . . . . . . . . . . . . . . . . 23
+    3.6 Class Diagram of the Secure Hybrid Library Platform . . . . . . . . . . . . . . . 25
+    3.7 Sequence Diagram: Student Book Reservation . . . . . . . . . . . . . . . . . . . 26
+    3.8 Sequence Diagram: Teacher Document Upload . . . . . . . . . . . . . . . . . . . 27
+    3.9 Sequence Diagram: Admin Reservation Validation . . . . . . . . . . . . . . . . . 28
+    4.1 Development Architecture of the Secure Hybrid Library Platform . . . . . . . . 30
+    4.2 Logo of Visual Studio Code . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+    4.3 Logo of Git . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+    4.4 Logo of Prism . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+    4.5 Logo of pgAdmin . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+    4.6 Logo of Thunder Client . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+    4.7 Logo of JavaScript . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+    4.8 Logo of React.js . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+    4.9 Logo of CSS . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+    4.10 Logo of Node.js . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+    4.11 Logo of Express.js . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+    4.12 Logo of PostgreSQL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+    4.13 Landing Page Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 39
+    4.14 Login Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 39
+    4.15 Verification Code Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 40
+    4.16 Student Dashboard Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 40
+    4.17 Student Book Catalog Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . 41
+    4.18 Student Reservations Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . 41
+    4.19 Student Loans Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42
+    4.20 Teacher Dashboard Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+    4.21 Teacher Course Management Interface . . . . . . . . . . . . . . . . . . . . . . . 43
+    4.22 Teacher Document Upload Interface . . . . . . . . . . . . . . . . . . . . . . . . . 44
+    4.23 Teacher Statistics Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+    4.24 Admin Dashboard Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+
+                                                            v
+4.25 Admin User Management Interface . . . . . . . . . . . . . . . . . . . . . . . . . 46
+4.26 Admin Book Management Interface . . . . . . . . . . . . . . . . . . . . . . . . . 46
+4.27 Admin Loan Management Interface . . . . . . . . . . . . . . . . . . . . . . . . . 47
+4.28 Admin Login Verification API Test . . . . . . . . . . . . . . . . . . . . . . . . . 48
+4.29 Protected API Route Test . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 48
+
+                                                       vi
+List of Tables
+
+    1.1 General Information about RiseUp . . . . . . . . . . . . . . . . . . . . . . . . . 3
+    1.2 Comparative study of existing solutions and the proposed hybrid platform . . . 7
+    2.1 Comparative study of development methodologies . . . . . . . . . . . . . . . . . 10
+    2.2 Product backlog of the Secure Hybrid Library Platform . . . . . . . . . . . . . . 11
+    2.3 Sprint planning of the Secure Hybrid Library Platform . . . . . . . . . . . . . . 12
+    2.4 System Actors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+    3.1 Textual description of the Authentication use case . . . . . . . . . . . . . . . . . 20
+    3.2 Textual description of the Book Management use case . . . . . . . . . . . . . . . 21
+    3.3 Textual description of the Admin Reservation Management use case . . . . . . . 22
+    3.4 Textual description of the User Management use case . . . . . . . . . . . . . . . 23
+    3.5 Data dictionary of the Secure Hybrid Library Platform . . . . . . . . . . . . . . 24
+    4.1 Hardware environment . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+    4.2 Additional libraries and services used in the project . . . . . . . . . . . . . . . . 36
+    4.3 Security mechanisms implemented in the platform . . . . . . . . . . . . . . . . . 38
+
+                                                           vii
+List of Abbreviations
+
+Abbreviation Meaning
+
+API   Application Programming Interface
+
+CSS   Cascading Style Sheets
+
+CRUD  Create, Read, Update, Delete
+
+DB    Database
+
+HTTP  Hypertext Transfer Protocol
+
+JS    JavaScript
+
+JSON  JavaScript Object Notation
+
+JWT   JSON Web Token
+
+PDF   Portable Document Format
+
+RBAC  Role-Based Access Control
+
+REST  Representational State Transfer
+
+SQL   Structured Query Language
+
+UI    User Interface
+
+UML   Unified Modeling Language
+
+                      viii
+                    General Introduction
+
+With the rapid evolution of information technology, educational institutions and traditional
+libraries are undergoing an important digital transformation. Students and teachers now need
+quick and secure access to academic resources, whether they are available physically inside the
+library or digitally through online platforms. However, many institutions still manage physical
+books and digital educational resources separately, which can make access to information less
+efficient.
+It is within this context that my end-of-studies internship project at RiseUp was proposed.
+The objective of this project is the conception and development of a Secure Hybrid Library
+Platform for an academic environment. This platform combines physical library management
+with digital resource access in a single system. It allows students to search for books, reserve
+or borrow physical resources, access digital documents, and follow their reservations and loans.
+It also allows teachers to upload pedagogical resources, while administrators supervise users,
+books, documents, reservations, loans, and statistics.
+The main purpose of this platform is to provide a centralized, secure, and easy-to-use environ-
+ment that improves the management of academic resources. It helps students access learning
+materials more efficiently, supports teachers in sharing pedagogical content, and gives admin-
+istrators better control over library operations and platform activity.
+The development of this project followed a structured and progressive approach. The work
+started with analysis and design, then continued with authentication and security, catalog
+management, reservations and loans, digital document management, dashboards, notifications,
+and final testing.
+
+To present this work clearly, this report is divided into four main chapters:
+
+    · Chapter 1: General Project Context. This chapter presents the host organization,
+       the project context, the problem statement, and the study of existing solutions.
+
+    · Chapter 2: Requirements Analysis and Specification. This chapter identifies
+       the system actors and describes the functional and non-functional requirements of the
+       platform.
+
+    · Chapter 3: Conceptual Study. This chapter presents the UML modeling of the
+       system, including use case diagrams, the class diagram, and sequence diagrams.
+
+    · Chapter 4: Implementation and Realization. This chapter describes the develop-
+       ment environment, the software architecture, the technologies used, the main application
+       interfaces, and the final implemented features.
+
+                                                            1
+             Chapter 1
+
+General Project Context
+1.1 Introduction
+
+In this chapter, we present the general context of our project. We begin with a presentation of
+the host organization in order to introduce the professional environment in which the intern-
+ship was carried out. Then, we move to the project context by explaining the main problem
+addressed by the proposed solution. Next, we study existing solutions and highlight their lim-
+itations in order to justify the need for our platform. Finally, we conclude the chapter by
+summarizing the main objectives of the proposed solution.
+
+1.2 Presentation of the Host Organization
+
+The host organization of this project is RiseUp, a Tunisian software company that supports
+businesses and institutions in their digital transformation. The company provides software
+solutions and integration services in several fields, including business management, web and
+mobile development, artificial intelligence, and data analytics.
+
+1.2.1 The Company (RiseUp)
+
+RiseUp is a Tunisian company specialized in software publishing and integration. Founded
+in Sousse, the company supports its clients in their digital transformation by offering tailored
+solutions covering various fields: business management, web and mobile development, artificial
+intelligence, and data analytics.
+
+                               Table 1.1: General Information about RiseUp
+
+Information               Details
+Company Name              RiseUp -- Software Publisher & Integrator
+Field of Activity         Software Development, Integration, AI & Data
+Headquarters              Sousse, Tunisia
+Professional Supervisor   Mr. Najmeddine Zagoub
+Technologies Used in the  React.js, JavaScript, CSS, Node.js, Express.js, PostgreSQL, pg,
+Project                   JWT, RBAC, Brevo API
+
+1.2.2 Software Solutions (Acursoft Suite)
+
+To concretize its commitment to digital transformation, RiseUp has developed a complete,
+modular, and scalable ecosystem under the brand Acursoft. In order to address the diverse
+needs of its clients in a targeted manner, this software suite is divided into several interconnected
+business solutions adapted to multiple business sectors.
+
+    Among these flagship products, we find global commercial management systems (Acur
+Business), point-of-sale solutions (Acur POS), human resources optimization tools (Acur
+Payroll, Acur Time), as well as systems dedicated to security (Acur Access, Acur Guard)
+and the educational environment (Acur School). This diverse catalog allows RiseUp to es-
+tablish itself as a versatile technological partner.
+
+                          3
+                              Figure 1.1: Acursoft Software Suite Ecosystem
+
+1.2.3 RiseUp Departments
+
+To ensure the continuous development of its solutions and offer high-quality support to its
+clients, RiseUp relies on a dynamic organizational structure divided into several synergistic
+departments. The primary divisions include:
+
+    · Technical and R&D Department: The main technical department dedicated to the
+       design, development, and integration of the Acursoft suite.
+
+    · Sales and Marketing Department: Responsible for identifying market needs, pro-
+       moting, and distributing the various software solutions.
+
+    · Support and Technical Assistance Department: Ensures follow-up, maintenance
+       of deployed systems, and client support.
+
+    This organizational structure allows RiseUp to manage the entire value chain, from software
+ideation to final deployment at the client's site.
+
+                               Figure 1.2: Functional departments of RiseUp
+                                                            4
+1.3 Project Context
+
+In the modern educational landscape, access to information and academic resources is a critical
+factor in student success. Universities and educational institutions are increasingly moving
+towards digital transformation to facilitate learning. However, many institutions still treat
+their physical libraries and digital course materials as two separate systems.
+
+    Within this framework, the objective of this project is to conceive and develop a secure
+hybrid library platform. This platform aims to modernize the academic experience by bridging
+the gap between a traditional physical library and a digital learning environment. By central-
+izing physical book management and digital academic resource sharing, the system provides a
+unified, accessible, and secure portal for students, teachers, and administrators.
+
+1.3.1 Problem Statement
+
+Currently, managing physical library assets, such as reservations and borrowing, often relies
+on manual tracking, while digital resources, such as courses, exams, corrections, TP/TD doc-
+uments, and PDF files, are scattered across unintegrated platforms like emails or basic cloud
+drives.
+
+    This fragmentation creates several key issues:
+
+    · The absence of a centralized repository for academic resources such as courses, exams,
+       corrections, TP/TD documents, and PDF files.
+
+    · Time wasted by students navigating multiple systems to access both physical books and
+       digital files.
+
+    · Difficulties for teachers in securely and efficiently distributing educational content.
+
+    Therefore, a dedicated hybrid platform is essential. By combining physical book man-
+agement with a secure digital academic space for resource sharing, our system resolves these
+inefficiencies and offers a unified, practical solution for the university ecosystem.
+
+1.3.2 Study of Existing Solutions
+
+To better understand the current landscape of digital libraries and academic resource platforms,
+we conducted a study of several existing online solutions. We examined globally recognized
+platforms that provide digital content and academic materials, starting with:
+
+    · Internet Archive:
+       The Internet Archive [1] is a non-profit digital library that provides free, universal ac-
+       cess to massive collections of digitized materials. It offers millions of downloadable and
+       streamable resources, including digital books, educational audio files, historical docu-
+       ments, and videos. It represents a useful model for giving students access to a wide
+       variety of multimedia academic content.
+
+                                       Figure 1.3: Internet Archive logo
+
+                                                            5
+    · Open Library:
+       Open Library [2] is an open, editable library catalog, building towards a web page for
+       every book ever published. It provides a vast digital collection where users can search for,
+       read, and borrow millions of digitized books. Its goal of universal access to knowledge
+       aligns with the digital resource sharing objectives of our hybrid platform.
+
+                                         Figure 1.4: Open Library logo
+
+    · Wiley Online Library:
+       Wiley Online Library [3] is a multidisciplinary platform that provides access to academic
+       journals, books, and scientific resources. It gives students and researchers access to spe-
+       cialized academic content in several fields.
+
+                                    Figure 1.5: Wiley Online Library logo
+
+    · Project Gutenberg:
+       Project Gutenberg [4] is a digital library that offers a large collection of free e-books,
+       mainly public domain works. It is an example of how digital repositories can organize
+       and provide access to text-based academic and literary resources.
+
+                                      Figure 1.6: Project Gutenberg logo
+
+1.3.3 Critique of Existing Solutions
+
+After analyzing the aforementioned platforms, we identified several criteria to consider when
+comparing and evaluating the selected solutions. These criteria are related to the main needs
+of our project.
+
+    · Identity and Security: Access should ideally be localized and restricted to the students
+       and faculty of a specific university, creating a secure environment.
+
+    · Hybrid Asset Management: The ability to manage both physical library loans and
+       digital access within a single platform.
+
+    · Secure Digital Academic Space: A dedicated digital area where teachers can share
+       academic resources with students.
+
+    · Teacher Content Upload: A function that allows educators to upload course materials,
+       videos, and exams.
+
+                                                            6
+Table 1.2: Comparative study of existing solutions and the proposed hybrid platform
+
+Criterion                  Archive.org  Open Lib.  Wiley  Gutenberg  Our Project
+Digital Book Access               Yes        Yes     Yes        Yes         Yes
+Physical Book Reservation         No          No     No         No          Yes
+Secure Digital Academic           No          No     No         No          Yes
+Space
+Teacher Content Upload            No          No     No         No          Yes
+University Specificity            No          No     No         No          Yes
+Video/Multimedia Support          Yes         No     Yes        No          Yes
+
+1.3.4 Summary of the Study of Existing Solutions
+
+Table 1.2 summarizes the results of the comparative study conducted on international platforms
+similar to our project. We observe that although most of these platforms provide access to
+digital resources, they are mainly designed for a global audience and do not fully respond to
+the specific needs of a university environment.
+
+    The main strengths identified in existing solutions include:
+
+    · Massive accessibility to digital literature and scientific journals.
+
+    · Reliable multimedia streaming and storage capabilities.
+
+    · Strong infrastructure for global search and resource discovery.
+
+    However, several important limitations were identified:
+
+    · Lack of Hybridity: Most platforms do not combine digital resource access with physical
+       library reservation and loan management.
+
+    · Generic Environment: Existing solutions do not provide a private and dedicated aca-
+       demic space where teachers can share specific university resources with their students.
+
+    · Limited Local Adaptation: These platforms are not adapted to the daily workflow of
+       students, teachers, and administrators in a campus environment.
+
+    These limitations represent an opportunity to propose a more complete and adapted so-
+lution. By integrating the missing functionalities, our platform provides a secure and unified
+experience for the academic community.
+
+1.3.5 Assessment of Existing Solutions
+
+Based on the comparative analysis presented in Table 1.2, the proposed solution aims to address
+the limitations identified in the studied platforms. Our application provides a complete and
+interactive experience adapted to the needs of students, teachers, and administrators.
+
+    The main features selected for our platform are as follows:
+
+    · Hybrid Library Management: A centralized system that allows students to browse
+       physical books, reserve or borrow them, and access digital resources from the same plat-
+       form.
+
+    · Secure Digital Academic Space: A private space where teachers can upload and
+       manage academic content such as PDF files, courses, exams, corrections, and other ped-
+       agogical resources.
+
+                                                            7
+    · Intuitive User Interface: A simple interface that facilitates navigation between the
+       book catalog, digital library, reservations, loans, and dashboards.
+
+    · Reinforced Data Security: A secure authentication and authorization system based
+       on JWT, password hashing, Role-Based Access Control, request validation, and security
+       middleware.
+
+    · Administrative Monitoring and Notifications: Dashboards, statistics, and notifi-
+       cation features that help administrators supervise users, books, documents, reservations,
+       loans, and platform activity.
+
+    By integrating these key elements, our application positions itself as a practical and adapted
+solution for the academic environment. It responds to the main limitations of existing plat-
+forms while providing a secure and organized system for managing both physical and digital
+educational resources.
+
+1.4 Conclusion
+
+After analyzing several similar digital library platforms, we identified that most existing so-
+lutions do not combine physical library management with digital academic resource sharing.
+This limitation confirms the need for a centralized and secure hybrid platform.
+
+    Our project responds to this need by providing a unified catalog, a book reservation system,
+and a digital academic space where teachers can share pedagogical resources with students.
+These features make access to academic resources more organized and practical.
+
+    Finally, the centralized administration dashboard allows administrators to supervise users,
+books, reservations, loans, and digital content from a single workspace.
+
+                                                            8
+                          Chapter 2
+
+Requirements Analysis and Specification
+2.1 Introduction
+
+This chapter presents the requirements analysis and specification of the Secure Hybrid Li-
+brary Platform. It introduces the adopted development methodology, identifies the main
+system actors, defines the functional and non-functional requirements, and presents the prod-
+uct backlog and sprint planning used to guide the development of the platform.
+
+2.2 Study of Development Methodology
+
+A development methodology helps organize, plan, and control the development process of a
+software project. In this section, we compare several development methodologies in order to
+choose the one most suitable for our project. After selecting the adopted methodology, we
+present how it was applied through a product backlog and sprint planning.
+
+2.2.1 Comparative Study of Development Methodologies
+
+Several development methodologies can be used to organize a software project. The following
+table compares the main methodologies studied before selecting the most appropriate one for
+our platform.
+
+                     Table 2.1: Comparative study of development methodologies
+
+Methodology  Description                         Strengths                     Limitations
+V-Model      Linear model where each
+             development phase is linked to a    Clear structure and strong    Less flexible when requirements
+Spiral       testing phase.                      validation process.           change during development.
+2TUP         Iterative model based on
+             repeated cycles and risk analysis.  Flexible and useful for complex Can be costly and difficult to
+Agile/Scrum  Iterative model that separates
+             functional and technical aspects.   projects with high risks.     manage for small projects.
+
+             Iterative methodology based on      Good separation between       Can be complex and
+             short development cycles called     business needs and technical  time-consuming to apply.
+             sprints.                            choices.
+
+                                                 Flexible, progressive, and suitable Requires regular planning,
+                                                 for modular web applications. testing, and task follow-up.
+
+2.2.2 Adopted Methodology: Agile/Scrum
+
+After comparing the studied methodologies, we adopted the Agile/Scrum methodology
+because it fits the modular and progressive nature of our platform. This approach allowed us
+to divide the project into clear stages, such as requirements analysis, design, authentication,
+catalog management, reservations and loans, digital document management, dashboards, in-app
+notifications, and final testing.
+
+    Agile/Scrum is an iterative methodology based on short development cycles called sprints.
+In our project, it helped us organize the work step by step, validate each implemented feature,
+and apply corrections during the development process.
+
+    Agile/Scrum Process:
+
+    · Sprint Planning: Define the tasks and objectives to be completed during the sprint.
+    · Sprint Backlog: Select and organize the features to be developed.
+    · Development: Implement the selected functionalities step by step.
+    · Testing: Verify the implemented features and correct possible errors.
+    · Sprint Review: Review the completed work and validate the results.
+    · Retrospective: Identify improvements for the next development cycle.
+
+                                                           10
+      Figure 2.1: Scrum Process
+
+2.2.3 Product Backlog
+
+In Agile/Scrum, the product backlog represents the list of features and tasks that must be
+developed during the project. It helps organize the work according to priorities and ensures
+that the most important functionalities are implemented first.
+
+    For the Secure Hybrid Library Platform, the backlog was built according to the needs
+of the main users: Student, Teacher, and Admin. It includes authentication, user management,
+book management, digital document management, reservations, loans, dashboards, notifica-
+tions, and testing.
+
+                 Table 2.2: Product backlog of the Secure Hybrid Library Platform
+
+ ID   User Story / Feature                                                   Actor                Priority  Sprint
+PB1   Secure login according to the user role.                               Student / Teacher /     High   Sprint 1
+                                                                             Admin
+PB2   Password reset using an email verification code.                       Student / Teacher /     High   Sprint 1
+                                                                             Admin
+PB3   Create and manage user accounts in order to control platform access.   Admin                   High   Sprint 2
+PB4   Manage books and categories in order to organize the physical library  Admin                   High   Sprint 2
+      catalog.
+PB5   Search and filter books in order to find resources quickly.            Student                 High   Sprint 2
+PB6   Reserve or request to borrow a physical book.                          Student                 High   Sprint 3
+PB7   Validate reservations and manage loans in order to control book        Admin                   High   Sprint 3
+      circulation.
+PB8   Upload and manage pedagogical documents in order to share              Teacher                 High   Sprint 3
+      resources with students.
+PB9   Receive in-app notifications in order to follow important platform     Student / Teacher /  Medium    Sprint 4
+      updates.                                                               Admin
+PB10  View dashboards and statistics in order to monitor platform activity.  Admin / Teacher      Medium    Sprint 4
+PB11  Test and validate the main features in order to ensure that the        Development Team        High   Sprint 4
+      platform works correctly.
+
+    The product backlog helped us organize the development work according to priority. The
+first tasks focused on secure access and authentication because all other features depend on
+user identification and role-based permissions. After that, the development continued with
+management modules, student services, teacher resources, dashboards, notifications, and final
+validation.
+
+      11
+2.2.4 Sprint Planning
+
+Sprint planning allows the development work to be divided into short and organized phases.
+Each sprint focuses on a set of related functionalities and produces a usable part of the system.
+This organization helped us progress step by step and validate the platform progressively.
+
+    In this project, the work was divided into four main sprints. Each sprint had a clear objective
+and included a group of tasks related to the main modules of the platform.
+
+                  Table 2.3: Sprint planning of the Secure Hybrid Library Platform
+
+ Sprint   Main Objective Main Tasks                                              Result
+Sprint 1
+          Authentication and    Set up the frontend and backend structure;       Users can
+Sprint 2  secure access         implement login; configure JWT                   authenticate
+Sprint 3                        authentication; apply password hashing; create   securely and access
+                                role-based redirection; implement password       the platform
+Sprint 4                        reset using email verification code.             according to their
+                                                                                 role.
+
+          User management       Develop admin user management; create            Admin can manage
+          and book catalog
+                                student, teacher, and admin accounts; manage users and books,
+
+                                account status; implement book and category while students can
+
+                                management; add search and filtering for books. consult and search
+
+                                                                                 the catalog.
+
+          Reservations, loans,  Implement student reservation requests; allow    Students can reserve
+          and digital           admin reservation validation; create loan        books, admins can
+          documents             management; process book returns; implement      manage loans, and
+                                teacher document upload; organize digital        teachers can share
+                                documents.                                       pedagogical
+                                                                                 resources.
+
+          Dashboards,           Develop dashboards and statistics; implement     The platform
+          notifications,        in-app notifications; improve interfaces; test   becomes more
+          testing, and final    API endpoints; verify protected routes; correct  complete, tested,
+          corrections           errors; prepare final documentation.             and ready for final
+                                                                                 presentation.
+
+    This sprint planning provided a clear development roadmap. It allowed us to start with the
+most essential security features, then move to core business modules, and finally complete the
+platform with dashboards, notifications, testing, and documentation.
+
+2.2.5 Project Planning and Management
+
+Planning is a necessary tool for the management of any project. The Gantt chart is a partic-
+ularly effective visual tool for this purpose, as it allows for the graphical representation of the
+different project stages.
+
+    To better adhere to our deadlines, we have divided the project into several sub-parts, in-
+cluding project study and research, requirements analysis, UML design, backend development,
+frontend development, integration of reservations, loans, and documents, testing and correc-
+tions, and the drafting and finalization of the final report.
+
+    The Gantt chart attached in the following figure breaks down the work into these sub-phases
+in order to provide a clear and structured overview of the project timeline.
+
+                                     12
+                             Figure 2.2: Gantt Chart for the Project Timeline
+
+2.3 Needs Analysis and Identification
+
+This section identifies the main stakeholders of the system and presents the functional and
+non-functional requirements of the platform.
+
+2.3.1 Stakeholder Identification
+
+Stakeholder identification allows us to determine the main users who interact with the system.
+In our platform, the main actors are the Student, the Teacher, and the Admin. Each actor has
+specific roles and permissions according to their responsibilities within the Secure Hybrid
+Library Platform.
+
+                                                           13
+Actor                        Table 2.4: System Actors
+Student
+         Roles
+Teacher
+         The student is the main user of the platform. They can access the platform
+Admin    using an account created by the administrator. They can search the hybrid
+         catalog, consult physical and digital resources, reserve or request to borrow
+         physical books, access digital documents, and follow their reservations, loans,
+         and borrowing history.
+
+         The teacher can access the platform using an account created by the
+         administrator. They can upload and manage pedagogical resources such as
+         courses, exams, corrections, TP/TD documents, PDF files, and videos. They
+         can also consult their uploaded resources, access the digital library, and follow
+         statistics related to their documents.
+
+         The administrator has full access to the platform. They are responsible for
+         creating and managing user accounts, roles, books, categories, digital
+         documents, reservations, loans, returns, dashboards, statistics, and the general
+         supervision of the system.
+
+2.3.2 Identification of Functional Requirements
+
+Functional requirements define the core services and features provided by the system to meet
+user needs. The functional requirements for each actor are presented as follows:
+
+2.3.2.1 Functional Requirements of the Student
+
+The student is the primary user of the Secure Hybrid Library Platform. Through the
+platform, students can access both physical and digital academic resources in a secure and
+organized environment. Student accounts are created by the administrator, which ensures con-
+trolled access to the platform. The system provides several functionalities that allow students
+to search for books, reserve or request to borrow physical resources, consult digital documents,
+and follow their reservations and loans. The main functional requirements of the student are
+presented below:
+
+    · Account Access: The student can access the platform using an existing account created
+       by the administrator.
+
+    · Secure Authentication: The student can log in securely to access their personal
+       workspace and protected features.
+
+    · Hybrid Catalog Search: The student can search and filter physical books and digital
+       documents by title, author, category, type, or availability.
+
+    · Physical Book Reservation and Borrowing Request: The student can reserve or
+       request to borrow physical books and follow the status of their requests.
+
+    · Digital Content Access: The student can consult, read, or download digital academic
+       resources such as courses, exams, corrections, TP/TD documents, and PDF files.
+
+    · Loans and Reservation Tracking: The student can view their current loans, borrowing
+       history, reservation status, and overdue information.
+
+2.3.2.2 Functional Requirements of the Teacher
+
+The teacher plays an important role in enriching the digital library by providing educational
+resources for students. Teacher accounts are created by the administrator, which allows the
+platform to control access to pedagogical resource management. The platform offers a dedicated
+
+                                                           14
+workspace that allows teachers to upload, manage, and organize pedagogical content such
+as courses, exams, corrections, TP/TD documents, and PDF files. Teachers can also access
+available resources and monitor the activity related to their published documents. The main
+functional requirements of the teacher are presented below:
+
+    · Account Access: The teacher can access the platform using an existing account created
+       by the administrator.
+
+    · Secure Authentication: The teacher can log in securely to access their dedicated
+       workspace.
+
+    · Pedagogical Resource Upload: The teacher can upload academic resources such as
+       courses, exams, corrections, TP/TD documents, PDF files, and videos.
+
+    · Document Management: The teacher can consult, update, or delete their own up-
+       loaded documents.
+
+    · Digital Library Access: The teacher can access the digital library and consult available
+       academic resources.
+
+    · Book Catalog Access: The teacher can consult the book catalog and search for physical
+       or digital resources.
+
+    · Document Statistics: The teacher can view statistics related to their uploaded re-
+       sources, such as consultations and document activity.
+
+2.3.2.3 Functional Requirements of the Admin
+
+The administrator is responsible for the overall management and supervision of the Secure
+Hybrid Library Platform. The platform provides administrative tools that allow the admin
+to manage users, books, categories, digital documents, reservations, loans, and system settings.
+The administrator also monitors platform activity through dashboards and statistics. The main
+functional requirements of the administrator are presented below:
+
+    · User and Role Management: The admin can create, update, deactivate, and manage
+       user accounts according to their roles: Student, Teacher, or Admin.
+
+    · Access and Permission Management: The admin can manage user roles and per-
+       missions, while the system enforces access control according to each role.
+
+    · Book and Category Management: The admin can add, update, delete, and organize
+       books and categories in the platform.
+
+    · Digital Document Supervision: The admin can supervise all digital documents up-
+       loaded by teachers and manage their information when necessary.
+
+    · Reservation and Loan Management: The admin can manage book reservations,
+       validate requests, create loans, process returns, and monitor overdue loans.
+
+    · Dashboard and Statistics: The admin can consult dashboards and statistics related
+       to users, books, digital documents, reservations, loans, and platform activity.
+
+2.3.3 Identification of Non-Functional Requirements
+
+Non-functional requirements describe how the system must operate in terms of usability, perfor-
+mance, reliability, availability, security, and maintainability. The non-functional requirements
+of our Secure Hybrid Library Platform are:
+
+    · Usability: The platform must provide a clear and simple interface that allows students,
+       teachers, and administrators to access their features easily. The navigation between the
+       book catalog, digital library, reservations, loans, and dashboards must be intuitive.
+
+                                                           15
+    · Performance: The platform should respond quickly to user actions such as authentica-
+       tion, book search, document access, reservation requests, and dashboard loading.
+
+    · Maintainability and Integration: The system must provide clear and well-structured
+       API endpoints. Its organization should remain understandable and easy to maintain,
+       correct, or extend.
+
+    · Reliability: The system must ensure accurate data management, especially for physical
+       book reservations, loans, returns, and document access. It must prevent data inconsis-
+       tencies, such as reserving unavailable books or processing an already returned loan.
+
+    · Availability: The platform should remain available during normal service operation and
+       allow students, teachers, and administrators to access the main services with minimal
+       interruption.
+
+    · Security: Security must be enforced through secure authentication, password hashing,
+       role-based access control, request validation, and security middleware. User accounts
+       must be created and managed by authorized administrators only. This ensures that each
+       user can only access the functionalities allowed by their role.
+
+2.4 Conclusion
+
+In this chapter, we analyzed and specified the main requirements of the Secure Hybrid
+Library Platform. We first presented the development methodology adopted for the project,
+namely the Agile/Scrum methodology, and explained how it was applied through a product
+backlog and sprint planning.
+
+    Then, we identified the main actors of the system: Student, Teacher, and Admin. We
+also defined the functional requirements related to each actor, as well as the non-functional
+requirements concerning usability, performance, maintainability, reliability, availability, and
+security.
+
+    This requirements analysis provides a clear foundation for the next chapter, which will be
+dedicated to the conceptual study and UML modeling of the system.
+
+                                                           16
+       Chapter 3
+
+Conceptual Study
+3.1 Introduction
+
+The design phase is an essential step in the software development cycle. It allows us to represent
+the structure and behavior of the system through clear and organized diagrams based on the
+functional and non-functional requirements identified in the previous chapter.
+
+    In this chapter, we present the conceptual study of the Secure Hybrid Library Platform
+using UML diagrams. We begin by introducing the modeling language used in this project.
+Then, we present the refined use case diagrams, the class diagram with its data dictionary, and
+the sequence diagrams that describe the main interactions between the actors and the system.
+
+3.2 Modeling Language
+
+To design the Secure Hybrid Library Platform, we used a modeling language that helps
+represent the system in a clear and structured way. This language allows us to visualize the
+main functionalities, the relationships between entities, and the interactions between users and
+the system.
+
+3.2.1 Unified Modeling Language
+
+In this project, we used the Unified Modeling Language (UML). UML is a graphical modeling
+language used to describe the structure and behavior of a software system.
+
+    The UML diagrams of our project were created using PlantUML Editor and diagrams.net.
+These tools helped us design and visualize the use case diagrams, the class diagram, and the
+sequence diagrams of the Secure Hybrid Library Platform.
+
+3.2.2 UML Diagrams
+
+There are two main types of UML diagrams: structural diagrams and behavioral diagrams. In
+our project, these diagrams help represent the structure and behavior of the Secure Hybrid
+Library Platform.
+Structural diagrams:
+
+    · Class Diagram: represents the main classes of the system, their attributes, and the rela-
+       tionships between them. In our project, it includes classes such as User, Student, Teacher,
+       Admin, Book, Document, Reservation, Loan, DocumentDownload, and AuditLog.
+
+Behavioral diagrams:
+
+    · Use Case Diagram: represents the interactions between the actors and the system. In
+       our project, it shows the main functionalities of the platform, such as authentication, book
+       search, book reservation, digital document access, book management, admin reservation
+       management, and user management.
+
+    · Sequence Diagram: represents the chronological order of interactions between the ac-
+       tor, the frontend, the backend, the services, and the database during a specific process. In
+       our project, sequence diagrams are used to describe important workflows such as student
+       book reservation, teacher document upload, and admin reservation validation.
+
+                                                           18
+3.3 Refined Use Case Diagrams
+
+The refinement of use case diagrams is an important step in the design phase because it provides
+a detailed view of the main functionalities of the system.
+
+    In this section, we present the refined use case diagrams of the Secure Hybrid Library
+Platform. These diagrams illustrate the services offered by the system and the interactions
+between the main actors, namely the Student, the Teacher, and the Admin. Each diagram
+focuses on a specific functional area of the platform.
+
+3.3.1 Global Use Case Diagram
+
+The global use case diagram provides an overview of the main functionalities offered by the
+Secure Hybrid Library Platform. It shows the interactions between the system and its
+main actors: Student, Teacher, and Admin. Each actor has specific permissions according to
+their role in the platform.
+
+           Figure 3.1: Global Use Case Diagram of the Secure Hybrid Library Platform
+    As shown in Figure 3.1, the Admin has access to the main management features, including
+user management, book management, document supervision, reservation management, loan
+management, returns, reports, and audit logs. The Teacher can log in, upload course doc-
+uments, manage personal documents, and access digital resources. The Student can log in,
+search for books, view book details, reserve physical books, consult personal reservations and
+loans, and access or download digital documents. This diagram provides a general view of the
+platform before presenting the refined use case diagrams in the following sections.
+
+                                                           19
+3.3.2 Use Case Diagram: Authentication
+
+The authentication use case diagram describes how users access the Secure Hybrid Library
+Platform securely. In this diagram, the actor User represents the different roles of the system,
+namely Admin, Teacher, and Student.
+
+    The authentication process allows the user to enter their email and password. The system
+verifies the credentials, identifies the user role, and redirects the authenticated user to the
+appropriate dashboard.
+
+                Figure 3.2: Use Case Diagram: Authentication
+
+           Table 3.1: Textual description of the Authentication use case
+
+Element         Description
+
+Actor           User, which represents Admin, Teacher, and Student.
+
+Objective       Allow users to authenticate securely and access the platform
+                according to their roles.
+
+Pre-condition   The user must have an existing active account created by the
+                administrator.
+
+Post-condition  The user is authenticated and redirected to the appropriate
+                dashboard according to their role.
+
+Main Scenario   The user opens the login interface / The user enters their email and
+                password / The system verifies the credentials / The system identifies
+                the user role / The user accesses the appropriate dashboard.
+
+Alternative Scenario If the email or password is incorrect, the system displays an error
+                                 message and denies access. If the account is inactive, the system
+                                 prevents authentication.
+
+                             20
+3.3.3 Use Case Diagram: Book Management
+
+The book management use case diagram describes the main functionalities related to the phys-
+ical book catalog of the Secure Hybrid Library Platform. In this diagram, the Admin is
+responsible for managing books, including adding, updating, deleting, filtering, and managing
+book availability. The Student can consult the book catalog, search for books, and view book
+details.
+
+                Figure 3.3: Use Case Diagram: Book Management
+
+           Table 3.2: Textual description of the Book Management use case
+
+Element         Description
+
+Actors          Admin, Student.
+
+Objective       Allow the Admin to manage the book catalog and allow the Student
+                to search for books and consult book details.
+
+Pre-condition   The user must be authenticated. The Admin must have the required
+                authorization to manage books.
+
+Post-condition  The book catalog is consulted, filtered, updated, or managed
+                successfully according to the actor's role.
+
+Main Scenario   The Admin accesses the book management interface / The Admin
+                views the list of books / The Admin adds, updates, deletes, filters, or
+                manages book availability / The Student accesses the book catalog /
+                The Student searches for books / The Student views book details.
+
+Alternative Scenario If the book does not exist, the system displays an error message. If
+                                 the user does not have permission to manage books, the system
+                                 denies the action.
+
+                                 21
+3.3.4 Use Case Diagram: Admin Reservation Management
+
+The admin reservation management use case diagram describes the main functionalities related
+to book reservation supervision in the Secure Hybrid Library Platform. It shows how the
+Admin can view the reservation list, search and filter reservations, consult reservation details,
+approve reservation requests, cancel reservations, and export reservation data.
+
+Figure 3.4: Use Case Diagram: Admin Reservation Management
+
+Table 3.3: Textual description of the Admin Reservation Management use case
+
+Element               Description
+Actor
+Objective             Admin.
+
+Pre-condition         Allow the Admin to manage book reservation requests by viewing the
+Post-condition        reservation list, searching and filtering reservations, consulting reservation
+Main Scenario         details, approving reservation requests, cancelling reservations, and
+                      exporting reservation data.
+Alternative Scenario
+                      The Admin must be authenticated and authorized to access the reservation
+                      management interface.
+
+                      The selected reservation is viewed, approved, cancelled, filtered, searched, or
+                      exported according to the action performed by the Admin.
+
+                      The Admin accesses the reservation management interface / The system
+                      displays the reservation list / The Admin searches or filters reservations if
+                      needed / The Admin views reservation details / The Admin approves or
+                      cancels a reservation / The system updates the reservation status.
+
+                      If no reservation matches the search or filter criteria, the system displays an
+                      empty result. If the selected reservation does not exist, the system displays
+                      an error message. If the reservation is already cancelled or approved, the
+                      system prevents invalid actions.
+
+                      22
+3.3.5 Use Case Diagram: User Management
+
+The user management use case diagram describes the main administrative functionalities related
+to user accounts in the Secure Hybrid Library Platform. It shows how the Admin manages
+users by consulting the user list, viewing user details, creating user accounts, updating user
+information, changing user roles, and activating or deactivating user accounts.
+
+                Figure 3.5: Use Case Diagram: User Management
+
+           Table 3.4: Textual description of the User Management use case
+
+Element               Description
+
+Actor                 Admin.
+
+Objective             Allow the Admin to manage user accounts, consult user information,
+                      create new accounts, update user data, change user roles, and
+                      activate or deactivate users.
+
+Pre-condition         The Admin must be authenticated and must have the required
+                      authorization to access user management features.
+
+Post-condition        The selected user account is created, updated, activated, deactivated,
+                      or assigned a new role according to the action performed.
+
+Main Scenario         The Admin accesses the user management interface / The system
+                      displays the user list / The Admin creates a new user account or
+                      selects an existing user / The Admin views user details / The Admin
+                      updates user information / The Admin changes the user role / The
+                      Admin activates or deactivates the user account.
+
+Alternative Scenario  If the selected user does not exist, the system displays an error
+                      message. If the Admin enters invalid information, the system displays
+                      a validation error. If the Admin does not have permission, the system
+                      denies the action.
+
+                                   23
+3.4 Class Diagram
+
+A class diagram represents the static structure of the system by showing the main classes, their
+attributes, and the relationships between them. In our project, it presents the main entities of
+the Secure Hybrid Library Platform, such as users, books, documents, reservations, loans,
+document downloads, and audit logs.
+
+    The table below presents the main classes of the system with their most important attributes
+and descriptions.
+
+             Table 3.5: Data dictionary of the Secure Hybrid Library Platform
+
+Class        Attribute        Description
+User         id               Unique identifier of the user.
+             fullName         Full name of the user.
+Student      email            Email address used for authentication.
+Teacher      password         Hashed password used to secure the account.
+Admin        role             Defines the user role: Student, Teacher, or Admin.
+Book         status           Represents the account status.
+             studentCode      Unique code assigned to the student.
+Document     department       Department of the student.
+             academicLevel    Academic level of the student.
+Reservation  teacherCode      Unique code assigned to the teacher.
+             department       Department of the teacher.
+Loan         specialty        Teaching specialty.
+             adminCode        Unique code assigned to the administrator.
+Document     position         Position of the administrator.
+Download     accessLevel      Defines the administrator access level.
+AuditLog     title            Title of the book.
+             author           Author of the book.
+             isbn             International Standard Book Number.
+             format           Defines whether the book is physical, digital, or hybrid.
+             availableCopies  Number of available copies.
+             title            Title of the digital document.
+             fileName         Name of the uploaded file.
+             filePath         Storage path of the document.
+             type             Type of the resource, such as course, exam, correction, or PDF.
+             allowDownload    Indicates whether the document can be downloaded.
+             status           Current status of the reservation.
+             reservedAt       Date and time of the reservation.
+             expiresAt        Expiration date of the reservation.
+             studentId        Identifier of the student who made the reservation.
+             bookId           Identifier of the reserved book.
+             loanedAt         Date when the book was borrowed.
+             dueDate          Expected return date.
+             returnedAt       Actual return date.
+             status           Current status of the loan.
+             studentId        Identifier of the student related to the loan.
+             bookId           Identifier of the borrowed book.
+
+             downloadDate     Date and time of the document download.
+             ipAddress        IP address of the user.
+             downloadStatus   Status of the download operation.
+             action           Action performed in the system.
+             entity           Entity affected by the action.
+             createdAt        Date and time when the action was recorded.
+
+    The figure below illustrates the conceptual class diagram of the Secure Hybrid Library
+Platform. It highlights the main classes, their attributes, and the relationships between them.
+
+                              24
+Figure 3.6: Class Diagram of the Secure Hybrid Library Platform
+                                         25
+3.5 Sequence Diagrams
+
+A sequence diagram represents the dynamic behavior of the system. It shows how actors,
+interfaces, controllers, services, and the database interact with each other in a specific order to
+complete a process.
+
+    In this section, we present the main sequence diagrams of the Secure Hybrid Library
+Platform. These diagrams help explain the execution flow of important functionalities such
+as student book reservation, teacher document upload, and admin reservation validation.
+
+3.5.1 Sequence Diagram: Student Book Reservation
+
+The student book reservation sequence diagram describes the process followed when a student
+reserves a physical book. This process starts when the student selects a book and clicks on the
+reservation button. The system then verifies the book information, checks its availability, and
+confirms that the student does not already have an active reservation for the same book.
+
+                       Figure 3.7: Sequence Diagram: Student Book Reservation
+    As shown in Figure 3.7, the reservation request is sent from the frontend to the backend.
+The reservation service checks if the book exists, verifies the number of available copies, and
+ensures that there is no active reservation for the same student and book. If all conditions are
+valid, the reservation is saved in the database and a confirmation message is returned to the
+student.
+
+                                                           26
+3.5.2 Sequence Diagram: Teacher Document Upload
+
+The teacher document upload sequence diagram describes the process followed when a teacher
+uploads a course document to the Secure Hybrid Library Platform. This functionality
+allows teachers to share academic resources with students through the digital library part of
+the system.
+
+                       Figure 3.8: Sequence Diagram: Teacher Document Upload
+    As shown in Figure 3.8, the teacher selects a document and sends it through the frontend.
+The backend verifies the user's token and role before processing the upload. If the teacher is
+authorized and the file is valid, the system stores the file, saves its metadata in the database,
+and returns a confirmation message.
+
+                                                           27
+3.5.3 Sequence Diagram: Admin Reservation Validation
+
+The admin reservation validation sequence diagram describes the process followed when an ad-
+min validates a student's reservation. This process is important because validating a reservation
+leads to the creation of a real loan and updates the physical book stock.
+
+                    Figure 3.9: Sequence Diagram: Admin Reservation Validation
+    As shown in Figure 3.9, the admin sends a validation request from the frontend. The backend
+verifies that the user has the admin role, then retrieves the reservation from the database. If
+the reservation is valid, its status is updated to approved, a loan is created, and the available
+copies of the book are updated.
+
+3.6 Conclusion
+
+This chapter was dedicated to the conceptual study of the Secure Hybrid Library Plat-
+form. Using UML, we modeled both the structure and the behavior of the system. We first
+introduced the modeling language, then presented the refined use case diagrams describing the
+main interactions between the actors and the platform. We also detailed the class diagram and
+its data dictionary to clarify the main entities and their relationships, and finally the sequence
+diagrams illustrating the execution flow of the key functionalities.
+
+    This conceptual study provides a solid foundation for the implementation phase, which is
+presented in the next chapter through the development environment, the technologies used, the
+architecture, and the main interfaces of the platform.
+
+                                                           28
+                   Chapter 4
+
+Implementation and Realization
+4.1 Introduction
+
+After the analysis and conceptual design phases, this chapter presents the implementation and
+realization phase of the Secure Hybrid Library Platform. It explains how the system was
+developed based on the requirements and UML diagrams defined in the previous chapters.
+
+    In this chapter, we first present the development architecture of the application. Then,
+we describe the hardware and software environment used during the development process.
+After that, we introduce the main technologies and programming languages used to build the
+platform. Finally, we present the main application interfaces designed for the different users of
+the system, namely the Student, the Teacher, and the Admin.
+
+4.2 Development Architecture
+
+The Secure Hybrid Library Platform is based on a client-server architecture. This archi-
+tecture separates the application into independent layers, which makes the system easier to
+organize, maintain, secure, and extend. Each layer has a specific responsibility and communi-
+cates with the other layers through well-defined exchanges.
+
+    The platform is composed of three main layers: the frontend layer, the backend layer,
+and the database layer. The frontend layer represents the user interface and allows users to
+interact with the application. The backend layer manages the business logic, security rules, API
+requests, file uploads, and communication with external services. The database layer stores and
+manages all persistent data used by the system.
+
+          Figure 4.1: Development Architecture of the Secure Hybrid Library Platform
+
+                                                           30
+    As shown in Figure 4.1, the platform is accessed by three main actors: Student, Teacher, and
+Admin. These users interact with the frontend layer, which communicates with the backend
+layer through HTTP requests and responses. The backend exposes REST API endpoints, ap-
+plies authentication and authorization rules, processes business operations, and communicates
+with the PostgreSQL database using the pg library. It also communicates with the Brevo API
+to support transactional emails and password reset codes. In-app notifications are managed
+inside the platform and displayed directly in the user workspace.
+
+    · Frontend Layer: This layer is developed using React.js. It provides the web inter-
+       faces used by Students, Teachers, and Admins. It includes pages and components for
+       authentication, book catalog consultation, digital document access, reservations, loans,
+       dashboards, and statistics. The frontend also uses React Router for navigation, Ax-
+       ios for API communication, i18next for multilingual support, and Recharts for data
+       visualization.
+
+    · Backend Layer: This layer is developed using Node.js and Express.js. It receives
+       requests from the frontend, applies business rules, manages authentication and autho-
+       rization, validates user input, handles file uploads, and communicates with the database.
+       The backend contains the main modules of the platform, including authentication, users,
+       books, categories, digital documents, reservations, loans, dashboards, notifications, and
+       uploads.
+
+    · Database Layer: This layer is based on PostgreSQL. It stores the main data of the
+       platform, such as users, books, categories, digital documents, reservations, loans, notifi-
+       cations, and other records required by the system. The backend interacts directly with
+       the database through the pg library.
+
+    · Security and Services: The platform integrates several security mechanisms, including
+       JWT authentication, password hashing with bcryptjs, request validation with express-
+       validator, and HTTP security headers using Helmet. It also uses Multer for file upload
+       management and node-cron for scheduled tasks.
+
+    · External Services: The platform uses the Brevo API to manage transactional emails
+       and password reset codes. Notifications are handled as in-app alerts displayed inside the
+       platform.
+
+    This architecture provides a clear separation between the user interface, the server-side
+logic, and the database. It also improves the maintainability of the project because each part
+of the system can be updated or extended without affecting the whole application structure.
+
+4.3 Development Environment
+
+This section presents the development environment used during the implementation of the
+Secure Hybrid Library Platform. It includes the hardware environment, the operating
+system, the code editor, the database management tools, the API testing tools, and the main
+software technologies used to build and run the application.
+
+    The objective of this section is to describe the technical conditions in which the project was
+developed, tested, and documented.
+
+                                                           31
+4.3.1 Hardware Environment
+
+During the realization of this project, we used a laptop computer as the main development
+machine. It was used for coding, running the backend server, testing APIs, managing the
+database, and preparing the documentation of the Secure Hybrid Library Platform.
+
+                                       Table 4.1: Hardware environment
+
+Component         Specification
+Brand             ASUS TUF Gaming A15
+Processor         AMD Ryzen 5 7535HS
+Memory (RAM)      12 GB
+Storage           512 GB SSD
+Operating System  Windows 11
+
+4.3.2 Software Environment
+
+In this subsection, we present the main software tools used to carry out the development,
+testing, database management, diagram design, and documentation of the Secure Hybrid
+Library Platform.
+
+    - Visual Studio Code: Visual Studio Code is a source-code editor widely used by de-
+       velopers for programming tasks. In this project, it was used as the main code editor for
+       developing the Secure Hybrid Library Platform. It helped us write and organize
+       the frontend and backend source code, manage extensions, and test backend APIs using
+       Thunder Client.
+
+                              Figure 4.2: Logo of Visual Studio Code
+- Git: Git is a version control system used to track changes in source code and coordinate
+
+  work during software development. In this project, Git was used to manage the source
+  code history, save progress, and keep the project organized during development.
+
+                                        Figure 4.3: Logo of Git
+                                                      32
+- Prism: Prism is an online platform used to create and format professional documents
+  using LaTeX. In this project, Prism was used to write, organize, and prepare the PFE
+  report. It helped us structure the chapters, insert figures and tables, manage the layout,
+  and produce a clean academic document.
+
+                                       Figure 4.4: Logo of Prism
+- pgAdmin: pgAdmin is a database management tool used with PostgreSQL. In this
+
+  project, it was used to create, inspect, and manage the database of the Secure Hybrid
+  Library Platform. It helped us verify tables such as users, books, categories, documents,
+  reservations, loans, and notifications during development and testing.
+
+                                     Figure 4.5: Logo of pgAdmin
+- Thunder Client: Thunder Client is a Visual Studio Code extension used to test REST
+
+  API endpoints. In this project, it was used to test the backend routes of the Secure
+  Hybrid Library Platform, such as authentication, book management, document man-
+  agement, reservations, loans, notifications, and protected routes using JWT tokens.
+
+                                 Figure 4.6: Logo of Thunder Client
+
+                                                      33
+4.3.3 Technologies and Programming Languages
+
+In this subsection, we present the main programming languages, frameworks, libraries, and
+technologies used to develop the Secure Hybrid Library Platform.
+
+    - JavaScript: JavaScript is a programming language widely used in web development. In
+       this project, it was used in both the frontend and backend parts of the Secure Hybrid
+       Library Platform. On the frontend side, it was used with React.js to create interactive
+       interfaces. On the backend side, it was used with Node.js and Express.js to build the
+       server and API routes.
+
+                                         Figure 4.7: Logo of JavaScript
+    - React.js: React.js is a JavaScript library used to build dynamic and interactive user
+
+       interfaces. In this project, it was used to develop the frontend of the Secure Hybrid
+       Library Platform. It helped create pages and components for authentication, book
+       browsing, document access, reservations, loans, and dashboards.
+
+                                          Figure 4.8: Logo of React.js
+    - CSS: CSS is a styling language used to design and improve the visual appearance of web
+
+       pages. In this project, it was used to style the frontend interfaces of the Secure Hybrid
+       Library Platform, including layouts, colors, buttons, forms, tables, and responsive
+       pages.
+
+                                             Figure 4.9: Logo of CSS
+                                                           34
+- Node.js: Node.js is a JavaScript runtime environment used to execute JavaScript code
+  on the server side. In this project, it was used to run the backend of the Secure Hybrid
+  Library Platform and handle API requests between the frontend and the database.
+
+                                     Figure 4.10: Logo of Node.js
+- Express.js: Express.js is a backend framework for Node.js used to build web servers and
+
+  REST APIs. In this project, it was used to create the backend routes of the Secure
+  Hybrid Library Platform, handle HTTP requests, manage middleware, and connect
+  the frontend with the PostgreSQL database.
+
+                                   Figure 4.11: Logo of Express.js
+- PostgreSQL: PostgreSQL is a relational database management system used to store
+
+  and manage structured data. In this project, it was used as the main database of the
+  Secure Hybrid Library Platform. It stores users, books, documents, reservations,
+  loans, notifications, and system logs.
+
+                                  Figure 4.12: Logo of PostgreSQL
+
+                                                      35
+4.3.3.1 Additional Libraries and Services
+
+In addition to the main technologies presented above, several libraries and services were used
+to support navigation, API communication, security, file uploads, scheduled tasks, emails, and
+in-app notifications.
+
+Table 4.2: Additional libraries and services used in the project
+
+Category            Library / Service        Role in the Project
+Frontend Libraries  React Router
+Frontend Libraries  Axios                    Used to manage navigation between the
+Frontend Libraries  i18next / react-i18next  different pages of the application.
+Frontend Libraries  Recharts
+Backend Libraries   pg                       Used to send HTTP requests from the
+Backend Libraries   Multer                   frontend to the backend API.
+Backend Libraries   node-cron
+Security Libraries  jsonwebtoken             Used to provide multilingual support in
+Security Libraries  bcryptjs                 the platform.
+Security Libraries  Helmet
+Security Libraries  express-validator        Used to display charts and statistics in
+External Service    Brevo API                the dashboards.
+
+                                             Used to connect the backend directly
+                                             with the PostgreSQL database.
+
+                                             Used to manage file uploads, especially
+                                             digital documents.
+
+                                             Used to execute scheduled tasks auto-
+                                             matically.
+
+                                             Used to generate and verify JWT au-
+                                             thentication tokens.
+
+                                             Used to hash and secure user pass-
+                                             words.
+
+                                             Used to improve backend security
+                                             through HTTP headers.
+
+                                             Used to validate user inputs and API
+                                             request data.
+
+                                             Used for transactional emails and pass-
+                                             word reset codes.
+
+4.4 Security Implementation
+
+Security is an essential aspect of the Secure Hybrid Library Platform, since the system
+manages user accounts, academic resources, book reservations, loans, and administrative op-
+erations. For this reason, several security mechanisms were implemented in order to protect
+access to the platform and ensure that each user can only use the features allowed by their role.
+
+    The security implementation is based on authentication, password protection, role-based
+access control, input validation, protected routes, and controlled account creation. These mech-
+anisms help reduce unauthorized access and improve the reliability of the system.
+
+4.4.1 Authentication with JWT
+
+The platform uses JSON Web Tokens (JWT) to manage user authentication. When a
+user logs in with a valid email address and password, the backend verifies the credentials and
+
+                                                           36
+generates a token. This token is then used by the frontend to access protected resources.
+    Each protected request sent from the frontend to the backend includes the authentication
+
+token. The backend checks the validity of the token before allowing access to the requested
+resource. If the token is missing, invalid, or expired, the request is rejected.
+
+    This mechanism allows the platform to keep user sessions secure while separating public
+routes from protected routes.
+
+4.4.2 Password Protection
+
+User passwords are not stored in plain text. During account creation or password update, the
+password is hashed using a secure hashing mechanism before being saved in the database.
+
+    This approach protects user credentials because even if the database is accessed without
+authorization, the real passwords are not directly visible. Password hashing is therefore an
+important security measure in the platform.
+
+    The password reset process is also secured using an email verification code. When a user
+forgets their password, a verification code is sent by email. The user must enter the correct
+code before being allowed to continue the password reset process.
+
+4.4.3 Role-Based Access Control
+
+The platform uses Role-Based Access Control (RBAC) to separate the permissions of each
+user. The main roles are Student, Teacher, and Admin. Each role has access only to the
+features related to its responsibilities.
+
+    Students can consult the catalog, reserve or borrow books, access digital resources, and
+follow their reservations and loans. Teachers can upload and manage pedagogical resources
+and consult statistics related to their documents. Admins have access to management features
+such as users, books, categories, documents, reservations, loans, dashboards, and statistics.
+
+    This separation of permissions helps protect sensitive operations. For example, only the
+administrator can create and manage user accounts, while students and teachers can only
+access their own workspaces.
+
+4.4.4 Protected Routes
+
+Protected routes are used in both the frontend and backend parts of the application. On the
+frontend side, users are redirected according to their role after authentication. If a user tries
+to access a page that does not belong to their role, the system prevents access.
+
+    On the backend side, middleware functions are used to verify the authentication token and
+check the user role before executing protected operations. This ensures that users cannot bypass
+the interface and directly call unauthorized API endpoints.
+
+    For example, user management routes are restricted to the administrator, while document
+upload routes are reserved for teachers. This improves the overall security of the application.
+
+4.4.5 Input Validation
+
+Input validation is used to verify the data sent by users before processing it on the backend.
+This includes checking required fields, email format, password format, identifiers, and form
+data.
+
+    Validation helps prevent incorrect or incomplete data from being stored in the database. It
+also improves the stability of the application by reducing errors caused by invalid requests.
+
+    The platform applies validation to several operations, such as authentication, user manage-
+ment, book management, document upload, reservation requests, and loan processing.
+
+                                                           37
+4.4.6 Controlled Account Creation
+
+In this platform, students and teachers cannot create accounts by themselves. User accounts
+are created and managed by the administrator. This decision improves security because access
+to the platform is controlled by an authorized person.
+
+    The administrator can create accounts, assign roles, update user information, deactivate
+accounts, and manage access permissions. This ensures that only approved users can access
+the system.
+
+4.4.7 Summary of Security Mechanisms
+
+After presenting the different security measures used in the platform, it is important to provide
+a clear overview of their roles. Each mechanism contributes to protecting user access, securing
+sensitive operations, and ensuring that the platform remains reliable and controlled.
+
+    The following table presents a summary of the main security mechanisms implemented in
+the Secure Hybrid Library Platform.
+
+                     Table 4.3: Security mechanisms implemented in the platform
+
+Security Mechanism                 Role in the Platform
+JWT Authentication
+Password Hashing                   Used to authenticate users and protect
+Role-Based Access Control          access to secured backend routes.
+Protected Routes
+Input Validation                   Used to protect user passwords before
+Admin-Controlled Account Creation  storing them in the database.
+Email Verification Code
+                                   Used to separate permissions between
+                                   Student, Teacher, and Admin.
+
+                                   Used to prevent unauthorized access to
+                                   pages and API endpoints.
+
+                                   Used to verify user inputs before processing
+                                   requests.
+
+                                   Used to ensure that only authorized users
+                                   can access the platform.
+
+                                   Used to secure the password reset process.
+
+4.5 Presentation of the Application Interfaces
+
+The creation of intuitive and clear interfaces is an important part of the Secure Hybrid
+Library Platform. In this section, we present the main interfaces developed in the application
+and explain the role of each interface according to the users of the system.
+
+    The platform starts with a landing page that introduces the project and its main features.
+After that, the user can access the authentication interface to log in securely and use the
+workspace that corresponds to their role.
+
+4.5.1 Landing Page Interface
+
+When opening the platform, the first interface displayed is the landing page. This page presents
+the Secure Hybrid Library Platform and gives a general overview of its purpose. It high-
+lights the main services of the system, such as the unified catalog, borrowing management,
+digital library, secure access, smart alerts, and dashboard statistics.
+
+                                                           38
+                                     Figure 4.13: Landing Page Interface
+    As shown in Figure 4.13, the landing page contains a presentation of the hybrid library
+concept and a main button that redirects the user to the authentication interface. This page
+helps users understand the objective of the platform before accessing the system.
+
+4.5.2 Authentication Interfaces
+
+After clicking on the main access button from the landing page, the user is redirected to the
+authentication interface. This part of the platform allows users to log in securely by entering
+their email address and password.
+
+    The authentication process is used by the main roles of the platform, namely Student,
+Teacher, and Admin. After successful authentication, each user is redirected to the workspace
+that corresponds to their role.
+
+                                          Figure 4.14: Login Interface
+    As shown in Figure 4.14, the login interface allows existing users to access the platform by
+
+                                                           39
+providing their email address and password. It also includes a password recovery option for
+users who have forgotten their password.
+
+                                   Figure 4.15: Verification Code Interface
+    As shown in Figure 4.15, the verification code interface is used during the secure authen-
+tication or password recovery process. The user receives a code by email and enters it in the
+form in order to verify their identity before continuing.
+
+4.5.3 Student Dashboard Interface
+
+After authentication, the student is redirected to their personal dashboard. This interface
+represents the main workspace of the student. It allows the student to access the main features
+of the platform, such as consulting the book catalog, following reservations, viewing current
+loans, and checking recent activity.
+
+                                 Figure 4.16: Student Dashboard Interface
+                                                           40
+    As shown in Figure 4.16, the student dashboard provides a general overview of the student's
+activity. It displays important information related to loans, reservations, catalog activity, and
+quick access to the main student features.
+4.5.3.1 Student Book Catalog Interface
+The book catalog interface allows students to browse the physical books available in the library.
+Through this page, the student can search for books by title, author, ISBN, or keyword. The
+student can also filter books by category and availability, view book details, and choose the
+appropriate action according to the book status.
+
+                                Figure 4.17: Student Book Catalog Interface
+    As shown in Figure 4.17, available books can be borrowed directly, while unavailable books
+can be reserved. This interface helps students find academic resources quickly and manage
+their access to physical books in an organized way.
+4.5.3.2 Student Reservations Interface
+The reservations interface allows students to follow the status of their book reservation requests.
+After reserving a book from the catalog, the student can use this page to check reservation
+details, such as the book title, author, reservation date, and current status.
+
+                                Figure 4.18: Student Reservations Interface
+                                                           41
+    As shown in Figure 4.18, the interface displays reservations according to their status, such
+as pending, approved, expired, cancelled, or rejected. It also allows the student to consult
+reservation details and cancel a reservation when the request is still waiting to be processed.
+4.5.3.3 Student Loans Interface
+The loans interface allows students to track their current loans and borrowing requests. It
+provides information about borrowed books, loan dates, expected return dates, and loan status.
+This page helps the student follow their borrowing activity and manage book returns on time.
+
+                                     Figure 4.19: Student Loans Interface
+    As shown in Figure 4.19, the student can view active loans, pending requests, returned
+loans, and rejected requests. The interface also includes search and filtering options, making it
+easier for the student to find a specific loan record and follow its status.
+
+4.5.4 Teacher Dashboard Interface
+
+After authentication, the teacher is redirected to a dedicated dashboard. This interface repre-
+sents the main workspace of the teacher. It allows the teacher to manage pedagogical resources,
+upload new documents, consult published resources, and follow statistics related to student in-
+teraction with the uploaded content.
+
+                                                           42
+                                  Figure 4.20: Teacher Dashboard Interface
+    As shown in Figure 4.20, the teacher dashboard displays several indicators, such as pub-
+lished documents, added courses, added tutorials or exercises, added exams, total views, total
+readers, engagement rate, and the most viewed resource. It also provides quick access to im-
+portant actions such as adding a document, viewing uploaded documents, adding a course, and
+consulting statistics.
+4.5.4.1 Teacher Course Management Interface
+The course management interface allows the teacher to view and organize the pedagogical
+documents uploaded to the platform. Through this page, the teacher can search for a course or
+document, filter resources by type, consult publication information, and manage the uploaded
+educational content.
+
+                           Figure 4.21: Teacher Course Management Interface
+    As shown in Figure 4.21, the teacher can view the list of published resources and filter them
+by document type, such as course, tutorial, exercise, exam, correction, PDF, DOCX, or PPTX.
+This interface helps the teacher keep their educational resources organized and accessible for
+students.
+
+                                                           43
+4.5.4.2 Teacher Document Upload Interface
+The document upload interface enables teachers to publish new digital resources on the plat-
+form. The teacher can upload a file, enter the resource information, choose the document
+category, and select the document type, such as course, tutorial, exercise, exam, correction,
+video, or other academic resource.
+
+                             Figure 4.22: Teacher Document Upload Interface
+    As shown in Figure 4.22, the upload interface provides a clear form for publishing pedagogi-
+cal content. It also displays publishing tips and useful information to help teachers upload valid
+and well-structured documents. This feature supports the digital library by allowing teachers
+to share courses, TP/TD documents, exams, corrections, videos, and other academic resources
+with students.
+4.5.4.3 Teacher Statistics Interface
+The teacher statistics interface allows the teacher to analyze the use of their published re-
+sources. It presents indicators related to published documents, added courses, added tutorials
+or exercises, exams, total views, total readers, and the distribution of resources by document
+type.
+
+                                   Figure 4.23: Teacher Statistics Interface
+                                                           44
+    As shown in Figure 4.23, the statistics page helps the teacher understand how students
+interact with the uploaded documents. It includes charts, engagement information, most viewed
+resources, and document distribution, which supports better follow-up of educational content.
+
+4.5.5 Admin Dashboard Interface
+
+After authentication, the administrator is redirected to the admin dashboard. This interface
+represents the main supervision workspace of the platform. It allows the admin to monitor the
+general activity of the system and access the main management sections, such as users, books,
+documents, reservations, loans, categories, statistics, and support.
+
+                                  Figure 4.24: Admin Dashboard Interface
+    As shown in Figure 4.24, the admin dashboard displays important indicators such as active
+loans, pending reservations, overdue loans, books in stock, digital documents, and total views. It
+also presents recent activity and resource distribution, which helps the administrator supervise
+the platform efficiently.
+4.5.5.1 Admin User Management Interface
+The user management interface allows the administrator to manage the accounts of students,
+teachers, and administrators. Through this page, the admin can search for users, filter accounts
+by role or status, consult user information, add new users, edit user data, block accounts, and
+export user information.
+
+                                                           45
+                             Figure 4.25: Admin User Management Interface
+    As shown in Figure 4.25, the interface displays useful information such as registration num-
+ber, user name, email, role, account status, registration date, last login, and last logout. This
+helps the administrator manage user accounts and follow their activity in a clear and organized
+way.
+4.5.5.2 Admin Book Management Interface
+The book management interface allows the administrator to manage the physical book catalog
+of the library. Through this page, the admin can add new books, search by title, author, or
+ISBN, filter books by category, stock status, and shelf, and manage book information such as
+availability, category, ISBN, stock, shelf, and publication date.
+
+                             Figure 4.26: Admin Book Management Interface
+    As shown in Figure 4.26, the book management interface provides a complete overview of
+the physical book inventory. It displays statistics such as total books, available books, out-of-
+stock books, and categories. It also allows the administrator to view details, edit books, delete
+books, and export book data.
+
+                                                           46
+4.5.5.3 Admin Loan Management Interface
+The loan management interface allows the administrator to supervise book loans, returns,
+delays, and loan status. Through this page, the admin can search for loans, filter records by
+status, date, or borrower, consult loan details, create new loans, export loan data, and generate
+overdue reports.
+
+                             Figure 4.27: Admin Loan Management Interface
+    As shown in Figure 4.27, the interface displays loan information such as loan ID, registration
+number, book title, borrower, borrower email, borrowing date, due date, return date, status,
+and overdue state. This helps the administrator follow borrowing activity and ensure better
+control of physical book circulation.
+
+4.6 API Testing with Thunder Client
+
+In addition to interface testing, API testing was performed using Thunder Client. This
+allowed us to verify the communication between the frontend and the backend, especially for
+authentication and protected routes. The objective of these tests is to confirm that the backend
+APIs respond correctly and that secured routes can only be accessed with a valid authentication
+token.
+
+4.6.1 Admin Login Verification Test
+
+The first API test concerns the admin login verification process. After entering valid admin
+credentials, the system sends a verification code to the user's email address. Once the verifi-
+cation code is submitted, the backend validates the request and returns a successful response
+with the authenticated user information.
+
+                                                           47
+                             Figure 4.28: Admin Login Verification API Test
+    As shown in Figure 4.28, the login verification request returns a successful response. This
+confirms that the authentication process works correctly after the verification code is validated.
+
+4.6.2 Protected Route Test
+
+The second API test concerns a protected backend route. The request is sent with an au-
+thorization token in the request headers. The successful response confirms that the backend
+accepts authenticated requests and protects access to secured API endpoints.
+
+                                   Figure 4.29: Protected API Route Test
+    As shown in Figure 4.29, the protected notification route returns a successful response when
+a valid token is provided. This validates the role of JWT authentication in securing backend
+routes.
+
+                                                           48
+4.7 Conclusion
+
+Throughout this chapter, we presented the realization phase of the Secure Hybrid Library
+Platform. We first described the development environment, including the main tools, tech-
+nologies, and software used during the implementation of the application. Then, we presented
+the different application interfaces designed for each user role.
+
+    The screenshots illustrated the main features of the platform, such as authentication, stu-
+dent access to the book catalog, reservations and loans, teacher management of pedagogical re-
+sources, and administrator supervision of users, books, loans, documents, and statistics. These
+interfaces demonstrate how the platform provides a clear and organized workspace for students,
+teachers, and administrators.
+
+    In conclusion, this chapter showed the final visual and functional result of our work. The
+implemented solution confirms the objective of building a secure hybrid library platform that
+combines the management of physical books with access to digital educational resources.
+
+                                                           49
+General Conclusion
+
+       This final year project was carried out with the objective of designing and developing a
+secure hybrid library platform for an academic environment. The main idea of the project was to
+combine traditional library services, such as book consultation, borrowing, and reservation, with
+digital services, such as access to courses, PDF documents, exams, corrections, and pedagogical
+resources.
+
+       Throughout this project, we started by studying the general context of academic libraries
+and identifying the main problems related to manual management, limited access to digital
+resources, and the lack of a centralized system. Based on this analysis, we proposed a web-
+based solution that provides different workspaces according to user roles: Student, Teacher,
+and Administrator.
+
+       The developed platform allows students to consult the book catalog, reserve or borrow
+physical books, access digital documents, and follow their reservations and loans. Teachers can
+upload and manage their pedagogical resources, consult their published documents, and follow
+basic statistics related to student consultations. Administrators can supervise users, books,
+digital documents, categories, loans, reservations, and platform statistics.
+
+       From a technical point of view, the project allowed us to apply several web development
+concepts, including frontend development with React.js, backend development with Node.js and
+Express.js, database management with PostgreSQL, authentication, role-based access control,
+secure password reset using email verification, and in-app notification management. This work
+also helped us improve our skills in system design, interface development, data modeling, and
+project organization.
+
+       In conclusion, the Secure Hybrid Library Platform provides a practical solution for
+managing both physical and digital academic resources. Although the application meets the
+main objectives of the project, some improvements can still be added in the future, such as
+advanced recommendation systems, more detailed analytics, real-time push notifications, email
+notification alerts, and improved integration with other academic platforms.
+
+                                                           50
+Webography
+
+   1. Internet Archive. Internet Archive Digital Library. Available at:
+       https://archive.org/. [Accessed 15 February 2026].
+
+   2. Open Library. Open Library. Available at: https://openlibrary.org/. [Accessed 16
+       February 2026].
+
+   3. Wiley Online Library. Wiley Online Library. Available at:
+       https://onlinelibrary.wiley.com/. [Accessed 18 February 2026].
+
+   4. Project Gutenberg. Project Gutenberg. Available at: https://www.gutenberg.org/.
+       [Accessed 20 February 2026].
+
+   5. React Documentation. Quick Start. Available at: https://react.dev/learn.
+       [Accessed 10 March 2026].
+
+   6. Node.js Documentation. Node.js API Documentation. Available at:
+       https://nodejs.org/docs/latest/api/. [Accessed 12 March 2026].
+
+   7. Express.js Documentation. Node.js Web Application Framework. Available at:
+       https://expressjs.com/. [Accessed 14 March 2026].
+
+   8. PostgreSQL Documentation. PostgreSQL Manuals. Available at:
+       https://www.postgresql.org/docs/. [Accessed 18 March 2026].
+
+   9. React Router Documentation. React Router. Available at:
+       https://reactrouter.com/. [Accessed 22 March 2026].
+
+  10. Axios Documentation. Axios. Available at: https://axios-http.com/. [Accessed 24
+       March 2026].
+
+  11. i18next Documentation. i18next. Available at: https://www.i18next.com/. [Accessed
+       4 April 2026].
+
+  12. Recharts Documentation. Recharts. Available at: https://recharts.org/. [Accessed 8
+       April 2026].
+
+  13. node-postgres Documentation. PostgreSQL Client for Node.js. Available at:
+       https://node-postgres.com/. [Accessed 12 April 2026].
+
+  14. JWT.io. Introduction to JSON Web Tokens. Available at:
+       https://jwt.io/introduction. [Accessed 18 April 2026].
+
+  15. npm. bcryptjs Package Documentation. Available at:
+       https://www.npmjs.com/package/bcryptjs. [Accessed 20 April 2026].
+
+                                                           51
+16. Helmet Documentation. Helmet. Available at: https://helmetjs.github.io/.
+     [Accessed 24 April 2026].
+
+17. express-validator Documentation. express-validator. Available at:
+     https://express-validator.github.io/docs/. [Accessed 27 April 2026].
+
+18. Multer Documentation. Multer. Available at:
+     https://github.com/expressjs/multer. [Accessed 2 May 2026].
+
+19. npm. node-cron Package Documentation. Available at:
+     https://www.npmjs.com/package/node-cron. [Accessed 6 May 2026].
+
+20. OWASP Cheat Sheet Series. Forgot Password Cheat Sheet. Available at: https:
+     //cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html.
+     [Accessed 12 May 2026].
+
+21. Brevo Developers. Transactional Email API Documentation. Available at:
+     https://developers.brevo.com/. [Accessed 18 May 2026].
+
+22. Brevo Developers. Send a Transactional Email. Available at:
+     https://developers.brevo.com/reference/send-transac-email. [Accessed 22 May
+     2026].
+
+23. MDN Web Docs. Express/Node Introduction. Available at:
+     https://developer.mozilla.org/en-US/docs/Learn_web_development/Extension
+     s/Server-side/Express_Nodejs/Introduction. [Accessed 1 June 2026].
+
+                                                         52
+

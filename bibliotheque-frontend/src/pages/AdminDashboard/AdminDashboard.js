@@ -5,6 +5,16 @@ import {
 } from 'recharts';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import Navbar from '../../components/Navbar/Navbar';
+import {
+  IconDashboard, IconUsers, IconBooks, IconDocuments, IconLoans,
+  IconReservations, IconCategories, IconStats, IconSupport, IconSettings,
+  IconLogout, AdminBrandMark,
+} from './sidebarIcons';
+import {
+  IconSearch, IconBook, IconCheckCircle, IconAlertCircle, IconGrid,
+  IconExport, IconReset, IconPlus, IconEye, IconEdit, IconTrash,
+  IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight,
+} from './booksIcons';
 import { statsAPI, authAPI, categoriesAPI, livresAPI, documentsAPI, notificationsAPI } from '../../api/api';
 import { useChartTheme } from '../../utils/chartTheme';
 import StatistiquesView from './StatistiquesView';
@@ -21,19 +31,19 @@ import './AdminDashboard.css';
 
 const SIDEBAR_ITEMS = [
   { type: 'section', label: 'Principal',         i18nKey: 'sidebar.sections.main' },
-  { id: 'dashboard',    icon: '🏠',   label: 'Tableau de bord',  i18nKey: 'sidebar.items.dashboard' },
+  { id: 'dashboard',    icon: <IconDashboard />,    label: 'Tableau de bord',  i18nKey: 'sidebar.items.dashboard' },
   { type: 'section', label: 'Gestion',           i18nKey: 'sidebar.sections.management' },
-  { id: 'users',        icon: '👥',   label: 'Utilisateurs',     i18nKey: 'sidebar.items.users' },
-  { id: 'livres',       icon: '📚',   label: 'Livres',           i18nKey: 'sidebar.items.livres' },
-  { id: 'documents',    icon: '📄',   label: 'Documents',        i18nKey: 'sidebar.items.documents' },
-  { id: 'emprunts',     icon: '📗',   label: 'Emprunts',         i18nKey: 'sidebar.items.emprunts' },
-  { id: 'reservations', icon: '📌',   label: 'Réservations',     i18nKey: 'sidebar.items.reservations' },
-  { id: 'categories',   icon: '🏷️',  label: 'Catégories',       i18nKey: 'sidebar.items.categories' },
-  { id: 'stats',        icon: '📊',   label: 'Statistiques',     i18nKey: 'sidebar.items.stats' },
+  { id: 'users',        icon: <IconUsers />,        label: 'Utilisateurs',     i18nKey: 'sidebar.items.users' },
+  { id: 'livres',       icon: <IconBooks />,        label: 'Livres',           i18nKey: 'sidebar.items.livres' },
+  { id: 'documents',    icon: <IconDocuments />,     label: 'Documents',        i18nKey: 'sidebar.items.documents' },
+  { id: 'emprunts',     icon: <IconLoans />,        label: 'Emprunts',         i18nKey: 'sidebar.items.emprunts' },
+  { id: 'reservations', icon: <IconReservations />, label: 'Réservations',     i18nKey: 'sidebar.items.reservations' },
+  { id: 'categories',   icon: <IconCategories />,   label: 'Catégories',       i18nKey: 'sidebar.items.categories' },
+  { id: 'stats',        icon: <IconStats />,        label: 'Statistiques',     i18nKey: 'sidebar.items.stats' },
   { type: 'section', label: 'Support',           i18nKey: 'sidebar.sections.support' },
-  { id: 'support',      icon: '🎧',   label: 'Centre de support', i18nKey: 'sidebar.items.support' },
+  { id: 'support',      icon: <IconSupport />,      label: 'Centre de support', i18nKey: 'sidebar.items.support' },
   { type: 'section', label: 'Système',           i18nKey: 'sidebar.sections.system' },
-  { id: 'settings',     icon: '⚙️',  label: 'Paramètres',       i18nKey: 'sidebar.items.settings' },
+  { id: 'settings',     icon: <IconSettings />,     label: 'Paramètres',       i18nKey: 'sidebar.items.settings' },
 ];
 
 const toDashboardNumber = (value) => {
@@ -481,21 +491,17 @@ const userRoleGroup = (role) => {
 
 const userRoleLabel = (role) => {
   const group = userRoleGroup(role);
-  const value = normalizeUserSearch(role).replace(/-/g, '_');
   if (group === 'student') return 'Étudiant';
   if (group === 'teacher') return 'Enseignant';
-  if (group === 'admin') return ['bibliothecaire', 'librarian'].includes(value) ? 'Bibliothécaire' : 'Admin';
+  if (group === 'admin') return 'Admin';
   return role || '—';
 };
 
 const translatedUserRoleLabel = (role, t) => {
   const group = userRoleGroup(role);
-  const value = normalizeUserSearch(role).replace(/-/g, '_');
   if (group === 'student') return t('admin.roles.student');
   if (group === 'teacher') return t('admin.roles.teacher');
-  if (group === 'admin') return ['bibliothecaire', 'librarian'].includes(value)
-    ? t('admin.roles.librarian')
-    : t('admin.roles.adminShort');
+  if (group === 'admin') return t('admin.roles.adminShort');
   return role || '—';
 };
 
@@ -982,7 +988,6 @@ function EditUserModal({ user, onClose, onSubmit }) {
 
 function UsersView({ users = [], loading, error, onToggleBlock, onCreateUser, onUpdateUser, currentUser }) {
   const { t } = useTranslation();
-  const chartTheme = useChartTheme();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -1024,17 +1029,7 @@ function UsersView({ users = [], loading, error, onToggleBlock, onCreateUser, on
   const currentUserId = currentUser?.id_user ?? currentUser?.id ?? null;
   const rangeStart = filteredUsers.length === 0 ? 0 : ((currentPage - 1) * USERS_PAGE_SIZE) + 1;
   const rangeEnd = Math.min(currentPage * USERS_PAGE_SIZE, filteredUsers.length);
-  const roleDistribution = [
-    { name: t('admin.users.students'), value: stats.students, color: '#38bdf8' },
-    { name: t('admin.users.teachers'), value: stats.teachers, color: '#d6a76b' },
-    { name: t('admin.users.admins'), value: stats.admins, color: '#a78bfa' },
-  ].filter(item => item.value > 0);
-  const recentUsers = [...users]
-    .sort((a, b) => new Date(userCreatedAt(b) || 0) - new Date(userCreatedAt(a) || 0))
-    .slice(0, 5);
-  const activeFilterCount = [search, roleFilter, statusFilter, dateFilter].filter(Boolean).length;
-  const activeUsersCount = Math.max(0, stats.total - stats.blocked);
-  const latestUser = recentUsers[0] || null;
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   const resetFilters = () => {
     setSearch('');
@@ -1097,10 +1092,10 @@ function UsersView({ users = [], loading, error, onToggleBlock, onCreateUser, on
         </div>
         <div className="users-hero-actions">
           <button type="button" className="btn-primary" onClick={() => setCreateOpen(true)}>
-            + {t('admin.users.addUser')}
+            <span aria-hidden="true">👤＋</span> {t('admin.users.addUser')}
           </button>
           <button type="button" className="btn-secondary" onClick={() => exportUsersCSV(filteredUsers, t)} disabled={filteredUsers.length === 0}>
-            {t('admin.common.export')}
+            <span aria-hidden="true">⬇</span> {t('admin.common.export')}
           </button>
         </div>
       </div>
@@ -1125,16 +1120,18 @@ function UsersView({ users = [], loading, error, onToggleBlock, onCreateUser, on
         <UserStatCard label={t('admin.users.blockedAccounts')} value={stats.blocked}  meta={`${pct(stats.blocked)}% ${t('admin.users.ofTotal')}`} tone="red" icon={<img src={blockedIcon} alt="" />} />
       </div>
 
-      <div className="users-dashboard-grid">
-        <section className="users-main-panel">
+      <div className="users-main-panel">
           <div className="users-toolbar">
             <div className="users-toolbar-fields">
-              <input
-                className="form-input users-search"
-                placeholder={t('admin.users.searchPlaceholder')}
-                value={search}
-                onChange={event => setSearch(event.target.value)}
-              />
+              <div className="users-search-wrap">
+                <span className="users-search-icon" aria-hidden="true">🔍</span>
+                <input
+                  className="form-input users-search"
+                  placeholder={t('admin.users.searchPlaceholder')}
+                  value={search}
+                  onChange={event => setSearch(event.target.value)}
+                />
+              </div>
               <select className="form-select" value={roleFilter} onChange={event => setRoleFilter(event.target.value)}>
                 <option value="">{t('admin.roles.all')}</option>
                 <option value="student">{t('admin.roles.student')}</option>
@@ -1207,10 +1204,10 @@ function UsersView({ users = [], loading, error, onToggleBlock, onCreateUser, on
                         <td>
                           <div className="users-actions">
                             <button type="button" className="action-btn action-btn-info" onClick={() => setSelected(user)} disabled={busyId === id}>
-                              {t('admin.common.details')}
+                              <span aria-hidden="true">👁</span> {t('admin.common.details')}
                             </button>
                             <button type="button" className="action-btn action-btn-warning" onClick={() => setEditing(user)} disabled={busyId === id}>
-                              {t('admin.common.edit')}
+                              <span aria-hidden="true">✏️</span> {t('admin.common.edit')}
                             </button>
                             <button
                               type="button"
@@ -1219,7 +1216,7 @@ function UsersView({ users = [], loading, error, onToggleBlock, onCreateUser, on
                               disabled={busyId === id || isSelf}
                               title={isSelf ? t('admin.users.selfActionDisabled') : undefined}
                             >
-                              {busyId === id ? t('admin.users.processing') : blocked ? t('admin.users.unblock') : t('admin.users.block')}
+                              <span aria-hidden="true">{blocked ? '🔓' : '🔒'}</span> {busyId === id ? t('admin.users.processing') : blocked ? t('admin.users.unblock') : t('admin.users.block')}
                             </button>
                           </div>
                         </td>
@@ -1239,92 +1236,38 @@ function UsersView({ users = [], loading, error, onToggleBlock, onCreateUser, on
 
           <div className="users-pagination">
             <span>{t('admin.users.paginationSummary', { start: rangeStart, end: rangeEnd, total: filteredUsers.length })}</span>
-            <div>
-              <button type="button" className="btn-secondary" disabled={currentPage <= 1} onClick={() => setPage(prev => Math.max(1, prev - 1))}>
-                {t('admin.common.previous')}
+            <div className="users-pagination-controls">
+              <button
+                type="button"
+                className="users-page-nav"
+                disabled={currentPage <= 1}
+                onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                aria-label={t('admin.common.previous')}
+              >
+                ‹
               </button>
-              <span className="users-page-pill">{currentPage}</span>
-              <button type="button" className="btn-secondary" disabled={currentPage >= totalPages} onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}>
-                {t('admin.common.next')}
+              {pageNumbers.map(n => (
+                <button
+                  type="button"
+                  key={`page-${n}`}
+                  className={`users-page-btn ${n === currentPage ? 'is-active' : ''}`}
+                  onClick={() => setPage(n)}
+                  aria-current={n === currentPage ? 'page' : undefined}
+                >
+                  {n}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="users-page-nav"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                aria-label={t('admin.common.next')}
+              >
+                ›
               </button>
             </div>
           </div>
-        </section>
-
-        <aside className="users-side">
-          <section className="users-side-card">
-            <div className="users-side-header">
-              <h2>{t('admin.users.rolesDistribution')}</h2>
-            </div>
-            <div className="users-donut-wrap">
-              {roleDistribution.length > 0 ? (
-                <>
-                  <ResponsiveContainer width="100%" height={180}>
-                    <PieChart>
-                      <Pie data={roleDistribution} innerRadius={50} outerRadius={72} dataKey="value" paddingAngle={2}>
-                        {roleDistribution.map(item => <Cell key={item.name} fill={item.color} />)}
-                      </Pie>
-                      <Tooltip contentStyle={chartTheme.tooltip} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="users-donut-center">
-                    <strong>{stats.total}</strong>
-                    <span>Total</span>
-                  </div>
-                </>
-              ) : (
-                <div className="users-empty-mini">{t('admin.users.noDataToDisplay')}</div>
-              )}
-            </div>
-            <div className="users-distribution-list">
-              {roleDistribution.map(item => (
-                <div key={item.name}>
-                  <span><i style={{ background: item.color }} />{item.name}</span>
-                  <strong>{item.value} ({pct(item.value)}%)</strong>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="users-side-card">
-            <div className="users-side-header">
-              <h2>{t('admin.users.recentActivity')}</h2>
-            </div>
-            {recentUsers.length > 0 ? (
-              <div className="users-activity-list">
-                {recentUsers.map(user => (
-                  <div className="users-activity-item" key={`recent-${userRowKey(user)}`}>
-                    <div>
-                      <strong>{t('admin.users.accountCreated')}</strong>
-                      <span>{userFullName(user)} · {translatedUserRoleLabel(user.role, t)}</span>
-                    </div>
-                    <em>{formatAdminDate(userCreatedAt(user))}</em>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="users-empty-mini">{t('admin.users.noActivityAvailable')}</div>
-            )}
-          </section>
-
-          <section className="users-side-card users-info-card">
-            <h2>{t('admin.users.information')}</h2>
-            <div className="users-info-list">
-              <div>
-                <span>{t('admin.users.activeAccounts')}</span>
-                <strong>{activeUsersCount}</strong>
-              </div>
-              <div>
-                <span>{t('admin.users.latestRegistration')}</span>
-                <strong>{latestUser ? formatAdminDate(userCreatedAt(latestUser)) : '—'}</strong>
-              </div>
-              <div>
-                <span>{t('admin.users.activeFilters')}</span>
-                <strong>{activeFilterCount}</strong>
-              </div>
-            </div>
-          </section>
-        </aside>
       </div>
 
       {selected && <UserDetailsModal user={selected} onClose={() => setSelected(null)} />}
@@ -2297,6 +2240,128 @@ const getLivreSearchText = (livre) => normalizeSearch([
   livre?.id_ressource
 ].filter(Boolean).join(' '));
 
+// Deterministic blue/gold accent for a category badge (stable per name).
+const categoryBadgeTone = (name) => {
+  const value = normalizeSearch(name);
+  if (!value) return 'blue';
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
+  return hash % 2 === 0 ? 'blue' : 'gold';
+};
+
+// Two-letter initials used inside the placeholder book thumbnail.
+const livreInitials = (livre) => {
+  const parts = String(livre?.titre || '').trim().split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] || 'B') + (parts[1]?.[0] || '')).toUpperCase();
+};
+
+// Windowed page list with ellipsis: 1 … (current-1) current (current+1) … last
+const buildPageList = (current, total) => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages = new Set([1, total, current, current - 1, current + 1]);
+  const sorted = [...pages].filter(n => n >= 1 && n <= total).sort((a, b) => a - b);
+  const out = [];
+  let prev = 0;
+  sorted.forEach(n => {
+    if (n - prev > 1) out.push(`ellipsis-${n}`);
+    out.push(n);
+    prev = n;
+  });
+  return out;
+};
+
+const exportBooksCSV = (rows, t) => {
+  const headers = [
+    t('admin.books.tableBook'),
+    t('admin.books.tableAuthor'),
+    t('admin.books.tableCategory'),
+    t('admin.books.tableIsbn'),
+    t('admin.books.tableStock'),
+    t('admin.books.tableShelf'),
+    t('admin.books.tablePublication'),
+  ];
+  const esc = (value) => {
+    if (value === null || value === undefined) return '';
+    const s = String(value).replace(/"/g, '""');
+    return /[",\n;]/.test(s) ? `"${s}"` : s;
+  };
+  const lines = [headers.join(',')];
+  rows.forEach((l) => {
+    const stock = getLivreStockInfo(l);
+    lines.push([
+      l.titre,
+      l.auteur,
+      l.categorie,
+      l.isbn,
+      `${stock.available}/${stock.total}`,
+      l.emplacement_rayon,
+      formatLivreDate(l.date_publication),
+    ].map(esc).join(','));
+  });
+  const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `books-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+function BookThumb({ livre }) {
+  return (
+    <div className="books-thumb" aria-hidden="true">
+      <IconBook size={18} />
+      <span>{livreInitials(livre)}</span>
+    </div>
+  );
+}
+
+function BookDetailsModal({ book, onClose, onEdit, t }) {
+  if (!book) return null;
+  const stock = getLivreStockInfo(book);
+  const stockLabel = stock.tone === 'empty'
+    ? t('admin.books.outOfStock')
+    : t(`admin.books.stockLabels.${stock.labelKey}`);
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3 className="modal-title">{t('admin.books.details')}</h3>
+          <button type="button" className="modal-close" onClick={onClose} aria-label={t('admin.books.cancel')}>×</button>
+        </div>
+        <div className="modal-body">
+          <div className="books-details-head">
+            <BookThumb livre={book} />
+            <div>
+              <strong>{book.titre}</strong>
+              <span>{book.auteur || '—'}</span>
+            </div>
+          </div>
+          <div className="modal-grid">
+            <div><span className="modal-label">{t('admin.books.tableCategory')}</span>{book.categorie || '—'}</div>
+            <div><span className="modal-label">{t('admin.books.tableIsbn')}</span>{book.isbn || '—'}</div>
+            <div><span className="modal-label">{t('admin.books.tableStock')}</span>{stockLabel} ({stock.available}/{stock.total})</div>
+            <div><span className="modal-label">{t('admin.books.tableShelf')}</span>{book.emplacement_rayon || '—'}</div>
+            <div><span className="modal-label">{t('admin.books.tablePublication')}</span>{formatLivreDate(book.date_publication)}</div>
+          </div>
+          {book.description && (
+            <div className="books-details-desc">
+              <span className="modal-label">{t('admin.books.description')}</span>
+              <p>{book.description}</p>
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button type="button" className="btn-secondary" onClick={onClose}>{t('admin.books.cancel')}</button>
+          <button type="button" className="btn-primary" onClick={() => onEdit(book)}>{t('admin.books.edit')}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LivresView() {
   const { t } = useTranslation();
   const [livres, setLivres] = useState([]);
@@ -2305,9 +2370,11 @@ function LivresView() {
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('');
   const [stockFilter, setStockFilter] = useState('');
+  const [shelfFilter, setShelfFilter] = useState('');
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [detailsBook, setDetailsBook] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [flash, setFlash] = useState(null);
@@ -2322,7 +2389,7 @@ function LivresView() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, filterCat, stockFilter]);
+  }, [search, filterCat, stockFilter, shelfFilter]);
 
   const loadLivres = async () => {
     setLoading(true);
@@ -2364,7 +2431,16 @@ function LivresView() {
     } catch {
       setEditing(livre);
     }
+    setDetailsBook(null);
     setShowModal(true);
+  };
+  const openDetails = async (livre) => {
+    try {
+      const res = await livresAPI.getById(livre.id_ressource);
+      setDetailsBook(res.data.data || livre);
+    } catch {
+      setDetailsBook(livre);
+    }
   };
 
   const handleSaved = (message) => {
@@ -2400,7 +2476,8 @@ function LivresView() {
     const matchCat = !filterCat || String(l.id_categorie) === String(filterCat)
       || (l.categorie && normalizeSearch(selectedCategory?.libelle) === normalizeSearch(l.categorie));
     const matchStock = !stockFilter || getLivreStockInfo(l).tone === stockFilter;
-    return matchSearch && matchCat && matchStock;
+    const matchShelf = !shelfFilter || String(l.emplacement_rayon || '') === shelfFilter;
+    return matchSearch && matchCat && matchStock && matchShelf;
   });
   const totalPages = Math.max(1, Math.ceil(filtered.length / LIVRES_PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -2408,175 +2485,240 @@ function LivresView() {
   const paginatedLivres = filtered.slice(startIndex, startIndex + LIVRES_PAGE_SIZE);
   const rangeStart = filtered.length === 0 ? 0 : startIndex + 1;
   const rangeEnd = startIndex + paginatedLivres.length;
-  const hasActiveFilters = Boolean(search.trim() || filterCat || stockFilter);
+  const hasActiveFilters = Boolean(search.trim() || filterCat || stockFilter || shelfFilter);
+  const pageList = buildPageList(currentPage, totalPages);
+
+  // Distinct, naturally sorted shelf codes (e.g. A1, C3, D4…) from the data.
+  const shelfOptions = [...new Set(livres.map(l => l.emplacement_rayon).filter(Boolean))]
+    .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+
+  // Stat cards
+  const totalBooks = livres.length;
+  const availableBooks = livres.filter(l => getLivreStockInfo(l).available > 0).length;
+  const outOfStockBooks = livres.filter(l => getLivreStockInfo(l).available === 0).length;
+  const categoriesCount = categories.length;
 
   const resetFilters = () => {
     setSearch('');
     setFilterCat('');
     setStockFilter('');
+    setShelfFilter('');
     setPage(1);
   };
 
   return (
     <>
-      <div className="livres-page">
-        <div className="livres-hero">
-          <div>
-            <div className="livres-eyebrow">Admin / {t('sidebar.sections.management')}</div>
-            <h1><span className="livres-title-icon">BK</span>{t('admin.books.title')}</h1>
-            <p>{t('admin.books.totalBooks', { count: livres.length })}</p>
+      <div className="livres-page books-page">
+        <div className="books-header">
+          <div className="books-header-text">
+            <div className="books-breadcrumb">Admin <span>/</span> {t('sidebar.sections.management')}</div>
+            <h1>{t('admin.books.managementTitle')}</h1>
+            <p>{t('admin.books.subtitle')}</p>
           </div>
-          <button type="button" className="btn-primary livres-add-btn" onClick={openCreate}>
-            + {t('admin.books.addBook')}
-          </button>
+          <div className="books-header-actions">
+            <button type="button" className="btn-primary books-add-btn" onClick={openCreate}>
+              <IconPlus size={16} /> {t('admin.books.addBook')}
+            </button>
+            <button type="button" className="btn-secondary books-export-btn" onClick={() => exportBooksCSV(filtered, t)} disabled={filtered.length === 0}>
+              <IconExport size={16} /> {t('admin.books.export')}
+            </button>
+          </div>
         </div>
-        <div className="page-header-title">{t('admin.books.title')} 📚</div>
-        <div className="page-header-sub">{t('admin.books.totalBooks', { count: livres.length })}</div>
 
         {flash && (
-        <div className={`auth-alert auth-alert-${flash.type === 'success' ? 'success' : 'error'}`}
-          style={{ marginBottom: 16 }}>
-          {flash.type === 'success' ? '✅' : '⚠️'} {flash.text}
-        </div>
-      )}
+          <div className={`auth-alert auth-alert-${flash.type === 'success' ? 'success' : 'error'} books-alert`}>
+            {flash.text}
+          </div>
+        )}
 
-      <div className="panel" style={{ marginBottom: 0 }}>
-        <div style={{
-          padding: '16px 20px', display: 'flex', gap: 12, alignItems: 'center',
-          borderBottom: '1px solid var(--glass-border)', flexWrap: 'wrap',
-        }}>
-          <input
-            className="form-input"
-            placeholder={t('admin.books.searchPlaceholder')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ flex: '2 1 240px', minWidth: 220, marginBottom: 0 }}
-          />
-          <select
-            className="form-input"
-            value={filterCat}
-            onChange={(e) => setFilterCat(e.target.value)}
-            style={{ flex: '1 1 180px', minWidth: 160, marginBottom: 0 }}
-          >
-            <option value="">{t('admin.books.allCategories')}</option>
-            {categories.map((c) => (
-              <option key={c.id_categorie} value={c.id_categorie}>{c.libelle}</option>
-            ))}
-          </select>
-          <select
-            className="form-input"
-            value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value)}
-            style={{ flex: '1 1 160px', minWidth: 150, marginBottom: 0 }}
-          >
-            <option value="">{t('admin.books.allStocks')}</option>
-            <option value="available">{t('admin.books.inStock')}</option>
-            <option value="low">{t('admin.books.lowStock')}</option>
-            <option value="empty">{t('admin.books.outOfStock')}</option>
-          </select>
-          <button className="action-btn action-btn-success" onClick={openCreate}
-            style={{ padding: '10px 18px', fontSize: '0.85rem' }}>
-            ➕ {t('admin.books.addBook')}
-          </button>
-          {hasActiveFilters && (
-            <button type="button" className="btn-secondary livres-reset-btn" onClick={resetFilters}>
-              {t('admin.books.reset')}
+        <div className="books-stats">
+          <div className="books-stat-card books-stat-blue">
+            <span className="books-stat-icon"><IconBook size={22} /></span>
+            <div className="books-stat-body">
+              <span className="books-stat-label">{t('admin.books.statTotal')}</span>
+              <strong>{totalBooks}</strong>
+              <em>{t('admin.books.statTotalDesc')}</em>
+            </div>
+          </div>
+          <div className="books-stat-card books-stat-green">
+            <span className="books-stat-icon"><IconCheckCircle size={22} /></span>
+            <div className="books-stat-body">
+              <span className="books-stat-label">{t('admin.books.statAvailable')}</span>
+              <strong>{availableBooks}</strong>
+              <em>{t('admin.books.statAvailableDesc')}</em>
+            </div>
+          </div>
+          <div className="books-stat-card books-stat-red">
+            <span className="books-stat-icon"><IconAlertCircle size={22} /></span>
+            <div className="books-stat-body">
+              <span className="books-stat-label">{t('admin.books.statOutOfStock')}</span>
+              <strong>{outOfStockBooks}</strong>
+              <em>{t('admin.books.statOutOfStockDesc')}</em>
+            </div>
+          </div>
+          <div className="books-stat-card books-stat-gold">
+            <span className="books-stat-icon"><IconGrid size={22} /></span>
+            <div className="books-stat-body">
+              <span className="books-stat-label">{t('admin.books.statCategories')}</span>
+              <strong>{categoriesCount}</strong>
+              <em>{t('admin.books.statCategoriesDesc')}</em>
+            </div>
+          </div>
+        </div>
+
+        <div className="panel books-card">
+          <div className="books-toolbar">
+            <div className="books-search">
+              <IconSearch size={17} className="books-search-icon" />
+              <input
+                className="form-input"
+                placeholder={t('admin.books.searchPlaceholder')}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <select className="form-input form-select" value={filterCat} onChange={(e) => setFilterCat(e.target.value)}>
+              <option value="">{t('admin.books.allCategories')}</option>
+              {categories.map((c) => (
+                <option key={c.id_categorie} value={c.id_categorie}>{c.libelle}</option>
+              ))}
+            </select>
+            <select className="form-input form-select" value={stockFilter} onChange={(e) => setStockFilter(e.target.value)}>
+              <option value="">{t('admin.books.allStockStatuses')}</option>
+              <option value="available">{t('admin.books.inStock')}</option>
+              <option value="low">{t('admin.books.lowStock')}</option>
+              <option value="empty">{t('admin.books.outOfStock')}</option>
+            </select>
+            <select className="form-input form-select" value={shelfFilter} onChange={(e) => setShelfFilter(e.target.value)}>
+              <option value="">{t('admin.books.allShelves')}</option>
+              {shelfOptions.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            <button type="button" className="btn-secondary books-reset-btn" onClick={resetFilters} disabled={!hasActiveFilters}>
+              <IconReset size={15} /> {t('admin.books.resetFilters')}
             </button>
-          )}
-        </div>
+          </div>
 
-        <div className="panel-body" style={{ padding: 0 }}>
-          {loading ? (
-            <div className="loading-spinner"><div className="spinner" /></div>
-          ) : filtered.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-icon">{livres.length === 0 ? '📚' : '🔍'}</div>
-              <div className="empty-state-text">
-                {livres.length === 0
-                  ? t('admin.books.emptyNoBooks')
-                  : t('admin.books.emptyNoSearchResults')}
+          <div className="panel-body" style={{ padding: 0 }}>
+            {loading ? (
+              <div className="loading-spinner"><div className="spinner" /></div>
+            ) : filtered.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon"><IconBook size={34} /></div>
+                <div className="empty-state-text">
+                  {livres.length === 0 ? t('admin.books.emptyNoBooks') : t('admin.books.noBooksFound')}
+                </div>
               </div>
-            </div>
-          ) : (
-            <>
-            <div className="table-wrapper">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>{t('admin.books.tableTitle')}</th>
-                    <th>{t('admin.books.tableAuthor')}</th>
-                    <th>{t('admin.books.tableCategory')}</th>
-                    <th>{t('admin.books.tableIsbn')}</th>
-                    <th>{t('admin.books.tableStock')}</th>
-                    <th>{t('admin.books.tableShelf')}</th>
-                    <th>{t('admin.books.tablePublication')}</th>
-                    <th style={{ textAlign: 'right' }}>{t('admin.books.tableActions')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedLivres.map((l) => {
-                    const stock = getLivreStockInfo(l);
-                    const stockClass = stock.tone === 'empty' ? 'badge-danger'
-                      : stock.tone === 'low' ? 'badge-warning' : 'badge-success';
-                    return (
-                      <tr key={l.id_ressource}>
-                        <td style={{ color: 'var(--text-primary)', fontWeight: 600, maxWidth: 240 }}>
-                          {l.titre}
-                        </td>
-                        <td style={{ color: 'var(--text-secondary)' }}>
-                          {l.auteur || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>-</span>}
-                        </td>
-                        <td>
-                          {l.categorie ? (
-                            <span className="badge badge-gold">{l.categorie}</span>
-                          ) : (
-                            <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>-</span>
-                          )}
-                        </td>
-                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                          {l.isbn || '-'}
-                        </td>
-                        <td>
-                          <span className={`badge ${stockClass}`} title={t(`admin.books.stockLabels.${stock.labelKey}`)}>{stock.display}</span>
-                        </td>
-                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                          {l.emplacement_rayon || <span style={{ color: 'var(--text-muted)' }}>-</span>}
-                        </td>
-                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}>
-                          {formatLivreDate(l.date_publication)}
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: 8 }}>
-                            <button className="action-btn action-btn-success"
-                              onClick={() => openEdit(l)}>
-                              {t('admin.books.edit')}
-                            </button>
-                            <button className="action-btn action-btn-danger"
-                              onClick={() => setConfirmDelete(l)}>
-                              {t('admin.books.delete')}
-                            </button>
-                          </div>
-                        </td>
+            ) : (
+              <>
+                <div className="table-wrapper">
+                  <table className="data-table books-table">
+                    <thead>
+                      <tr>
+                        <th>{t('admin.books.tableBook')}</th>
+                        <th>{t('admin.books.tableCategory')}</th>
+                        <th>{t('admin.books.tableIsbn')}</th>
+                        <th>{t('admin.books.tableStock')}</th>
+                        <th>{t('admin.books.tableShelf')}</th>
+                        <th>{t('admin.books.tablePublication')}</th>
+                        <th style={{ textAlign: 'right' }}>{t('admin.books.tableActions')}</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <div className="livres-pagination">
-              <span>{t('admin.books.paginationSummary', { start: rangeStart, end: rangeEnd, total: filtered.length })}</span>
-              <div>
-                <button type="button" className="btn-secondary" disabled={currentPage <= 1} onClick={() => setPage(prev => Math.max(1, prev - 1))}>{t('admin.books.previous')}</button>
-                <span className="livres-page-pill">{currentPage} / {totalPages}</span>
-                <button type="button" className="btn-secondary" disabled={currentPage >= totalPages} onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}>{t('admin.books.next')}</button>
-              </div>
-            </div>
-            </>
-          )}
+                    </thead>
+                    <tbody>
+                      {paginatedLivres.map((l) => {
+                        const stock = getLivreStockInfo(l);
+                        const stockLabel = stock.tone === 'empty'
+                          ? t('admin.books.outOfStock')
+                          : t(`admin.books.stockLabels.${stock.labelKey}`);
+                        return (
+                          <tr key={l.id_ressource}>
+                            <td>
+                              <div className="books-book-cell">
+                                <BookThumb livre={l} />
+                                <div className="books-book-meta">
+                                  <strong>{l.titre}</strong>
+                                  <span>{l.auteur || '—'}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              {l.categorie ? (
+                                <span className={`books-cat-badge books-cat-${categoryBadgeTone(l.categorie)}`}>{l.categorie}</span>
+                              ) : (
+                                <span className="books-muted">—</span>
+                              )}
+                            </td>
+                            <td className="books-isbn">{l.isbn || '—'}</td>
+                            <td>
+                              <span className={`books-stock books-stock-${stock.tone}`}>
+                                {stockLabel} <em>{stock.available}/{stock.total}</em>
+                              </span>
+                            </td>
+                            <td>
+                              {l.emplacement_rayon
+                                ? <span className="books-shelf">{l.emplacement_rayon}</span>
+                                : <span className="books-muted">—</span>}
+                            </td>
+                            <td className="books-date">{formatLivreDate(l.date_publication)}</td>
+                            <td>
+                              <div className="books-actions">
+                                <button type="button" className="books-act books-act-info" onClick={() => openDetails(l)}>
+                                  <IconEye size={15} /> {t('admin.books.details')}
+                                </button>
+                                <button type="button" className="books-act books-act-gold" onClick={() => openEdit(l)}>
+                                  <IconEdit size={15} /> {t('admin.books.edit')}
+                                </button>
+                                <button type="button" className="books-act books-act-danger" onClick={() => setConfirmDelete(l)}>
+                                  <IconTrash size={15} /> {t('admin.books.delete')}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="books-footer">
+                  <span>{t('admin.books.paginationSummary', { start: rangeStart, end: rangeEnd, total: filtered.length })}</span>
+                  <div className="books-pager">
+                    <button type="button" className="books-pager-nav" disabled={currentPage <= 1} onClick={() => setPage(1)} aria-label="First page"><IconChevronsLeft size={15} /></button>
+                    <button type="button" className="books-pager-nav" disabled={currentPage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))} aria-label={t('admin.books.previous')}><IconChevronLeft size={15} /></button>
+                    {pageList.map((item) => (
+                      typeof item === 'number' ? (
+                        <button
+                          type="button"
+                          key={item}
+                          className={`books-pager-btn ${item === currentPage ? 'is-active' : ''}`}
+                          onClick={() => setPage(item)}
+                          aria-current={item === currentPage ? 'page' : undefined}
+                        >
+                          {item}
+                        </button>
+                      ) : (
+                        <span key={item} className="books-pager-ellipsis">…</span>
+                      )
+                    ))}
+                    <button type="button" className="books-pager-nav" disabled={currentPage >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} aria-label={t('admin.books.next')}><IconChevronRight size={15} /></button>
+                    <button type="button" className="books-pager-nav" disabled={currentPage >= totalPages} onClick={() => setPage(totalPages)} aria-label="Last page"><IconChevronsRight size={15} /></button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      </div>
+      {detailsBook && (
+        <BookDetailsModal
+          book={detailsBook}
+          t={t}
+          onClose={() => setDetailsBook(null)}
+          onEdit={(b) => { setDetailsBook(null); openEdit(b); }}
+        />
+      )}
 
       {showModal && (
         <LivreFormModal
@@ -3557,8 +3699,11 @@ export default function AdminDashboard() {
         activeItem={activeItem}
         onItemClick={setActiveItem}
         badges={{ retards: retardCount }}
+        logoMark={<AdminBrandMark />}
+        useInitialsAvatar
+        logoutIcon={<IconLogout />}
       />
-      <div className="admin-main">
+      <div className={`admin-main ${activeItem === 'emprunts' ? 'admin-main-loans' : ''}`}>
         <Navbar
           title={t('admin.navTitle')}
           notifications={notifications}
@@ -3568,7 +3713,7 @@ export default function AdminDashboard() {
           onMarkAllRead={handleMarkAllNotificationsRead}
           onNotificationClick={handleNotificationClick}
         />
-        <div className={`admin-content ${activeItem === 'dashboard' ? 'admin-content-dashboard' : ''} ${activeItem === 'categories' ? 'admin-content-categories' : ''} ${activeItem === 'livres' ? 'admin-content-livres' : ''} ${activeItem === 'documents' ? 'admin-content-documents' : ''} ${activeItem === 'reservations' ? 'admin-content-reservations' : ''}`}>
+        <div className={`admin-content ${activeItem === 'dashboard' ? 'admin-content-dashboard' : ''} ${activeItem === 'categories' ? 'admin-content-categories' : ''} ${activeItem === 'livres' ? 'admin-content-livres' : ''} ${activeItem === 'documents' ? 'admin-content-documents' : ''} ${activeItem === 'emprunts' ? 'admin-content-emprunts' : ''} ${activeItem === 'reservations' ? 'admin-content-reservations' : ''}`}>
           {activeItem === 'dashboard' && (
             <DashboardView stats={stats} users={users} loadingStats={loadingStats} />
           )}

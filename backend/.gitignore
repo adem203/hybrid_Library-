@@ -25,3 +25,4 @@ uploads/*
 .DS_Store
 Thumbs.db
 .vscode/
+/.claude_old

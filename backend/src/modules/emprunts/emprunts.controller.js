@@ -112,77 +112,142 @@ const creerDemande = async (req, res) => {
 // ─────────────────────────────────────────────
 const validerEmprunt = async (req, res) => {
   const { id } = req.params;
-  const { notes_biblio, duree_jours } = req.body;
+  const { notes_biblio, duree_jours } = req.body || {};
+  const idEmprunt = Number.parseInt(id, 10);
+
+  if (!Number.isInteger(idEmprunt) || idEmprunt <= 0) {
+    return res.status(400).json({
+      success: false,
+      code: 'INVALID_LOAN_ID',
+      message: 'Identifiant d\'emprunt invalide.',
+    });
+  }
+
+  let dureeJours = null;
+  if (duree_jours !== undefined && duree_jours !== null && duree_jours !== '') {
+    dureeJours = Number.parseInt(duree_jours, 10);
+    if (!Number.isInteger(dureeJours) || dureeJours < 1 || dureeJours > 60) {
+      return res.status(400).json({
+        success: false,
+        code: 'INVALID_LOAN_DURATION',
+        message: 'La durée doit être comprise entre 1 et 60 jours.',
+      });
+    }
+  }
 
   const client = await getClient();
   try {
     await client.query('BEGIN');
 
-    // Vérifier l'emprunt
+    // Lock the loan first so two admins cannot approve the same request.
     const empruntResult = await client.query(
       `SELECT e.*, r.titre AS titre_livre
        FROM emprunts e
-       INNER JOIN ressources r ON r.id_ressource = e.id_livre
-       WHERE e.id_emprunt = $1 AND e.statut = 'EN_ATTENTE'`,
-      [id]
+       LEFT JOIN ressources r ON r.id_ressource = e.id_livre
+       WHERE e.id_emprunt = $1
+       FOR UPDATE OF e`,
+      [idEmprunt]
     );
 
     if (empruntResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({
         success: false,
-        message: 'Demande introuvable ou déjà traitée.',
+        code: 'LOAN_NOT_FOUND',
+        message: 'Emprunt introuvable.',
       });
     }
 
     const emprunt = empruntResult.rows[0];
 
-    // Vérifier le stock encore une fois
+    if (emprunt.statut !== 'EN_ATTENTE') {
+      await client.query('ROLLBACK');
+
+      if (emprunt.statut === 'RETOURNE') {
+        return res.status(400).json({
+          success: false,
+          code: 'LOAN_ALREADY_RETURNED',
+          message: 'Cet emprunt est déjà retourné.',
+        });
+      }
+
+      if (['EN_COURS', 'EN_RETARD'].includes(emprunt.statut)) {
+        return res.status(400).json({
+          success: false,
+          code: 'LOAN_ALREADY_APPROVED',
+          message: 'Cet emprunt est déjà approuvé.',
+        });
+      }
+
+      return res.status(400).json({
+        success: false,
+        code: 'LOAN_NOT_PENDING',
+        message: 'Seul un emprunt en attente peut être approuvé.',
+      });
+    }
+
+    // Student requests do not decrement stock. Approval is the single point
+    // where stock is locked, checked, and decremented.
     const stockResult = await client.query(
       'SELECT stock_disponible FROM livres_physiques WHERE id_ressource = $1 FOR UPDATE',
       [emprunt.id_livre]
     );
 
-    if (stockResult.rows[0].stock_disponible <= 0) {
+    if (stockResult.rows.length === 0 || stockResult.rows[0].stock_disponible <= 0) {
       await client.query('ROLLBACK');
-      return res.status(409).json({
+      return res.status(400).json({
         success: false,
-        message: 'Stock épuisé. Impossible de valider.',
+        code: 'BOOK_UNAVAILABLE',
+        message: 'Le livre est indisponible.',
       });
     }
 
-    // Calculer nouvelle date de retour si fournie
     let dateRetourPrevue = emprunt.date_retour_prevue;
-    if (duree_jours) {
+    if (dureeJours !== null) {
       dateRetourPrevue = new Date();
-      dateRetourPrevue.setDate(dateRetourPrevue.getDate() + parseInt(duree_jours));
+      dateRetourPrevue.setDate(dateRetourPrevue.getDate() + dureeJours);
     }
 
-    // Mettre à jour l'emprunt → EN_COURS
-    await client.query(
+    const updateResult = await client.query(
       `UPDATE emprunts SET
          statut = 'EN_COURS',
          date_emprunt = NOW(),
          date_retour_prevue = $1,
          notes_biblio = $2,
          date_modification = NOW()
-       WHERE id_emprunt = $3`,
-      [dateRetourPrevue, notes_biblio || null, id]
+       WHERE id_emprunt = $3 AND statut = 'EN_ATTENTE'
+       RETURNING id_emprunt, id_user, id_livre, date_emprunt,
+                 date_retour_prevue, date_retour_effectif, statut,
+                 penalite_montant, notes_biblio, date_creation, date_modification`,
+      [dateRetourPrevue, notes_biblio || null, idEmprunt]
     );
 
-    // Décrémenter le stock
-    await client.query(
+    const stockUpdateResult = await client.query(
       `UPDATE livres_physiques
        SET stock_disponible = stock_disponible - 1
-       WHERE id_ressource = $1`,
+       WHERE id_ressource = $1 AND stock_disponible > 0
+       RETURNING stock_disponible`,
       [emprunt.id_livre]
     );
+
+    if (updateResult.rows.length === 0 || stockUpdateResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({
+        success: false,
+        code: 'BOOK_UNAVAILABLE',
+        message: 'Le livre est indisponible.',
+      });
+    }
 
     await client.query('COMMIT');
 
     return res.status(200).json({
       success: true,
-      message: `Emprunt de "${emprunt.titre_livre}" validé. Retour prévu le ${dateRetourPrevue.toLocaleDateString('fr-TN')}.`,
+      message: `Emprunt de "${emprunt.titre_livre || 'livre'}" validé.`,
+      data: {
+        ...updateResult.rows[0],
+        stock_disponible: stockUpdateResult.rows[0].stock_disponible,
+      },
     });
 
   } catch (error) {

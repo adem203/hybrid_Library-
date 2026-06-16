@@ -206,7 +206,7 @@ export default function BibliothecaireDashboard() {
 
       <div className="admin-main">
         <Navbar
-          title="Bibliothécaire"
+          title="Admin"
           onSearch={activeItem === 'livres' ? setSearch : undefined}
           hasNotif={retardCount > 0 || pendingCount > 0}
         />

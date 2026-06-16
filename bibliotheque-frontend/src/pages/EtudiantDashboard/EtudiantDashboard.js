@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import Navbar from '../../components/Navbar/Navbar';
-import { authAPI, livresAPI, documentsAPI, empruntsAPI, categoriesAPI, supportAPI, notificationsAPI } from '../../api/api';
+import { authAPI, livresAPI, documentsAPI, empruntsAPI, categoriesAPI, supportAPI, notificationsAPI, resolveAssetUrl } from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import './EtudiantDashboard.css';
 import '../AdminDashboard/AdminDashboard.css';
@@ -291,7 +291,7 @@ const formatProfileDate = (value, withTime = false, language = 'fr') => {
   if (Number.isNaN(d.getTime())) return PROFILE_UNAVAILABLE;
   return d.toLocaleDateString(language, withTime
     ? { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }
-    : undefined);
+    : { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
 const getStudentInitials = (user) => {
@@ -714,7 +714,7 @@ function BookDetailsModal({ book, loading, onClose, onEmprunt, onReserver }) {
             <div className="book-modal-header">
               <div className="book-modal-cover">
                 {book.image_couverture
-                  ? <img src={`http://localhost:5000${book.image_couverture}`} alt={book.titre} />
+                  ? <img src={resolveAssetUrl(book.image_couverture)} alt={book.titre} />
                   : <span style={{ fontSize: '3.5rem' }}>📖</span>
                 }
               </div>
@@ -1495,58 +1495,24 @@ export default function EtudiantDashboard() {
     'id_user',
   ]);
   const profileAcademic = getAcademicInfo(profileUser);
-  const profileLastLogin = getAvailableProfileValue(profileUser, [
-    'derniere_connexion',
-    'date_derniere_connexion',
-    'last_login',
-    'lastLogin',
-    'last_seen_at',
-  ]);
-  const profileActiveSessions = getAvailableProfileValue(profileUser, [
-    'sessions_actives',
-    'active_sessions',
-    'activeSessions',
-    'nb_sessions_actives',
-  ]);
-  const profileOnlineRaw = getAvailableProfileValue(profileUser, [
-    'en_ligne',
-    'is_online',
-    'online',
-    'statut_connexion',
-  ]);
-  const profileOnlineLabel = typeof profileOnlineRaw === 'boolean'
-    ? (profileOnlineRaw ? t('student.profile.online') : t('student.profile.offline'))
-    : (profileOnlineRaw || PROFILE_UNAVAILABLE);
-  const normalizedOnlineLabel = normalizeText(profileOnlineLabel);
-  const profileOnlineTone = profileOnlineRaw === true
-    || normalizedOnlineLabel === 'online'
-    || normalizedOnlineLabel === 'en ligne'
-    ? 'online'
-    : '';
+  const profileCreatedAt = formatProfileDate(profileUser?.date_creation, false, i18n.language);
+  const profileMemberSince = profileUser?.date_creation ? profileCreatedAt : null;
   const profileInfoRows = [
     { icon: 'person', label: t('student.profile.rows.fullName'), value: profileFullName || PROFILE_UNAVAILABLE },
     { icon: 'mail', label: t('student.profile.rows.email'), value: profileUser?.email || PROFILE_UNAVAILABLE },
     { icon: 'id', label: t('student.profile.rows.studentId'), value: profileMatricule || PROFILE_UNAVAILABLE, mono: true },
     { icon: 'role', label: t('student.profile.rows.role'), value: getRoleLabel(profileUser?.role, t) },
-    {
-      icon: 'calendar',
-      label: t('student.profile.rows.createdAt'),
-      value: formatProfileDate(profileUser?.date_creation, false, i18n.language),
-      mono: true,
-    },
-    { icon: 'school', label: t('student.profile.rows.fieldLevelClass'), value: profileAcademic || PROFILE_UNAVAILABLE },
+    { icon: 'calendar', label: t('student.profile.rows.createdAt'), value: profileCreatedAt },
+    // Field / Level / Class only appears when the student actually has academic data.
+    ...(profileAcademic
+      ? [{ icon: 'school', label: t('student.profile.rows.fieldLevelClass'), value: profileAcademic }]
+      : []),
   ];
   const profileSecurityRows = [
-    { icon: 'password', label: t('student.profile.rows.password'), value: '••••••••••' },
-    { icon: 'clock', label: t('student.profile.rows.lastLogin'), value: profileLastLogin ? formatProfileDate(profileLastLogin, true, i18n.language) : PROFILE_UNAVAILABLE },
-    {
-      icon: 'sessions',
-      label: t('student.profile.rows.sessions'),
-      value: profileActiveSessions !== null && profileActiveSessions !== undefined
-        ? String(profileActiveSessions)
-        : PROFILE_UNAVAILABLE,
-    },
-    { icon: 'status', label: t('student.profile.rows.onlineStatus'), value: profileOnlineLabel, tone: profileOnlineTone },
+    { icon: 'password', badgeIcon: 'lock', label: t('student.profile.rows.password'), value: t('student.profile.security2.protected'), tone: 'success' },
+    { icon: 'status', badgeIcon: 'check', label: t('student.profile.rows.accountStatus'), value: t('student.profile.security2.active'), tone: 'success' },
+    { icon: 'auth', badgeIcon: 'shield', label: t('student.profile.rows.authentication'), value: t('student.profile.security2.secureLogin'), tone: 'success' },
+    { icon: 'manage', badgeIcon: 'person', label: t('student.profile.rows.accountManagement'), value: t('student.profile.security2.managedByAdmin'), tone: 'info' },
   ];
   const isSuccessMessage = msg.startsWith('✅') || msg.startsWith('🔖');
   const isErrorMessage = msg.startsWith('❌');
@@ -1827,7 +1793,7 @@ export default function EtudiantDashboard() {
                             >
                               <div className="student-resource-cover">
                                 {resource.resourceKind === 'book' && resource.image_couverture ? (
-                                  <img src={`${API_HOST}${resource.image_couverture}`} alt={resource.titre} />
+                                  <img src={resolveAssetUrl(resource.image_couverture)} alt={resource.titre} />
                                 ) : (
                                   <StudentHomeIcon name={resource.resourceKind === 'book' ? 'loan' : 'document'} />
                                 )}
@@ -2283,7 +2249,7 @@ export default function EtudiantDashboard() {
                                 <div className="cat-card-cover">
                                   {l.image_couverture ? (
                                     <img
-                                      src={`${API_HOST}${l.image_couverture}`}
+                                      src={resolveAssetUrl(l.image_couverture)}
                                       alt={l.titre}
                                       className="cat-card-cover-img"
                                       onError={e => { e.currentTarget.style.display = 'none'; }}
@@ -2896,7 +2862,7 @@ export default function EtudiantDashboard() {
                           <div className="me-row-cover">
                             {loan.image_couverture ? (
                               <img
-                                src={`${API_HOST}${loan.image_couverture}`}
+                                src={resolveAssetUrl(loan.image_couverture)}
                                 alt={loan.titre}
                                 onError={(ev) => { ev.currentTarget.style.display = 'none'; }}
                               />
@@ -3177,7 +3143,7 @@ export default function EtudiantDashboard() {
                               <div className="mr-row-cover">
                                 {r.image_couverture ? (
                                   <img
-                                    src={`${API_HOST}${r.image_couverture}`}
+                                    src={resolveAssetUrl(r.image_couverture)}
                                     alt={r.titre}
                                     onError={(ev) => { ev.currentTarget.style.display = 'none'; }}
                                   />
@@ -3337,7 +3303,7 @@ export default function EtudiantDashboard() {
                                 >
                                   {r.image_couverture ? (
                                     <img
-                                      src={`${API_HOST}${r.image_couverture}`}
+                                      src={resolveAssetUrl(r.image_couverture)}
                                       alt={r.titre}
                                       onError={(ev) => { ev.currentTarget.style.display = 'none'; }}
                                     />
@@ -3585,7 +3551,7 @@ export default function EtudiantDashboard() {
                               <div className="hl-row-cover">
                                 {l.image_couverture ? (
                                   <img
-                                    src={`${API_HOST}${l.image_couverture}`}
+                                    src={resolveAssetUrl(l.image_couverture)}
                                     alt={l.titre}
                                     onError={(ev) => { ev.currentTarget.style.display = 'none'; }}
                                   />
@@ -3849,36 +3815,32 @@ export default function EtudiantDashboard() {
                       <div className="student-profile-identity">
                         <h2>{profileFullName || PROFILE_UNAVAILABLE}</h2>
                         <p className="student-profile-email">
-                          <span aria-hidden="true">✉</span>
+                          <span className="profile-inline-icon icon-mail" aria-hidden="true" />
                           {profileUser?.email || PROFILE_UNAVAILABLE}
                         </p>
-                        <span className="student-profile-role-badge">
-                          <span aria-hidden="true">⚑</span>
-                          {getRoleLabel(profileUser?.role, t)}
-                        </span>
-                        <p className="student-profile-member">
-                          {t('student.profile.member')} <strong>Educated</strong>.
-                        </p>
+                        <div className="student-profile-badges">
+                          <span className="student-profile-role-badge">
+                            <span className="profile-inline-icon icon-person" aria-hidden="true" />
+                            {getRoleLabel(profileUser?.role, t)}
+                          </span>
+                          {profileMatricule && (
+                            <span className="student-profile-id-badge">
+                              {t('student.profile.idBadge', { id: profileMatricule })}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="student-profile-hero-illustration" aria-hidden="true">
-                      <span className="profile-hero-arc arc-one" />
-                      <span className="profile-hero-arc arc-two" />
-                      <div className="profile-library-building">
-                        <span className="profile-building-roof" />
-                        <span className="profile-building-top" />
-                        <span className="profile-building-emblem">□</span>
-                        <span className="profile-building-columns">
-                          <i />
-                          <i />
-                          <i />
-                          <i />
-                          <i />
+                    {profileMemberSince && (
+                      <div className="student-profile-member-since">
+                        <span className="profile-inline-icon icon-calendar" aria-hidden="true" />
+                        <span className="student-profile-member-since-copy">
+                          <span>{t('student.profile.memberSince')}</span>
+                          <strong>{profileMemberSince}</strong>
                         </span>
-                        <span className="profile-building-base" />
                       </div>
-                    </div>
+                    )}
                   </section>
 
                   <div className="student-profile-card-grid">
@@ -3891,11 +3853,9 @@ export default function EtudiantDashboard() {
                         {profileInfoRows.map(row => (
                           <div key={row.label} className="student-profile-row">
                             <span className={`profile-row-icon icon-${row.icon}`} aria-hidden="true" />
-                            <span className="student-profile-row-copy">
-                              <span>{row.label}</span>
-                              <strong className={row.mono ? 'is-mono' : ''}>
-                                {row.value}
-                              </strong>
+                            <span className="student-profile-row-label">{row.label}</span>
+                            <span className={`student-profile-row-value ${row.mono ? 'is-mono' : ''}`}>
+                              {row.value}
                             </span>
                           </div>
                         ))}
@@ -3911,11 +3871,10 @@ export default function EtudiantDashboard() {
                         {profileSecurityRows.map(row => (
                           <div key={row.label} className="student-profile-row">
                             <span className={`profile-row-icon icon-${row.icon}`} aria-hidden="true" />
-                            <span className="student-profile-row-copy">
-                              <span>{row.label}</span>
-                              <strong className={row.tone ? `tone-${row.tone}` : ''}>
-                                {row.value}
-                              </strong>
+                            <span className="student-profile-row-label">{row.label}</span>
+                            <span className={`student-profile-badge tone-${row.tone}`}>
+                              <span className={`profile-inline-icon icon-${row.badgeIcon}`} aria-hidden="true" />
+                              {row.value}
                             </span>
                           </div>
                         ))}
@@ -3926,7 +3885,7 @@ export default function EtudiantDashboard() {
                         className="student-profile-password-btn"
                         onClick={openPasswordModal}
                       >
-                        <span aria-hidden="true">▣</span>
+                        <span className="profile-inline-icon icon-lock" aria-hidden="true" />
                         {t('student.profile.changePassword')}
                       </button>
                     </section>

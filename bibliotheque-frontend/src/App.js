@@ -60,7 +60,7 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
-      {/* Bibliothécaire */}
+      {/* Admin (legacy /bibliothecaire route, backend role BIBLIOTHECAIRE) */}
       <Route path="/bibliothecaire/*" element={
         <ProtectedRoute allowedRoles={['BIBLIOTHECAIRE', 'ADMIN']}>
           <BibliothecaireDashboard />

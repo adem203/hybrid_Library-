@@ -36,12 +36,23 @@ app.use(helmet({
 }));
 
 // CORS - Autoriser le frontend
+// En production, définir FRONTEND_URL (ex: https://mon-app.vercel.app).
+// Plusieurs origines possibles via une liste séparée par des virgules.
+const allowedOrigins = [
+  'http://localhost:3000',   // React
+  'http://localhost:4200',   // Angular
+  'http://localhost:8080',
+  ...(process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',').map((o) => o.trim()).filter(Boolean)
+    : []),
+];
+
 app.use(cors({
-  origin: [
-    'http://localhost:3000',   // React
-    'http://localhost:4200',   // Angular
-    'http://localhost:8080',
-  ],
+  origin: (origin, callback) => {
+    // Autoriser les requêtes sans origine (curl, health checks, apps mobiles)
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`Origine non autorisée par CORS : ${origin}`));
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

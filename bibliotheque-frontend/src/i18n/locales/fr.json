@@ -43,7 +43,7 @@
       "resourcesTitle": "Ressources",
       "resourcesDesc": "Livres et documents physiques & numériques",
       "accessTypesTitle": "Types d'accès",
-      "accessTypesDesc": "Étudiant, Enseignant, Admin, Invité",
+      "accessTypesDesc": "Étudiant, Enseignant, Admin",
       "uptimeTitle": "Disponibilité",
       "uptimeDesc": "Une plateforme fiable, sur laquelle compter",
       "accessTitle": "Accès",
@@ -139,11 +139,27 @@
       "roles": {
         "etudiant": { "name": "Étudiant", "desc": "Cherchez, réservez et lisez des ressources" },
         "enseignant": { "name": "Enseignant", "desc": "Uploadez et gérez vos cours numériques" },
-        "bibliothecaire": { "name": "Bibliothécaire", "desc": "Gérez stocks, emprunts et utilisateurs" }
+        "admin": { "name": "Administrateur", "desc": "Gérez stocks, emprunts et utilisateurs" }
       },
       "tabs": {
         "login": "Connexion",
         "signup": "Inscription"
+      },
+      "login": {
+        "title": "Bon retour 👋",
+        "subtitle": "Connectez-vous à votre espace Educated",
+        "email": "Email",
+        "emailPlaceholder": "votre@email.tn",
+        "password": "Mot de passe",
+        "forgotPassword": "Mot de passe oublié ?",
+        "submit": "Se connecter",
+        "submitLoading": "Connexion en cours...",
+        "resetSuccess": "Mot de passe réinitialisé avec succès. Vous pouvez vous connecter avec le nouveau mot de passe.",
+        "errors": {
+          "required": "Veuillez remplir tous les champs.",
+          "serverUnavailable": "Serveur API indisponible. Vérifiez que le backend est démarré.",
+          "invalidCredentials": "Email ou mot de passe incorrect."
+        }
       },
       "signup": {
         "title": "Créer un compte invité",
@@ -240,6 +256,12 @@
   "sidebar": {
     "logout": "Se déconnecter",
     "logoSubtitle": "Bibliothèque Hybride",
+    "roles": {
+      "ETUDIANT": "Étudiant",
+      "ENSEIGNANT": "Enseignant",
+      "BIBLIOTHECAIRE": "Bibliothécaire",
+      "ADMIN": "Admin"
+    },
     "sections": {
       "main": "Principal",
       "management": "Gestion",
@@ -447,7 +469,7 @@
       "roles": {
         "etudiant": "Étudiant",
         "enseignant": "Enseignant",
-        "bibliothecaire": "Bibliothécaire",
+        "bibliothecaire": "Administrateur",
         "admin": "Administrateur"
       },
       "supportStatus": {
@@ -659,7 +681,11 @@
         "availableCopies": "Disponibles",
         "notAvailableValue": "Non disponible",
         "viewDetails": "Voir détails",
-        "authorNotSet": "Auteur non renseigné"
+        "authorNotSet": "Auteur non renseigné",
+        "borrow": "Emprunter",
+        "borrowSuccess": "Demande d'emprunt envoyée.",
+        "reserveSuccess": "Réservation créée.",
+        "actionError": "Une erreur est survenue. Veuillez réessayer."
       },
       "stats": {
         "published": "Documents publiés",
@@ -839,7 +865,7 @@
       "teacher": "Enseignant",
       "admin": "Administrateur",
       "adminShort": "Admin",
-      "librarian": "Bibliothécaire"
+      "librarian": "Administrateur"
     },
     "statuses": {
       "all": "Tous les statuts",
@@ -974,6 +1000,22 @@
     },
     "books": {
       "title": "Livres",
+      "managementTitle": "Gestion des livres",
+      "subtitle": "Gérez les livres physiques, le stock, les rayons, les catégories et la disponibilité",
+      "export": "Exporter",
+      "statTotal": "Total des livres",
+      "statTotalDesc": "Tous les livres de la bibliothèque",
+      "statAvailable": "Livres disponibles",
+      "statAvailableDesc": "Livres actuellement disponibles",
+      "statOutOfStock": "En rupture",
+      "statOutOfStockDesc": "Livres indisponibles",
+      "statCategories": "Catégories",
+      "statCategoriesDesc": "Nombre total de catégories",
+      "allStockStatuses": "Tous les statuts de stock",
+      "allShelves": "Tous les rayons",
+      "resetFilters": "Réinitialiser les filtres",
+      "tableBook": "Livre",
+      "noBooksFound": "Aucun livre trouvé",
       "addBook": "Ajouter un livre",
       "searchPlaceholder": "Rechercher par titre, auteur ou ISBN",
       "allCategories": "Toutes les catégories",
@@ -1173,6 +1215,29 @@
     "loans": {
       "title": "Emprunts",
       "intro": "Gérez les prêts, les retours, les retards et le statut des emprunts",
+      "overdueReport": "Rapport des retards",
+      "activeLoansDesc": "Actuellement empruntés",
+      "returnedLoansDesc": "Retournés avec succès",
+      "overdueLoans": "Prêts en retard",
+      "overdueLoansDesc": "En attente de retour",
+      "availableBooksDesc": "Prêts à emprunter",
+      "searchPlaceholder": "Rechercher prêts, livres, emprunteurs...",
+      "allBorrowers": "Tous les emprunteurs",
+      "resetFilters": "Réinitialiser les filtres",
+      "tableRegNo": "N° d'inscription",
+      "tableBorrowedOn": "Emprunté le",
+      "tableDueDate": "Échéance",
+      "tableReturnedOn": "Retourné le",
+      "tableOverdue": "Retard",
+      "approve": "Approuver",
+      "approving": "Approbation...",
+      "staff": "Personnel",
+      "loanApproved": "Prêt approuvé avec succès",
+      "cannotApprove": "Impossible d'approuver ce prêt",
+      "alreadyApproved": "Le prêt est déjà approuvé",
+      "alreadyReturned": "Le prêt est déjà retourné",
+      "bookUnavailable": "Le livre est indisponible",
+      "showingSummary": "Affichage de {{start}} à {{end}} sur {{total}} prêts",
       "newLoan": "Nouvel emprunt",
       "loanCreated": "Emprunt créé.",
       "creating": "Création…",
@@ -1214,7 +1279,14 @@
       "returnAction": "Retourner",
       "extendAction": "Prolonger",
       "confirmReturn": "Marquer ce livre comme retourné ?",
+      "confirmReturnTitle": "Confirmer le retour du livre",
+      "confirmReturnMessage": "Voulez-vous vraiment marquer ce livre comme retourné ?",
+      "confirmReturnBtn": "Confirmer le retour",
       "extendPrompt": "Prolonger de combien de jours ?",
+      "extendTitle": "Prolonger l'emprunt",
+      "extendMessage": "Choisissez le nombre de jours supplémentaires pour cet emprunt.",
+      "extendDaysLabel": "Nombre de jours",
+      "confirmExtendBtn": "Confirmer la prolongation",
       "loanExtended": "Emprunt prolongé de {{count}} jour(s).",
       "delayNo": "Non",
       "delayYes": "Oui",
@@ -1495,7 +1567,7 @@
       "labels": {
         "admin": "Admin",
         "administrator": "Administrateur",
-        "librarian": "Bibliothécaire",
+        "librarian": "Administrateur",
         "teacher": "Enseignant",
         "student": "Étudiant",
         "pending": "En attente",
@@ -1608,7 +1680,7 @@
       "unspecified": "Non renseigné",
       "admin": "Admin",
       "administrator": "Administrateur",
-      "librarian": "Bibliothécaire",
+      "librarian": "Administrateur",
       "teacher": "Enseignant",
       "student": "Étudiant",
       "password": "Mot de passe",
@@ -1632,7 +1704,40 @@
       "passwordMinLength": "Le nouveau mot de passe doit contenir au moins 6 caractères.",
       "passwordMismatch": "La confirmation ne correspond pas au nouveau mot de passe.",
       "passwordChanged": "Mot de passe modifié avec succès.",
-      "passwordChangeError": "Erreur lors du changement de mot de passe."
+      "passwordChangeError": "Erreur lors du changement de mot de passe.",
+      "home": "Accueil",
+      "accountPreferences": "Compte & Préférences",
+      "profileAccount": "Profil / Compte",
+      "accountInformation": "Informations du compte",
+      "passwordSecurity": "Mot de passe & Sécurité",
+      "securityOverview": "Aperçu de la sécurité",
+      "sessionManagement": "Gestion de session",
+      "memberId": "ID membre",
+      "edit": "Modifier",
+      "show": "Afficher",
+      "hide": "Masquer",
+      "updatePassword": "Modifier le mot de passe",
+      "currentPasswordPlaceholder": "Saisir le mot de passe actuel",
+      "newPasswordPlaceholder": "Saisir le nouveau mot de passe",
+      "confirmPasswordPlaceholder": "Confirmer le nouveau mot de passe",
+      "emailNote": "L'email sert à la récupération du compte et aux notifications.",
+      "nameRequired": "Veuillez saisir votre nom.",
+      "invalidEmail": "Veuillez saisir une adresse email valide.",
+      "passwordRequired": "Veuillez remplir tous les champs de mot de passe.",
+      "profileUpdated": "Informations du compte mises à jour avec succès.",
+      "profileUpdateError": "Erreur lors de la mise à jour des informations.",
+      "darkMode": "Mode sombre",
+      "darkModeHint": "Activer le mode sombre pour le tableau de bord",
+      "notificationsHint": "Recevoir les notifications et alertes du système",
+      "languageHint": "Choisissez votre langue préférée",
+      "activeSession": "Session active",
+      "activeSessionHint": "Vous êtes actuellement connecté.",
+      "thisDevice": "Cet appareil",
+      "lastLogin": "Dernière connexion",
+      "notAvailable": "Non disponible",
+      "dangerZone": "Zone de danger",
+      "dangerZoneHint": "Ces actions sont irréversibles. Veuillez procéder avec prudence.",
+      "logoutAllDevices": "Déconnecter mon compte de tous les appareils"
     }
   },
   "student": {
@@ -1995,8 +2100,10 @@
       "intro": "Gérez vos informations personnelles et vos préférences",
       "editProfile": "Modifier le profil",
       "member": "Membre de la bibliothèque hybride",
+      "memberSince": "Membre depuis",
+      "idBadge": "ID : {{id}}",
       "personalInfo": "Informations personnelles",
-      "security": "Sécurité du compte",
+      "security": "Compte et sécurité",
       "preferences": "Préférences",
       "changePassword": "Modifier le mot de passe",
       "passwordModalTitle": "Modifier le mot de passe",
@@ -2027,6 +2134,9 @@
         "school": "Département",
         "fieldLevelClass": "Filière / Niveau / Classe",
         "password": "Mot de passe",
+        "accountStatus": "Statut du compte",
+        "authentication": "Authentification",
+        "accountManagement": "Gestion du compte",
         "lastLogin": "Dernière connexion",
         "sessions": "Session active",
         "onlineStatus": "Statut en ligne",
@@ -2035,6 +2145,12 @@
         "darkTheme": "Thème sombre",
         "reservationAlerts": "Alertes de réservation"
       },
+      "security2": {
+        "protected": "Protégé",
+        "active": "Actif",
+        "secureLogin": "Connexion sécurisée activée",
+        "managedByAdmin": "Géré par l'administrateur"
+      },
       "preferenceDetails": {
         "emailNotifications": "Recevoir les mises à jour par email",
         "reservationAlerts": "Recevoir les rappels et alertes"
@@ -2042,7 +2158,7 @@
       "roles": {
         "etudiant": "Étudiant",
         "enseignant": "Enseignant",
-        "librarian": "Bibliothécaire",
+        "librarian": "Administrateur",
         "admin": "Administrateur"
       }
     },

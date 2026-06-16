@@ -2,6 +2,18 @@ import axios from 'axios';
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
 
+// Hôte du backend sans le suffixe /api/v1 (pour les fichiers statiques hérités).
+export const API_HOST = BASE_URL.replace(/\/api\/v1\/?$/, '');
+
+// Résout l'URL d'un asset (couverture de livre, etc.) :
+//   - URL absolue (Cloudinary) → utilisée telle quelle
+//   - chemin relatif hérité (/uploads/...) → préfixé par l'hôte backend
+export const resolveAssetUrl = (val) => {
+  if (!val) return '';
+  if (/^https?:\/\//i.test(val)) return val;
+  return `${API_HOST}${val.startsWith('/') ? '' : '/'}${val}`;
+};
+
 // Instance axios avec config de base
 const api = axios.create({
   baseURL: BASE_URL,
@@ -117,7 +129,7 @@ export const empruntsAPI = {
   getRetards: () => api.get('/emprunts/retards'),
   creer: (data) => api.post('/emprunts', data),
   creerAdmin: (data) => api.post('/emprunts/admin', data),
-  valider: (id, data) => api.put(`/emprunts/${id}/valider`, data),
+  valider: (id, data = {}) => api.put(`/emprunts/${id}/valider`, data),
   refuser: (id, data) => api.put(`/emprunts/${id}/refuser`, data),
   retourner: (id) => api.put(`/emprunts/${id}/retourner`),
   annuler: (id) => api.put(`/emprunts/${id}/annuler`),

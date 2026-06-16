@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import Navbar from '../../components/Navbar/Navbar';
-import { authAPI, documentsAPI, categoriesAPI, statsAPI, livresAPI, supportAPI, notificationsAPI } from '../../api/api';
+import { authAPI, documentsAPI, categoriesAPI, statsAPI, livresAPI, supportAPI, notificationsAPI, empruntsAPI, resolveAssetUrl } from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import '../AdminDashboard/AdminDashboard.css';
 import '../EtudiantDashboard/EtudiantDashboard.css';
@@ -56,7 +56,7 @@ const PROFILE_UNAVAILABLE = 'Non disponible';
 const ROLE_LABELS = {
   ETUDIANT: 'Étudiant',
   ENSEIGNANT: 'Enseignant',
-  BIBLIOTHECAIRE: 'Bibliothécaire',
+  BIBLIOTHECAIRE: 'Administrateur',
   ADMIN: 'Administrateur',
 };
 
@@ -1055,9 +1055,11 @@ function CourseEditModal({ course, categories, loading, onClose, onSubmit }) {
   );
 }
 
-function BookDetailsModal({ book, error, onClose }) {
+function BookDetailsModal({ book, error, onClose, onBorrow, onReserve, actionLoading }) {
   const { t } = useTranslation();
   if (!book) return null;
+
+  const isAvailable = Number(book.stock_disponible || 0) > 0;
 
   return (
     <div className="teacher-modal-backdrop" role="presentation">
@@ -1102,7 +1104,26 @@ function BookDetailsModal({ book, error, onClose }) {
         </div>
 
         <div className="teacher-modal-actions">
-          <button type="button" className="teacher-primary-action" onClick={onClose}>{t('teacher.ext.modalBook.close')}</button>
+          {isAvailable ? (
+            <button
+              type="button"
+              className="teacher-primary-action"
+              disabled={actionLoading}
+              onClick={() => onBorrow?.(book)}
+            >
+              {t('teacher.ext.catalog.borrow')}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="teacher-primary-action"
+              disabled={actionLoading}
+              onClick={() => onReserve?.(book)}
+            >
+              {t('teacher.ext.catalog.reserve')}
+            </button>
+          )}
+          <button type="button" className="teacher-secondary-action" onClick={onClose}>{t('teacher.ext.modalBook.close')}</button>
         </div>
       </div>
     </div>
@@ -1267,6 +1288,9 @@ export default function EnseignantDashboard() {
   const [bookPage, setBookPage] = useState(1);
   const [selectedBook, setSelectedBook] = useState(null);
   const [bookDetailError, setBookDetailError] = useState('');
+  // Catalog borrow/reserve feedback (in-app banner, no native popups)
+  const [catalogMessage, setCatalogMessage] = useState(null);
+  const [bookActionId, setBookActionId] = useState(null);
   const [digitalDocuments, setDigitalDocuments] = useState([]);
   const [digitalLoading, setDigitalLoading] = useState(false);
   const [digitalError, setDigitalError] = useState('');
@@ -1503,6 +1527,50 @@ export default function EnseignantDashboard() {
     } catch (err) {
       setBookDetailError(err.response?.data?.message || 'Impossible de charger les détails du livre.');
     }
+  };
+
+  // Borrow / reserve reuse the exact same endpoints students use. The backend
+  // stores req.user.id_user, so the teacher's own request is recorded.
+  const handleBorrowBook = async (book) => {
+    if (!book?.id_ressource) return;
+    setBookActionId(book.id_ressource);
+    setCatalogMessage(null);
+    try {
+      await empruntsAPI.creer({ id_livre: book.id_ressource, duree_jours: 14 });
+      setCatalogMessage({ type: 'success', text: t('teacher.ext.catalog.borrowSuccess') });
+      loadBooks();
+    } catch (err) {
+      setCatalogMessage({ type: 'error', text: err.response?.data?.message || t('teacher.ext.catalog.actionError') });
+    } finally {
+      setBookActionId(null);
+    }
+  };
+
+  const handleReserveBook = async (book) => {
+    if (!book?.id_ressource) return;
+    setBookActionId(book.id_ressource);
+    setCatalogMessage(null);
+    try {
+      await empruntsAPI.reserver({ id_livre: book.id_ressource });
+      setCatalogMessage({ type: 'success', text: t('teacher.ext.catalog.reserveSuccess') });
+      loadBooks();
+    } catch (err) {
+      setCatalogMessage({ type: 'error', text: err.response?.data?.message || t('teacher.ext.catalog.actionError') });
+    } finally {
+      setBookActionId(null);
+    }
+  };
+
+  const handleModalBorrow = async (book) => {
+    setSelectedBook(null);
+    setBookDetailError('');
+    await handleBorrowBook(book);
+  };
+
+  const handleModalReserve = async (book) => {
+    setSelectedBook(null);
+    setBookDetailError('');
+    await handleReserveBook(book);
   };
 
   const handleDigitalDetails = async (document) => {
@@ -2826,6 +2894,13 @@ export default function EnseignantDashboard() {
 
                 {booksError && <div className="cat-banner cat-banner-error">{booksError}</div>}
 
+                {catalogMessage && (
+                  <div className={`cat-banner ${catalogMessage.type === 'success' ? 'cat-banner-success' : 'cat-banner-error'}`}>
+                    <span>{catalogMessage.text}</span>
+                    <button type="button" className="cat-banner-close" onClick={() => setCatalogMessage(null)} aria-label={t('teacher.ext.modalBook.close')}>×</button>
+                  </div>
+                )}
+
                 {booksLoading ? (
                   <div className="cat-loading">{t('teacher.ext.catalog.loading')}</div>
                 ) : books.length === 0 ? (
@@ -2855,7 +2930,7 @@ export default function EnseignantDashboard() {
                             <div className="cat-card-cover">
                               {book.image_couverture ? (
                                 <img
-                                  src={book.image_couverture}
+                                  src={resolveAssetUrl(book.image_couverture)}
                                   alt={book.titre}
                                   loading="lazy"
                                 />
@@ -2898,13 +2973,34 @@ export default function EnseignantDashboard() {
                                   <strong>{Number.isFinite(dispo) ? dispo : 0}</strong>
                                 </div>
                               </div>
-                              <button
-                                type="button"
-                                className="cat-details-btn"
-                                onClick={() => handleBookDetails(book)}
-                              >
-                                {t('teacher.ext.catalog.viewDetails')} <span aria-hidden="true">→</span>
-                              </button>
+                              <div className="cat-card-actions">
+                                {isAvailable ? (
+                                  <button
+                                    type="button"
+                                    className="cat-action-btn cat-action-borrow"
+                                    disabled={bookActionId === book.id_ressource}
+                                    onClick={() => handleBorrowBook(book)}
+                                  >
+                                    {t('teacher.ext.catalog.borrow')}
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="cat-action-btn cat-action-reserve"
+                                    disabled={bookActionId === book.id_ressource}
+                                    onClick={() => handleReserveBook(book)}
+                                  >
+                                    {t('teacher.ext.catalog.reserve')}
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  className="cat-details-btn"
+                                  onClick={() => handleBookDetails(book)}
+                                >
+                                  {t('teacher.ext.catalog.viewDetails')} <span aria-hidden="true">→</span>
+                                </button>
+                              </div>
                             </div>
                           </article>
                         );
@@ -2941,6 +3037,9 @@ export default function EnseignantDashboard() {
                 <BookDetailsModal
                   book={selectedBook}
                   error={bookDetailError}
+                  onBorrow={handleModalBorrow}
+                  onReserve={handleModalReserve}
+                  actionLoading={bookActionId !== null}
                   onClose={() => {
                     setSelectedBook(null);
                     setBookDetailError('');

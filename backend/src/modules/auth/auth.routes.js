@@ -59,6 +59,12 @@ const resendOtpValidation = [
   body('email').isEmail().withMessage('Email invalide'),
 ];
 
+const publicRegistrationDisabled = (req, res) => res.status(403).json({
+  success: false,
+  code: 'PUBLIC_REGISTRATION_DISABLED',
+  message: 'La création de compte public est désactivée. Contactez un administrateur.',
+});
+
 const createUserValidation = [
   body('nom_complet').trim().notEmpty().withMessage('Le nom complet est requis'),
   body('email').trim().isEmail().withMessage('Email invalide'),
@@ -94,9 +100,9 @@ const updateUserValidation = [
 ];
 
 // Routes publiques
-router.post('/register', registerValidation, authController.register);
-router.post('/verify-registration', verifyOtpValidation, authController.verifyRegistration);
-router.post('/resend-registration', resendOtpValidation, authController.resendRegistrationCode);
+router.post('/register', publicRegistrationDisabled);
+router.post('/verify-registration', publicRegistrationDisabled);
+router.post('/resend-registration', publicRegistrationDisabled);
 router.post('/login', loginValidation, authController.login);
 router.post('/verify-login', verifyOtpValidation, authController.verifyLogin);
 router.post('/resend-login', resendOtpValidation, authController.resendLoginCode);

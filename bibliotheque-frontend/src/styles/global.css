@@ -150,6 +150,8 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 body {
@@ -877,6 +879,19 @@ select.form-select option {
   border-color: var(--border) !important;
   color: var(--text);
 }
+[data-theme="light"] .users-page-btn,
+[data-theme="light"] .users-page-nav {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--text-soft);
+}
+[data-theme="light"] .users-page-btn.is-active {
+  color: #ffffff;
+  border-color: rgba(176, 139, 34, 0.6);
+}
+[data-theme="light"] .users-search-icon {
+  opacity: 0.55;
+}
 
 /* ── DOCUMENTS PAGE ─────────────────────────────────────── */
 [data-theme="light"] .docs-stat-card,
@@ -1332,6 +1347,58 @@ select.form-select option {
   background: #f7f9fd;
   color: var(--text);
 }
+
+/* ── BOOKS redesign — light mode ─────────────────────────── */
+[data-theme="light"] .books-stat-card {
+  background: #ffffff;
+  border-color: var(--border);
+  box-shadow: 0 2px 12px rgba(20, 28, 60, 0.05);
+}
+[data-theme="light"] .books-stat-body strong { color: var(--text); }
+[data-theme="light"] .livres-page .panel.books-card {
+  background: #ffffff;
+  border-color: var(--border);
+  box-shadow: 0 2px 12px rgba(20, 28, 60, 0.04);
+}
+[data-theme="light"] .books-toolbar { border-bottom-color: var(--border); }
+[data-theme="light"] .books-page .books-toolbar .form-input {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme="light"] .books-table th {
+  color: #8a6c1a;
+  border-bottom-color: var(--border);
+}
+[data-theme="light"] .books-table tbody tr:hover td { background: #f7f9fd; }
+[data-theme="light"] .books-book-meta strong { color: var(--text); }
+[data-theme="light"] .books-shelf {
+  background: #f4f6fc;
+  border-color: var(--border);
+  color: var(--text-soft);
+}
+[data-theme="light"] .books-thumb {
+  background: linear-gradient(150deg, rgba(201, 168, 76, 0.18), rgba(230, 233, 242, 0.85));
+}
+[data-theme="light"] .books-footer {
+  border-top-color: var(--border);
+  color: var(--text-soft);
+}
+[data-theme="light"] .books-pager-btn,
+[data-theme="light"] .books-pager-nav {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--text-soft);
+}
+[data-theme="light"] .books-pager-btn.is-active { color: #ffffff; }
+[data-theme="light"] .books-cat-blue { color: #0c6f9e; }
+[data-theme="light"] .books-cat-gold { color: #8a6c1a; }
+[data-theme="light"] .books-stock-available { color: #0f9d6b; }
+[data-theme="light"] .books-stock-low { color: #b4790a; }
+[data-theme="light"] .books-stock-empty { color: #d4313f; }
+[data-theme="light"] .books-act-info { color: #0c6f9e; }
+[data-theme="light"] .books-act-gold { color: #8a6c1a; }
+[data-theme="light"] .books-act-danger { color: #c5303d; }
 
 /* ── CATEGORIES DONUT chart — labels, core text, ring center ── */
 [data-theme="light"] .cat-donut::before {

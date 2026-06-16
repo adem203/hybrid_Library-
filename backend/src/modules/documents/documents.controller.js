@@ -2,7 +2,40 @@ const { query, getClient } = require('../../config/db');
 const { validationResult } = require('express-validator');
 const path = require('path');
 const fs = require('fs');
+const { Readable } = require('stream');
+const { uploadBuffer } = require('../../services/storage.service');
 const { notifyAdmins, createNotification } = require('../notifications/notifications.service');
+
+// Un fichier stocké à distance (Cloudinary) commence par http(s).
+// Les anciens fichiers locaux commencent par /uploads/ (compat).
+const isRemoteUrl = (url) => /^https?:\/\//i.test(String(url || ''));
+
+// Récupère un fichier distant et le renvoie au client en respectant
+// les requêtes Range (lecteur PDF, vidéos). Préserve le contrôle d'accès :
+// le client ne voit jamais l'URL Cloudinary, tout passe par l'API.
+const proxyRemoteFile = async (req, res, fileUrl, { contentType, filename, disposition }) => {
+  const range = req.headers.range;
+  const upstream = await fetch(fileUrl, {
+    headers: range ? { Range: range } : {},
+  });
+
+  if (!upstream.ok && upstream.status !== 206) {
+    return res.status(502).json({ success: false, message: 'Fichier indisponible sur le stockage distant.' });
+  }
+
+  const headers = {
+    'Content-Type': contentType,
+    'Accept-Ranges': 'bytes',
+    'Content-Disposition': `${disposition}; filename="${encodeURIComponent(filename)}"`,
+  };
+  const contentLength = upstream.headers.get('content-length');
+  if (contentLength) headers['Content-Length'] = contentLength;
+  const contentRange = upstream.headers.get('content-range');
+  if (contentRange) headers['Content-Range'] = contentRange;
+
+  res.writeHead(upstream.status === 206 ? 206 : 200, headers);
+  Readable.fromWeb(upstream.body).pipe(res);
+};
 
 const DOCUMENT_MANAGER_ROLES = ['BIBLIOTHECAIRE', 'ADMIN'];
 const DOCUMENT_PUBLIC_READER_ROLES = ['ETUDIANT', 'ENSEIGNANT', ...DOCUMENT_MANAGER_ROLES];
@@ -219,11 +252,15 @@ const uploadDocument = async (req, res) => {
   let url_fichier;
 
   try {
-    url_fichier = buildStoredUploadUrl(req.file.path);
+    const uploaded = await uploadBuffer(req.file.buffer, {
+      folder: 'bibliotheque/documents',
+      mimetype: req.file.mimetype,
+      originalname: req.file.originalname,
+    });
+    url_fichier = uploaded.url;
   } catch (error) {
-    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-    console.error('Erreur chemin uploadDocument:', error);
-    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    console.error('Erreur upload Cloudinary (uploadDocument):', error);
+    return res.status(500).json({ success: false, message: 'Erreur lors de l\'envoi du fichier.' });
   }
 
   const client = await getClient();
@@ -296,8 +333,8 @@ const uploadDocument = async (req, res) => {
 
   } catch (error) {
     await client.query('ROLLBACK');
-    // Supprimer le fichier uploadé en cas d'erreur
-    if (req.file) fs.unlinkSync(req.file.path);
+    // Le fichier est déjà sur Cloudinary ; en cas d'échec DB il devient orphelin
+    // (nettoyable plus tard). Pas de fichier local à supprimer.
     console.error('Erreur uploadDocument:', error);
     return res.status(500).json({ success: false, message: 'Erreur serveur.' });
   } finally {
@@ -332,12 +369,6 @@ const streamDocument = async (req, res) => {
       });
     }
 
-    const filePath = resolveStoredUploadPath(doc.url_fichier);
-
-    if (!filePath || !fs.existsSync(filePath)) {
-      return res.status(404).json({ success: false, message: 'Fichier introuvable sur le serveur.' });
-    }
-
     // Enregistrer la consultation dans l'historique (async, ne bloque pas)
     if (req.user.role === 'ETUDIANT') {
       query(
@@ -352,9 +383,6 @@ const streamDocument = async (req, res) => {
       ).catch(console.error);
     }
 
-    const stat = fs.statSync(filePath);
-    const fileSize = stat.size;
-
     // MIME type centralisé pour les formats supportés
     const MIME_BY_FORMAT = {
       PDF: 'application/pdf',
@@ -368,6 +396,25 @@ const streamDocument = async (req, res) => {
       ZIP: 'application/zip',
     };
     const contentType = MIME_BY_FORMAT[doc.format] || 'application/octet-stream';
+
+    // Fichier distant (Cloudinary) : proxy avec support des Range requests.
+    if (isRemoteUrl(doc.url_fichier)) {
+      return proxyRemoteFile(req, res, doc.url_fichier, {
+        contentType,
+        filename: doc.nom_fichier,
+        disposition: 'inline',
+      });
+    }
+
+    // Fichier local (compat avec les anciens uploads sur disque)
+    const filePath = resolveStoredUploadPath(doc.url_fichier);
+
+    if (!filePath || !fs.existsSync(filePath)) {
+      return res.status(404).json({ success: false, message: 'Fichier introuvable sur le serveur.' });
+    }
+
+    const stat = fs.statSync(filePath);
+    const fileSize = stat.size;
 
     // Support du streaming partiel (Range requests pour PDF viewer et vidéos)
     const range = req.headers.range;
@@ -436,6 +483,16 @@ const downloadDocument = async (req, res) => {
       });
     }
 
+    // Fichier distant (Cloudinary) : proxy en pièce jointe.
+    if (isRemoteUrl(doc.url_fichier)) {
+      return proxyRemoteFile(req, res, doc.url_fichier, {
+        contentType: 'application/octet-stream',
+        filename: doc.nom_fichier,
+        disposition: 'attachment',
+      });
+    }
+
+    // Fichier local (compat avec les anciens uploads sur disque)
     const filePath = resolveStoredUploadPath(doc.url_fichier);
 
     if (!filePath || !fs.existsSync(filePath)) {

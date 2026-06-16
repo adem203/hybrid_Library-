@@ -43,7 +43,7 @@
       "resourcesTitle": "Resources",
       "resourcesDesc": "Physical & digital books and documents",
       "accessTypesTitle": "Access types",
-      "accessTypesDesc": "Student, Teacher, Admin, Guest",
+      "accessTypesDesc": "Student, Teacher, Admin",
       "uptimeTitle": "Uptime",
       "uptimeDesc": "Reliable platform you can count on",
       "accessTitle": "Access",
@@ -139,11 +139,27 @@
       "roles": {
         "etudiant": { "name": "Student", "desc": "Search, reserve and read resources" },
         "enseignant": { "name": "Teacher", "desc": "Upload and manage your digital courses" },
-        "bibliothecaire": { "name": "Librarian", "desc": "Manage stock, loans and users" }
+        "admin": { "name": "Admin", "desc": "Manage stock, loans and users" }
       },
       "tabs": {
         "login": "Sign in",
         "signup": "Sign up"
+      },
+      "login": {
+        "title": "Welcome back 👋",
+        "subtitle": "Sign in to your Educated workspace",
+        "email": "Email",
+        "emailPlaceholder": "your@email.com",
+        "password": "Password",
+        "forgotPassword": "Forgot password?",
+        "submit": "Sign in",
+        "submitLoading": "Signing in...",
+        "resetSuccess": "Password reset successfully. You can sign in with your new password.",
+        "errors": {
+          "required": "Please fill in all fields.",
+          "serverUnavailable": "The API server is unavailable. Please verify that the backend is running.",
+          "invalidCredentials": "Incorrect email or password."
+        }
       },
       "signup": {
         "title": "Create a guest account",
@@ -240,6 +256,12 @@
   "sidebar": {
     "logout": "Sign out",
     "logoSubtitle": "Hybrid Library",
+    "roles": {
+      "ETUDIANT": "Student",
+      "ENSEIGNANT": "Teacher",
+      "BIBLIOTHECAIRE": "Admin",
+      "ADMIN": "Admin"
+    },
     "sections": {
       "main": "Main",
       "management": "Management",
@@ -447,8 +469,8 @@
       "roles": {
         "etudiant": "Student",
         "enseignant": "Teacher",
-        "bibliothecaire": "Librarian",
-        "admin": "Administrator"
+        "bibliothecaire": "Admin",
+        "admin": "Admin"
       },
       "supportStatus": {
         "open": "Open",
@@ -659,7 +681,11 @@
         "availableCopies": "Available",
         "notAvailableValue": "Not available",
         "viewDetails": "View details",
-        "authorNotSet": "Author not set"
+        "authorNotSet": "Author not set",
+        "borrow": "Borrow",
+        "borrowSuccess": "Loan request sent.",
+        "reserveSuccess": "Reservation created.",
+        "actionError": "An error occurred. Please try again."
       },
       "stats": {
         "published": "Published documents",
@@ -837,9 +863,9 @@
       "all": "All roles",
       "student": "Student",
       "teacher": "Teacher",
-      "admin": "Administrator",
+      "admin": "Admin",
       "adminShort": "Admin",
-      "librarian": "Librarian"
+      "librarian": "Admin"
     },
     "statuses": {
       "all": "All statuses",
@@ -974,7 +1000,23 @@
     },
     "books": {
       "title": "Books",
-      "addBook": "Add book",
+      "managementTitle": "Book Management",
+      "subtitle": "Manage physical books, stock, shelves, categories, and availability",
+      "export": "Export",
+      "statTotal": "Total Books",
+      "statTotalDesc": "All books in the library",
+      "statAvailable": "Available Books",
+      "statAvailableDesc": "Books currently available",
+      "statOutOfStock": "Out of Stock",
+      "statOutOfStockDesc": "Books unavailable",
+      "statCategories": "Categories",
+      "statCategoriesDesc": "Total book categories",
+      "allStockStatuses": "All stock statuses",
+      "allShelves": "All shelves",
+      "resetFilters": "Reset filters",
+      "tableBook": "Book",
+      "noBooksFound": "No books found",
+      "addBook": "Add Book",
       "searchPlaceholder": "Search by title, author, or ISBN",
       "allCategories": "All categories",
       "allStocks": "All stocks",
@@ -1173,6 +1215,29 @@
     "loans": {
       "title": "Loans",
       "intro": "Manage loans, returns, delays and loan status",
+      "overdueReport": "Overdue report",
+      "activeLoansDesc": "Currently borrowed",
+      "returnedLoansDesc": "Successfully returned",
+      "overdueLoans": "Overdue loans",
+      "overdueLoansDesc": "Awaiting return",
+      "availableBooksDesc": "Ready to borrow",
+      "searchPlaceholder": "Search loans, books, borrowers...",
+      "allBorrowers": "All borrowers",
+      "resetFilters": "Reset filters",
+      "tableRegNo": "Reg. No.",
+      "tableBorrowedOn": "Borrowed On",
+      "tableDueDate": "Due Date",
+      "tableReturnedOn": "Returned On",
+      "tableOverdue": "Overdue",
+      "approve": "Approve",
+      "approving": "Approving...",
+      "staff": "Staff",
+      "loanApproved": "Loan approved successfully",
+      "cannotApprove": "Cannot approve this loan",
+      "alreadyApproved": "Loan is already approved",
+      "alreadyReturned": "Loan is already returned",
+      "bookUnavailable": "Book is unavailable",
+      "showingSummary": "Showing {{start}} to {{end}} of {{total}} loans",
       "newLoan": "New loan",
       "loanCreated": "Loan created.",
       "creating": "Creating…",
@@ -1214,7 +1279,14 @@
       "returnAction": "Return",
       "extendAction": "Extend",
       "confirmReturn": "Mark this book as returned?",
+      "confirmReturnTitle": "Confirm book return",
+      "confirmReturnMessage": "Are you sure you want to mark this book as returned?",
+      "confirmReturnBtn": "Confirm return",
       "extendPrompt": "Extend by how many days?",
+      "extendTitle": "Extend loan",
+      "extendMessage": "Choose the number of extra days for this loan.",
+      "extendDaysLabel": "Number of days",
+      "confirmExtendBtn": "Confirm extension",
       "loanExtended": "Loan extended by {{count}} day(s).",
       "delayNo": "No",
       "delayYes": "Yes",
@@ -1494,8 +1566,8 @@
       "periodsCount": "{{count}} periods",
       "labels": {
         "admin": "Admin",
-        "administrator": "Administrator",
-        "librarian": "Librarian",
+        "administrator": "Admin",
+        "librarian": "Admin",
         "teacher": "Teacher",
         "student": "Student",
         "pending": "Pending",
@@ -1607,8 +1679,8 @@
       "blocked": "Blocked",
       "unspecified": "Unspecified",
       "admin": "Admin",
-      "administrator": "Administrator",
-      "librarian": "Librarian",
+      "administrator": "Admin",
+      "librarian": "Admin",
       "teacher": "Teacher",
       "student": "Student",
       "password": "Password",
@@ -1632,7 +1704,40 @@
       "passwordMinLength": "The new password must contain at least 6 characters.",
       "passwordMismatch": "The confirmation does not match the new password.",
       "passwordChanged": "Password changed successfully.",
-      "passwordChangeError": "Error while changing password."
+      "passwordChangeError": "Error while changing password.",
+      "home": "Home",
+      "accountPreferences": "Account & Preferences",
+      "profileAccount": "Profile / Account",
+      "accountInformation": "Account Information",
+      "passwordSecurity": "Password & Security",
+      "securityOverview": "Security Overview",
+      "sessionManagement": "Session Management",
+      "memberId": "Member ID",
+      "edit": "Edit",
+      "show": "Show",
+      "hide": "Hide",
+      "updatePassword": "Update Password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "emailNote": "Email is used for account recovery and notifications.",
+      "nameRequired": "Please enter your name.",
+      "invalidEmail": "Please enter a valid email address.",
+      "passwordRequired": "Please fill in all password fields.",
+      "profileUpdated": "Account information updated successfully.",
+      "profileUpdateError": "Error while updating account information.",
+      "darkMode": "Dark Mode",
+      "darkModeHint": "Enable dark mode for the dashboard",
+      "notificationsHint": "Receive system notifications and alerts",
+      "languageHint": "Select your preferred language",
+      "activeSession": "Active Session",
+      "activeSessionHint": "You are currently signed in.",
+      "thisDevice": "This Device",
+      "lastLogin": "Last Login",
+      "notAvailable": "Not available",
+      "dangerZone": "Danger Zone",
+      "dangerZoneHint": "These actions are irreversible. Please proceed with caution.",
+      "logoutAllDevices": "Log out my account from all devices"
     }
   },
   "student": {
@@ -1995,8 +2100,10 @@
       "intro": "Manage your personal information and preferences",
       "editProfile": "Edit profile",
       "member": "Member of the hybrid library",
-      "personalInfo": "Personal information",
-      "security": "Account security",
+      "memberSince": "Member since",
+      "idBadge": "ID: {{id}}",
+      "personalInfo": "Personal Information",
+      "security": "Account & Security",
       "preferences": "Preferences",
       "changePassword": "Change password",
       "passwordModalTitle": "Change password",
@@ -2027,6 +2134,9 @@
         "school": "Department",
         "fieldLevelClass": "Field / Level / Class",
         "password": "Password",
+        "accountStatus": "Account status",
+        "authentication": "Authentication",
+        "accountManagement": "Account management",
         "lastLogin": "Last login",
         "sessions": "Active session",
         "onlineStatus": "Online status",
@@ -2035,6 +2145,12 @@
         "darkTheme": "Dark theme",
         "reservationAlerts": "Reservation alerts"
       },
+      "security2": {
+        "protected": "Protected",
+        "active": "Active",
+        "secureLogin": "Secure login enabled",
+        "managedByAdmin": "Managed by administrator"
+      },
       "preferenceDetails": {
         "emailNotifications": "Receive updates by email",
         "reservationAlerts": "Receive reminders and alerts"
@@ -2042,8 +2158,8 @@
       "roles": {
         "etudiant": "Student",
         "enseignant": "Teacher",
-        "librarian": "Librarian",
-        "admin": "Administrator"
+        "librarian": "Admin",
+        "admin": "Admin"
       }
     },
     "messages": {

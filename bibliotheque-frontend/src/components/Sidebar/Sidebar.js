@@ -7,9 +7,28 @@ const ROLE_EMOJI = {
   ADMIN: '⚙️', BIBLIOTHECAIRE: '📖', ETUDIANT: '🎓', ENSEIGNANT: '👨‍🏫',
 };
 
-export default function Sidebar({ items, activeItem, onItemClick, badges = {} }) {
+export default function Sidebar({
+  items,
+  activeItem,
+  onItemClick,
+  badges = {},
+  // Optional, Admin-only branding overrides. When omitted (Student /
+  // Teacher / Librarian dashboards) the sidebar keeps its default look.
+  logoMark = null,
+  useInitialsAvatar = false,
+  logoutIcon = null,
+}) {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
+
+  const userInitials = (
+    (user?.prenom?.[0] || '') + (user?.nom?.[0] || '')
+  ).toUpperCase() || (user?.role?.[0] || 'U').toUpperCase();
+
+  // Localize the raw backend role (e.g. "ETUDIANT") so it never leaks into the UI.
+  const roleLabel = user?.role
+    ? t(`sidebar.roles.${String(user.role).toUpperCase()}`, { defaultValue: user.role })
+    : '';
 
   // Items may declare an `i18nKey` (e.g. "sidebar.items.users" or
   // "sidebar.sections.main"). If a translation exists, use it,
@@ -31,21 +50,24 @@ export default function Sidebar({ items, activeItem, onItemClick, badges = {} })
   return (
     <aside className="sidebar">
       {/* Logo */}
-      <div className="sidebar-logo">
-        <div className="sidebar-logo-text">Educated<span>.</span></div>
-        <div className="sidebar-logo-sub">{t('sidebar.logoSubtitle', 'Bibliothèque Hybride')}</div>
+      <div className={`sidebar-logo ${logoMark ? 'has-mark' : ''}`}>
+        {logoMark && <div className="sidebar-logo-mark">{logoMark}</div>}
+        <div className="sidebar-logo-copy">
+          <div className="sidebar-logo-text">Educated<span>.</span></div>
+          <div className="sidebar-logo-sub">{t('sidebar.logoSubtitle', 'Bibliothèque Hybride')}</div>
+        </div>
       </div>
 
       {/* Profil */}
       <div className="sidebar-user">
-        <div className="sidebar-avatar">
-          {ROLE_EMOJI[user?.role] || '👤'}
+        <div className={`sidebar-avatar ${useInitialsAvatar ? 'sidebar-avatar-initials' : ''}`}>
+          {useInitialsAvatar ? userInitials : (ROLE_EMOJI[user?.role] || '👤')}
         </div>
         <div>
           <div className="sidebar-user-name">
             {user?.prenom} {user?.nom}
           </div>
-          <div className="sidebar-user-role">{user?.role}</div>
+          <div className="sidebar-user-role">{roleLabel}</div>
         </div>
       </div>
 
@@ -78,7 +100,7 @@ export default function Sidebar({ items, activeItem, onItemClick, badges = {} })
       {/* Logout */}
       <div className="sidebar-footer">
         <button className="sidebar-logout-btn" onClick={logout}>
-          <span>🚪</span>
+          <span className="sidebar-logout-ico">{logoutIcon || '🚪'}</span>
           {t('sidebar.logout', 'Se déconnecter')}
         </button>
       </div>

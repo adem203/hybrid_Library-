@@ -20,14 +20,14 @@ const FEATURE_KEYS = [
 ];
 
 const ROLE_KEYS = [
-  { key: 'etudiant',       emoji: '🎓' },
-  { key: 'enseignant',     emoji: '👨‍🏫' },
-  { key: 'bibliothecaire', emoji: '📖' },
+  { key: 'etudiant',   emoji: '🎓' },
+  { key: 'enseignant', emoji: '👨‍🏫' },
+  { key: 'admin',      emoji: '🛡️' },
 ];
 
 const STAT_ITEMS = [
   { key: 'resources',    icon: '📚', value: '10k+',  tone: 'navy' },
-  { key: 'accessTypes',  icon: '🎓', value: '4',     tone: 'navy' },
+  { key: 'accessTypes',  icon: '🎓', value: '3',     tone: 'navy' },
   { key: 'uptime',       icon: '🛡️', value: '99%',   tone: 'navy' },
   { key: 'access',       icon: '🌐', value: '24/7',  tone: 'navy' },
 ];
@@ -97,6 +97,7 @@ const getPasswordResetErrorMessage = (err, fallback) => {
 };
 
 function LoginForm({ onSuccess }) {
+  const { t } = useTranslation();
   const { login, setSession } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -119,7 +120,7 @@ function LoginForm({ onSuccess }) {
 
   const handleResetCompleted = (email) => {
     setForm(f => ({ ...f, email, password: '' }));
-    setResetSuccess('Mot de passe réinitialisé avec succès. Vous pouvez vous connecter avec le nouveau mot de passe.');
+    setResetSuccess(t('landing.auth.login.resetSuccess'));
     setIsResetOpen(false);
   };
 
@@ -127,7 +128,7 @@ function LoginForm({ onSuccess }) {
     e.preventDefault();
     const email = form.email.trim();
     if (!email || !form.password) {
-      setError('Veuillez remplir tous les champs.');
+      setError(t('landing.auth.login.errors.required'));
       return;
     }
     setLoading(true);
@@ -141,7 +142,7 @@ function LoginForm({ onSuccess }) {
     } catch (err) {
       setError(
         err.response?.data?.message
-        || (err.request ? 'Serveur API indisponible. Vérifiez que le backend est démarré.' : 'Email ou mot de passe incorrect.')
+        || (err.request ? t('landing.auth.login.errors.serverUnavailable') : t('landing.auth.login.errors.invalidCredentials'))
       );
     } finally {
       setLoading(false);
@@ -162,8 +163,8 @@ function LoginForm({ onSuccess }) {
   return (
     <>
     <form onSubmit={handleSubmit}>
-      <div className="auth-form-title">Bon retour 👋</div>
-      <div className="auth-form-subtitle">Connectez-vous à votre espace Educated</div>
+      <div className="auth-form-title">{t('landing.auth.login.title')}</div>
+      <div className="auth-form-subtitle">{t('landing.auth.login.subtitle')}</div>
 
       {error && (
         <div className="auth-alert auth-alert-error">
@@ -177,14 +178,14 @@ function LoginForm({ onSuccess }) {
       )}
 
       <div className="form-group">
-        <label className="form-label">Email</label>
+        <label className="form-label">{t('landing.auth.login.email')}</label>
         <div className="input-wrapper">
           <span className="input-icon">✉️</span>
           <input
             type="email"
             name="email"
             className="form-input with-icon"
-            placeholder="votre@email.tn"
+            placeholder={t('landing.auth.login.emailPlaceholder')}
             value={form.email}
             onChange={handleChange}
             autoComplete="email"
@@ -193,7 +194,7 @@ function LoginForm({ onSuccess }) {
       </div>
 
       <div className="form-group">
-        <label className="form-label">Mot de passe</label>
+        <label className="form-label">{t('landing.auth.login.password')}</label>
         <div className="input-wrapper">
           <span className="input-icon">🔒</span>
           <input
@@ -207,15 +208,15 @@ function LoginForm({ onSuccess }) {
           />
         </div>
         <button type="button" className="forgot-password-link" onClick={handleForgotPassword}>
-          Mot de passe oublié ?
+          {t('landing.auth.login.forgotPassword')}
         </button>
       </div>
 
       <button type="submit" className="auth-submit-btn" disabled={loading}>
         {loading ? (
-          <><span className="btn-spinner" />Connexion en cours...</>
+          <><span className="btn-spinner" />{t('landing.auth.login.submitLoading')}</>
         ) : (
-          'Se connecter →'
+          `${t('landing.auth.login.submit')} →`
         )}
       </button>
     </form>
@@ -564,153 +565,6 @@ function OtpVerificationModal({ email, purpose, onVerify, onResend, onClose }) {
   );
 }
 
-// ── Formulaire d'inscription (compte invité uniquement) ──────
-// Les comptes étudiant/enseignant sont créés par l'administration
-// via la page de gestion des utilisateurs. Le backend force le rôle
-// GUEST quoi qu'envoie le client ; on n'expose donc pas de sélecteur.
-function SignUpForm({ onSuccess }) {
-  const { t } = useTranslation();
-  const { setSession } = useAuth();
-  const [form, setForm] = useState({
-    nom: '', prenom: '', email: '', mot_de_passe: '', confirm_password: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
-  const [otpEmail, setOtpEmail] = useState(null);
-
-  const handleChange = (e) => {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
-    setError('');
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.nom || !form.prenom || !form.email || !form.mot_de_passe) {
-      setError(t('landing.auth.signup.errors.required'));
-      return;
-    }
-    if (form.mot_de_passe.length < 6) {
-      setError(t('landing.auth.signup.errors.minPassword'));
-      return;
-    }
-    if (form.mot_de_passe !== form.confirm_password) {
-      setError(t('landing.auth.signup.errors.passwordMismatch'));
-      return;
-    }
-    setLoading(true);
-    try {
-      // No `role` field is sent: the backend forces GUEST. Sending one would
-      // be ignored anyway, but we omit it to make intent explicit.
-      const res = await authAPI.register({
-        nom: form.nom,
-        prenom: form.prenom,
-        email: form.email,
-        mot_de_passe: form.mot_de_passe,
-      });
-      if (res.data?.requireOtp) {
-        setOtpEmail(res.data.email || form.email);
-        setInfo(t('landing.auth.signup.otpSent'));
-      } else {
-        onSuccess();
-      }
-    } catch (err) {
-      setError(getApiErrorMessage(err, t('landing.auth.signup.errors.generic')));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyRegistrationOtp = async (code) => {
-    const res = await authAPI.verifyRegistration({ email: otpEmail, code });
-    const user = setSession(res.data.token, res.data.user);
-    setOtpEmail(null);
-    onSuccess(user);
-  };
-
-  const handleResendRegistrationOtp = async () => {
-    await authAPI.resendRegistrationCode({ email: otpEmail });
-  };
-
-  return (
-    <>
-    <form onSubmit={handleSubmit} style={{ maxHeight: '65vh', overflowY: 'auto', paddingRight: 4 }}>
-      <div className="auth-form-title">{t('landing.auth.signup.title')}</div>
-      <div className="auth-form-subtitle">{t('landing.auth.signup.subtitle')}</div>
-
-      <div className="auth-alert auth-alert-info" style={{ marginTop: 12 }}>
-        ℹ️ {t('landing.auth.signup.infoMessage')}
-      </div>
-
-      {error && <div className="auth-alert auth-alert-error">⚠️ {error}</div>}
-      {info && <div className="auth-alert auth-alert-info">{info}</div>}
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-        <div className="form-group">
-          <label className="form-label">{t('landing.auth.signup.labels.lastName')} *</label>
-          <input type="text" name="nom" className="form-input"
-            placeholder={t('landing.auth.signup.placeholders.lastName')}
-            value={form.nom} onChange={handleChange} />
-        </div>
-        <div className="form-group">
-          <label className="form-label">{t('landing.auth.signup.labels.firstName')} *</label>
-          <input type="text" name="prenom" className="form-input"
-            placeholder={t('landing.auth.signup.placeholders.firstName')}
-            value={form.prenom} onChange={handleChange} />
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">{t('landing.auth.signup.labels.email')} *</label>
-        <div className="input-wrapper">
-          <span className="input-icon">✉️</span>
-          <input type="email" name="email" className="form-input with-icon"
-            placeholder={t('landing.auth.signup.placeholders.email')}
-            value={form.email} onChange={handleChange} />
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">{t('landing.auth.signup.labels.password')} *</label>
-        <div className="input-wrapper">
-          <span className="input-icon">🔒</span>
-          <input type="password" name="mot_de_passe" className="form-input with-icon"
-            placeholder={t('landing.auth.signup.placeholders.password')}
-            value={form.mot_de_passe} onChange={handleChange} />
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">{t('landing.auth.signup.labels.confirmPassword')} *</label>
-        <div className="input-wrapper">
-          <span className="input-icon">🔒</span>
-          <input type="password" name="confirm_password" className="form-input with-icon"
-            placeholder={t('landing.auth.signup.placeholders.confirmPassword')}
-            value={form.confirm_password} onChange={handleChange} />
-        </div>
-      </div>
-
-      <button type="submit" className="auth-submit-btn" disabled={loading}>
-        {loading ? (
-          <><span className="btn-spinner" />{t('landing.auth.signup.buttonLoading')}</>
-        ) : (
-          `${t('landing.auth.signup.button')} →`
-        )}
-      </button>
-    </form>
-    {otpEmail && (
-      <OtpVerificationModal
-        email={otpEmail}
-        purpose="register"
-        onVerify={handleVerifyRegistrationOtp}
-        onResend={handleResendRegistrationOtp}
-        onClose={() => setOtpEmail(null)}
-      />
-    )}
-    </>
-  );
-}
-
 // ── Composant principal LandingPage ─────────────────────────
 const scrollToId = (id) => {
   const el = document.getElementById(id);
@@ -721,11 +575,9 @@ export default function LandingPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);
-  const [activeTab, setActiveTab] = useState('login');
   const authRef = useRef(null);
 
-  const openAuth = (tab = 'login') => {
-    setActiveTab(tab);
+  const openAuth = () => {
     setShowAuth(true);
     setTimeout(() => {
       authRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -740,14 +592,6 @@ export default function LandingPage() {
       ENSEIGNANT: '/enseignant',
     };
     navigate(routes[user.role] || '/');
-  };
-
-  const handleSignupSuccess = (user) => {
-    if (user) {
-      handleLoginSuccess(user);
-    } else {
-      setActiveTab('login');
-    }
   };
 
   return (
@@ -773,10 +617,10 @@ export default function LandingPage() {
           </nav>
 
           <div className="lv-nav-actions">
-            <button type="button" className="lv-btn lv-btn-ghost" onClick={() => openAuth('login')}>
+            <button type="button" className="lv-btn lv-btn-ghost" onClick={openAuth}>
               {t('landing.nav.login')}
             </button>
-            <button type="button" className="lv-btn lv-btn-primary" onClick={() => openAuth('signup')}>
+            <button type="button" className="lv-btn lv-btn-primary" onClick={openAuth}>
               {t('landing.nav.getStarted')} →
             </button>
             <LanguageThemeSwitcher variant="inline" size="sm" className="lv-switcher" />
@@ -789,11 +633,6 @@ export default function LandingPage() {
         <section className="lv-hero">
           <div className="lv-hero-grid">
             <div className="lv-hero-left">
-              <div className="lv-hero-badge">
-                <span className="lv-hero-badge-dot" />
-                {t('landing.badge')}
-              </div>
-
               <h1 className="lv-hero-title">
                 {t('landing.hero.title_1')}<br />
                 <span className="lv-gold">{t('landing.hero.title_highlight')}</span> {t('landing.hero.title_2')}<br />
@@ -803,7 +642,7 @@ export default function LandingPage() {
               <p className="lv-hero-desc">{t('landing.hero.description')}</p>
 
               <div className="lv-hero-actions">
-                <button type="button" className="lv-btn lv-btn-primary lv-btn-lg" onClick={() => openAuth('signup')}>
+                <button type="button" className="lv-btn lv-btn-primary lv-btn-lg" onClick={openAuth}>
                   {t('landing.hero.ctaPrimary')}
                 </button>
                 <button
@@ -813,16 +652,6 @@ export default function LandingPage() {
                 >
                   {t('landing.hero.ctaSecondary')}
                 </button>
-              </div>
-
-              <div className="lv-hero-trust">
-                <div className="lv-hero-avatars" aria-hidden="true">
-                  <span className="lv-avatar lv-avatar-1" />
-                  <span className="lv-avatar lv-avatar-2" />
-                  <span className="lv-avatar lv-avatar-3" />
-                  <span className="lv-avatar lv-avatar-4" />
-                </div>
-                <p>{t('landing.hero.trustedBy')}</p>
               </div>
             </div>
 
@@ -847,28 +676,6 @@ export default function LandingPage() {
                     <div className="lv-book-subtitle">{t('landing.hero.scene.bookSubtitle')}</div>
                   </div>
                   <div className="lv-book-pedestal" />
-                </div>
-
-                <div className="lv-floating lv-floating-1">
-                  <div className="lv-floating-icon lv-floating-icon-gold">📄</div>
-                  <div>
-                    <div className="lv-floating-title">{t('landing.hero.scene.pdfTitle')}</div>
-                    <div className="lv-floating-sub">{t('landing.hero.scene.pdfSubtitle')}</div>
-                  </div>
-                </div>
-                <div className="lv-floating lv-floating-2">
-                  <div className="lv-floating-icon lv-floating-icon-navy">📖</div>
-                  <div>
-                    <div className="lv-floating-title">{t('landing.hero.scene.loansTitle')}</div>
-                    <div className="lv-floating-sub">{t('landing.hero.scene.loansSubtitle')}</div>
-                  </div>
-                </div>
-                <div className="lv-floating lv-floating-3">
-                  <div className="lv-floating-icon lv-floating-icon-success">✓</div>
-                  <div>
-                    <div className="lv-floating-title">{t('landing.hero.scene.returnTitle')}</div>
-                    <div className="lv-floating-sub">{t('landing.hero.scene.returnSubtitle')}</div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -905,7 +712,7 @@ export default function LandingPage() {
                   <button
                     type="button"
                     className="lv-role-link"
-                    onClick={() => openAuth('signup')}
+                    onClick={openAuth}
                   >
                     {t(`landing.roles.${r.key}.link`)}
                   </button>
@@ -1013,7 +820,7 @@ export default function LandingPage() {
                     <h3>{t(`landing.dashboards.${d.key}.title`)}</h3>
                     <p>{t(`landing.dashboards.${d.key}.desc`)}</p>
                   </div>
-                  <button type="button" className="lv-dash-cta" aria-label={t('landing.dashboards.label')} onClick={() => openAuth('signup')}>→</button>
+                  <button type="button" className="lv-dash-cta" aria-label={t('landing.dashboards.label')} onClick={openAuth}>→</button>
                 </div>
               </article>
             ))}
@@ -1047,7 +854,7 @@ export default function LandingPage() {
               <p>{t('landing.cta.desc')}</p>
             </div>
             <div className="lv-final-action">
-              <button type="button" className="lv-btn lv-btn-primary lv-btn-lg" onClick={() => openAuth('signup')}>
+              <button type="button" className="lv-btn lv-btn-primary lv-btn-lg" onClick={openAuth}>
                 {t('landing.cta.button')} →
               </button>
             </div>
@@ -1078,84 +885,12 @@ export default function LandingPage() {
               </div>
 
               <div className="auth-form-card">
-                <div className="auth-tabs">
-                  <button
-                    className={`auth-tab ${activeTab === 'login' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('login')}
-                    type="button"
-                  >
-                    {t('landing.auth.tabs.login')}
-                  </button>
-                  <button
-                    className={`auth-tab ${activeTab === 'signup' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('signup')}
-                    type="button"
-                  >
-                    {t('landing.auth.tabs.signup')}
-                  </button>
-                </div>
-
-                {activeTab === 'login' ? (
-                  <LoginForm onSuccess={handleLoginSuccess} />
-                ) : (
-                  <SignUpForm onSuccess={handleSignupSuccess} />
-                )}
+                <LoginForm onSuccess={handleLoginSuccess} />
               </div>
             </div>
           </section>
         )}
       </main>
-
-      {/* ── FOOTER ──────────────────────────── */}
-      <footer className="lv-footer">
-        <div className="lv-footer-grid">
-          <div className="lv-footer-brand-col">
-            <div className="lv-brand">
-              <span className="lv-brand-mark" aria-hidden="true">📘</span>
-              Educated<span className="lv-brand-dot">.</span>
-            </div>
-            <p className="lv-footer-tagline">{t('landing.footer.tagline')}</p>
-          </div>
-
-          <div className="lv-footer-col">
-            <h4>{t('landing.footer.quickLinks')}</h4>
-            <ul>
-              <li><button type="button" onClick={() => scrollToId('features')}>{t('landing.footer.links.features')}</button></li>
-              <li><button type="button" onClick={() => scrollToId('roles')}>{t('landing.footer.links.roles')}</button></li>
-              <li><button type="button" onClick={() => scrollToId('how')}>{t('landing.footer.links.how')}</button></li>
-              <li><button type="button" onClick={() => scrollToId('dashboards')}>{t('landing.footer.links.platform')}</button></li>
-              <li><button type="button" onClick={() => scrollToId('final-cta')}>{t('landing.footer.links.contact')}</button></li>
-            </ul>
-          </div>
-
-          <div className="lv-footer-col">
-            <h4>{t('landing.footer.resources')}</h4>
-            <ul>
-              <li><a href="#help">{t('landing.footer.res.help')}</a></li>
-              <li><a href="#docs">{t('landing.footer.res.docs')}</a></li>
-              <li><a href="#privacy">{t('landing.footer.res.privacy')}</a></li>
-              <li><a href="#terms">{t('landing.footer.res.terms')}</a></li>
-            </ul>
-          </div>
-
-          <div className="lv-footer-col">
-            <h4>{t('landing.footer.project')}</h4>
-            <ul>
-              <li>{t('landing.footer.proj.author')}</li>
-              <li>{t('landing.footer.proj.pfe')}</li>
-              <li>{t('landing.footer.proj.module')}</li>
-            </ul>
-            <div className="lv-footer-social" aria-label="Social">
-              <a href="#linkedin" aria-label="LinkedIn">in</a>
-              <a href="#github" aria-label="GitHub">{'</>'}</a>
-              <a href="#email" aria-label="Email">@</a>
-            </div>
-          </div>
-        </div>
-        <div className="lv-footer-bottom">
-          {t('landing.footer.copy')}
-        </div>
-      </footer>
     </div>
   );
 }
