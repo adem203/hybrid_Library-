@@ -4694,6 +4694,14 @@
   color: var(--gold);
 }
 
+/* Read = subtle glass button, distinct from the solid-gold Borrow and the
+   gold-tinted Reserve, while keeping the same dark/gold catalog identity. */
+.cat-action-read {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(201, 168, 76, 0.35);
+  color: var(--gold-light, #e8c96d);
+}
+
 .cat-action-btn:hover {
   transform: translateY(-1px);
 }

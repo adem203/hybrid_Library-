@@ -108,6 +108,36 @@ const getPedagogicalType = (document) => {
 
 const parseCount = (value) => Number.parseInt(value || 0, 10) || 0;
 
+// Mirrors the Student Book Catalog logic (EtudiantDashboard.js) so the Teacher
+// catalog derives Read / Borrow / Reserve from the same fields. Kept local here
+// to avoid modifying the Student file.
+const READABLE_FILE_FIELDS = ['url_fichier', 'fichier', 'file_url', 'url', 'chemin', 'path'];
+const hasReadableFilePath = (book) => {
+  if (!book) return false;
+  return READABLE_FILE_FIELDS.some((field) => {
+    const value = book[field];
+    return value !== undefined && value !== null && String(value).trim() !== '';
+  });
+};
+// A book can be read online when it is digital/hybrid or carries an attached
+// file (PDF/document/URL). Physical-only books carry none of these → no Read.
+const isReadableOnline = (book) => {
+  if (!book) return false;
+  const type = String(book.type_ressource || '').toUpperCase();
+  if (type === 'NUMERIQUE' || type === 'HYBRIDE') return true;
+  if (book.format) return true;
+  return hasReadableFilePath(book);
+};
+// A book has a physical side (borrow/reserve) when it is physical/hybrid or
+// exposes stock fields. Digital-only resources have neither → no borrow/reserve.
+const hasPhysicalCopies = (book) => {
+  if (!book) return false;
+  const type = String(book.type_ressource || '').toUpperCase();
+  if (type === 'PHYSIQUE' || type === 'HYBRIDE') return true;
+  if (type === 'NUMERIQUE') return false;
+  return book.stock_total != null || book.stock_disponible != null;
+};
+
 const formatDate = (value) => {
   if (!value) return 'Date non disponible';
   return new Date(value).toLocaleDateString('fr-TN', {
@@ -2980,6 +3010,8 @@ export default function EnseignantDashboard() {
                         const dispo = Number(book.stock_disponible || 0);
                         const total = Number(book.stock_total || 0);
                         const isAvailable = dispo > 0;
+                        const canRead = isReadableOnline(book);
+                        const physical = hasPhysicalCopies(book);
                         const [c1, c2] = pickPalette(book);
                         const coverShortTitle = (book.titre || '').toUpperCase().slice(0, 60);
                         return (
@@ -3031,7 +3063,16 @@ export default function EnseignantDashboard() {
                                 </div>
                               </div>
                               <div className="cat-card-actions">
-                                {isAvailable ? (
+                                {canRead && (
+                                  <button
+                                    type="button"
+                                    className="cat-action-btn cat-action-read"
+                                    onClick={() => openDocumentBlob(book)}
+                                  >
+                                    📖 {t('student.digital.read')}
+                                  </button>
+                                )}
+                                {physical && (isAvailable ? (
                                   <button
                                     type="button"
                                     className="cat-action-btn cat-action-borrow"
@@ -3049,7 +3090,7 @@ export default function EnseignantDashboard() {
                                   >
                                     {t('teacher.ext.catalog.reserve')}
                                   </button>
-                                )}
+                                ))}
                                 <button
                                   type="button"
                                   className="cat-details-btn"
