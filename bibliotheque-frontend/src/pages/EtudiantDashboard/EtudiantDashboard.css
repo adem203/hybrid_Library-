@@ -4652,6 +4652,25 @@
   box-shadow: none;
 }
 
+/* Read = outlined gold, visually distinct from the solid-gold Borrow button
+   while staying within the same dark/gold identity (mirrors .ged-btn-read). */
+.cat-card-read {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: var(--gold-dim);
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 0.82rem;
+  border: 1px solid var(--glass-border-gold);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.cat-card-read:hover {
+  transform: translateY(-1px);
+  background: rgba(201, 168, 76, 0.18);
+}
+
 .cat-card-details {
   background: transparent;
   border: none;

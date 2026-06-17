@@ -266,6 +266,27 @@ const getDocumentFileUrl = (filePath) => {
   return `${API_HOST}/${normalizedPath}`;
 };
 
+// A catalog resource can be read online when it is digital/hybrid or carries
+// an attached file (PDF/document/URL). Driven entirely by existing fields —
+// no new DB logic. Physical-only books carry none of these, so Read stays hidden.
+const isReadableOnline = (book) => {
+  if (!book) return false;
+  const type = String(book.type_ressource || '').toUpperCase();
+  if (type === 'NUMERIQUE' || type === 'HYBRIDE') return true;
+  if (book.format) return true;
+  return Boolean(getDocumentFilePath(book));
+};
+
+// A resource has a physical side (borrow/reserve) when it is physical/hybrid or
+// exposes stock fields. Digital-only resources have neither → no borrow/reserve.
+const hasPhysicalCopies = (book) => {
+  if (!book) return false;
+  const type = String(book.type_ressource || '').toUpperCase();
+  if (type === 'PHYSIQUE' || type === 'HYBRIDE') return true;
+  if (type === 'NUMERIQUE') return false;
+  return book.stock_total != null || book.stock_disponible != null;
+};
+
 const getStudentName = (user, t) => {
   const fullName = [user?.prenom, user?.nom].filter(Boolean).join(' ').trim();
   return fullName || user?.email || (t ? t('student.common.studentFallback') : 'étudiant');
@@ -693,10 +714,12 @@ function InfoItem({ label, value, mono, highlight }) {
   );
 }
 
-function BookDetailsModal({ book, loading, onClose, onEmprunt, onReserver }) {
+function BookDetailsModal({ book, loading, onClose, onEmprunt, onReserver, onRead }) {
   const { t } = useTranslation();
   if (!book) return null;
   const dispo = (book.stock_disponible ?? 0) > 0;
+  const canRead = isReadableOnline(book);
+  const physical = hasPhysicalCopies(book);
   const annee = book.date_publication ? new Date(book.date_publication).getFullYear() : null;
   const showSkeleton = loading && !book.titre;
 
@@ -758,7 +781,12 @@ function BookDetailsModal({ book, loading, onClose, onEmprunt, onReserver }) {
 
             <div className="book-modal-footer">
               <button className="btn-secondary" onClick={onClose}>{t('student.actions.close')}</button>
-              {dispo ? (
+              {canRead && onRead && (
+                <button className="btn-secondary" onClick={() => onRead(book)}>
+                  📖 {t('student.digital.read')}
+                </button>
+              )}
+              {physical && (dispo ? (
                 <button className="btn-primary" onClick={() => onEmprunt(book.id_ressource)}>
                   📗 {t('student.catalog.borrow')}
                 </button>
@@ -766,7 +794,7 @@ function BookDetailsModal({ book, loading, onClose, onEmprunt, onReserver }) {
                 <button className="btn-primary" onClick={() => onReserver(book.id_ressource)}>
                   🔖 {t('student.catalog.reserve')}
                 </button>
-              )}
+              ))}
             </div>
           </>
         )}
@@ -2239,6 +2267,8 @@ export default function EtudiantDashboard() {
                           {displayedLivres.map((l, i) => {
                             const ph = getCoverPlaceholder(l);
                             const stock = Number(l.stock_disponible) || 0;
+                            const canRead = isReadableOnline(l);
+                            const physical = hasPhysicalCopies(l);
                             return (
                               <article
                                 key={l.id_ressource}
@@ -2270,15 +2300,24 @@ export default function EtudiantDashboard() {
                                   )}
                                   <h3 className="cat-card-title">{l.titre}</h3>
                                   <p className="cat-card-author">{l.auteur || t('student.common.unknownAuthor')}</p>
-                                  {stock > 0 ? (
+                                  {physical && (stock > 0 ? (
                                     <span className="cat-card-badge available">
                                       {t('student.catalog.availableCountShort', { count: stock })}
                                     </span>
                                   ) : (
                                     <span className="cat-card-badge unavailable">{t('student.statusBadges.unavailable')}</span>
-                                  )}
+                                  ))}
                                   <div className="cat-card-actions">
-                                    {stock > 0 ? (
+                                    {canRead && (
+                                      <button
+                                        type="button"
+                                        className="cat-card-read"
+                                        onClick={e => { e.stopPropagation(); handleReadDocument(l); }}
+                                      >
+                                        📖 {t('student.digital.read')}
+                                      </button>
+                                    )}
+                                    {physical && (stock > 0 ? (
                                       <button
                                         className="cat-card-primary"
                                         onClick={e => { e.stopPropagation(); handleEmprunt(l.id_ressource); }}
@@ -2292,7 +2331,7 @@ export default function EtudiantDashboard() {
                                       >
                                         {t('student.catalog.reserve')}
                                       </button>
-                                    )}
+                                    ))}
                                     <button
                                       type="button"
                                       className="cat-card-details"
@@ -4004,6 +4043,7 @@ export default function EtudiantDashboard() {
             onClose={() => setSelectedBook(null)}
             onEmprunt={handleModalEmprunt}
             onReserver={handleModalReserver}
+            onRead={(book) => { setSelectedBook(null); handleReadDocument(book); }}
           />
         </div>
       </div>
