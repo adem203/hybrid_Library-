@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import Navbar from '../../components/Navbar/Navbar';
+import { MyLoansView, MyReservationsView } from '../../components/circulation/CirculationViews';
 import { authAPI, documentsAPI, categoriesAPI, statsAPI, livresAPI, supportAPI, notificationsAPI, empruntsAPI, resolveAssetUrl } from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import '../AdminDashboard/AdminDashboard.css';
@@ -181,6 +182,9 @@ const SIDEBAR_ITEMS = [
   { type: 'section', label: 'Ressources', i18nKey: 'sidebar.sections.resources' },
   { id: 'catalogue', icon: '🔍', label: 'Catalogue livres', i18nKey: 'sidebar.items.catalogue' },
   { id: 'ged', icon: '📄', label: 'Bibliothèque numérique', i18nKey: 'sidebar.items.ged' },
+  { type: 'section', label: 'Mes activités', i18nKey: 'sidebar.sections.myActivities' },
+  { id: 'mes-emprunts', icon: '📗', label: 'Mes emprunts', i18nKey: 'sidebar.items.mesEmprunts' },
+  { id: 'mes-reservations', icon: '🔖', label: 'Mes réservations', i18nKey: 'sidebar.items.mesReservations' },
   { type: 'section', label: 'Analyse', i18nKey: 'sidebar.sections.analysis' },
   { id: 'stats', icon: '📊', label: 'Statistiques', i18nKey: 'sidebar.items.stats' },
   { type: 'section', label: 'Support', i18nKey: 'sidebar.sections.support' },
@@ -1288,6 +1292,12 @@ export default function EnseignantDashboard() {
   const [bookPage, setBookPage] = useState(1);
   const [selectedBook, setSelectedBook] = useState(null);
   const [bookDetailError, setBookDetailError] = useState('');
+  // Personal loan/reservation tracking (own records only — endpoints are
+  // scoped to req.user.id_user on the backend).
+  const [emprunts, setEmprunts] = useState([]);
+  const [empruntsLoading, setEmpruntsLoading] = useState(false);
+  const [reservations, setReservations] = useState([]);
+  const [reservationsLoading, setReservationsLoading] = useState(false);
   // Catalog borrow/reserve feedback (in-app banner, no native popups)
   const [catalogMessage, setCatalogMessage] = useState(null);
   const [bookActionId, setBookActionId] = useState(null);
@@ -1433,6 +1443,47 @@ export default function EnseignantDashboard() {
       setDigitalLoading(false);
     }
   }, []);
+  const loadEmprunts = useCallback(async () => {
+    setEmpruntsLoading(true);
+    try {
+      const response = await empruntsAPI.getMesEmprunts({ limit: 5000 });
+      setEmprunts(Array.isArray(response.data?.data) ? response.data.data : []);
+    } catch {
+      setEmprunts([]);
+    } finally {
+      setEmpruntsLoading(false);
+    }
+  }, []);
+
+  const loadReservations = useCallback(async () => {
+    setReservationsLoading(true);
+    try {
+      const response = await empruntsAPI.getMesReservations();
+      setReservations(Array.isArray(response.data?.data) ? response.data.data : []);
+    } catch {
+      setReservations([]);
+    } finally {
+      setReservationsLoading(false);
+    }
+  }, []);
+
+  // Cancel a still-pending loan request, then refresh the list. Reuses the same
+  // user-scoped endpoint as the Student space.
+  const handleCancelLoan = useCallback(async (id) => {
+    try {
+      await empruntsAPI.annuler(id);
+      loadEmprunts();
+    } catch { /* list stays as-is on failure */ }
+  }, [loadEmprunts]);
+
+  const handleCancelReservation = useCallback(async (id) => {
+    if (!window.confirm(t('student.reservations.confirmCancel'))) return;
+    try {
+      await empruntsAPI.annulerMaReservation(id);
+      loadReservations();
+    } catch { /* list stays as-is on failure */ }
+  }, [t, loadReservations]);
+
   const loadTeacherProfile = useCallback(async () => {
     setProfileLoading(true);
     try {
@@ -1466,6 +1517,12 @@ export default function EnseignantDashboard() {
   useEffect(() => {
     if (activeItem === 'ged') loadDigitalDocuments();
   }, [activeItem, loadDigitalDocuments]);
+  useEffect(() => {
+    if (activeItem === 'mes-emprunts') loadEmprunts();
+  }, [activeItem, loadEmprunts]);
+  useEffect(() => {
+    if (activeItem === 'mes-reservations') loadReservations();
+  }, [activeItem, loadReservations]);
   useEffect(() => {
     if (activeItem === 'profil') loadTeacherProfile();
   }, [activeItem, loadTeacherProfile]);
@@ -3048,6 +3105,36 @@ export default function EnseignantDashboard() {
               </section>
             );
           })()}
+
+          {activeItem === 'mes-emprunts' && (
+            <MyLoansView
+              emprunts={emprunts}
+              loading={empruntsLoading}
+              onCancel={handleCancelLoan}
+            />
+          )}
+
+          {activeItem === 'mes-reservations' && (
+            <>
+              <MyReservationsView
+                reservations={reservations}
+                loading={reservationsLoading}
+                onCancel={handleCancelReservation}
+                onOpenBookDetails={(idLivre) => handleBookDetails({ id_ressource: idLivre })}
+              />
+              <BookDetailsModal
+                book={selectedBook}
+                error={bookDetailError}
+                onBorrow={handleModalBorrow}
+                onReserve={handleModalReserve}
+                actionLoading={bookActionId !== null}
+                onClose={() => {
+                  setSelectedBook(null);
+                  setBookDetailError('');
+                }}
+              />
+            </>
+          )}
 
           {activeItem === 'ged' && (
             <>
