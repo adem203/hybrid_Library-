@@ -102,7 +102,7 @@ export default function Navbar({
   return (
     <header className="app-navbar">
       <div className="navbar-title">
-        {title || 'Tableau de bord'}<span>.</span>
+        {title || 'Tableau de bord'}
       </div>
       <div className="navbar-right">
         <span className="navbar-time">

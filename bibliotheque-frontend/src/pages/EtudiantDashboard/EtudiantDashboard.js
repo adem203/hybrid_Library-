@@ -2725,21 +2725,6 @@ export default function EtudiantDashboard() {
                       )}
                     </section>
 
-                    {/* Besoin d'aide */}
-                    <section className="ged-widget ged-help-card">
-                      <span className="ged-help-icon" aria-hidden="true">💡</span>
-                      <h3 className="ged-widget-title">{t('student.digital.helpTitle')}</h3>
-                      <p className="ged-help-text">
-                        {t('student.digital.helpText')}
-                      </p>
-                      <button
-                        type="button"
-                        className="ged-help-btn"
-                        onClick={() => setActiveItem('profil')}
-                      >
-                        {t('student.help.title')} →
-                      </button>
-                    </section>
                   </aside>
                 </div>
               )}
