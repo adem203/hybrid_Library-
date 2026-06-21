@@ -2020,10 +2020,17 @@ function CategoriesView() {
 function LivreFormModal({ initial, categories, onClose, onSaved }) {
   const { t } = useTranslation();
   const isEdit = !!initial;
+  // Category is now a creatable/searchable text field: prefill with the book's
+  // existing category name (`categorie`), falling back to a lookup by id.
+  const initialCategorieLibelle =
+    initial?.categorie
+    || (initial?.id_categorie
+      ? (categories.find((c) => String(c.id_categorie) === String(initial.id_categorie))?.libelle || '')
+      : '');
   const [form, setForm] = useState({
     titre: initial?.titre || '',
     auteur: initial?.auteur || '',
-    id_categorie: initial?.id_categorie || '',
+    categorie_libelle: initialCategorieLibelle,
     isbn: initial?.isbn || '',
     description: initial?.description || '',
     date_publication: initial?.date_publication
@@ -2094,10 +2101,43 @@ function LivreFormModal({ initial, categories, onClose, onSaved }) {
 
     setLoading(true);
     try {
+      // ── Resolve the (creatable) category ──────────────────────
+      // Match the typed name to an existing category (case-insensitive).
+      // If it doesn't exist, create it via POST /categories first, then use
+      // the returned id. On a 409 (created meanwhile / race), re-fetch and
+      // match by name. Empty input → no category, exactly like before.
+      let resolvedCategoryId = '';
+      const typedCategory = form.categorie_libelle.trim();
+      if (typedCategory) {
+        const norm = (s) => String(s || '').trim().toLowerCase();
+        const existing = categories.find((c) => norm(c.libelle) === norm(typedCategory));
+        if (existing) {
+          resolvedCategoryId = existing.id_categorie;
+        } else {
+          try {
+            const res = await categoriesAPI.create({ libelle: typedCategory });
+            resolvedCategoryId = res.data?.data?.id_categorie || '';
+          } catch (catErr) {
+            if (catErr.response?.status === 409) {
+              // Already exists (e.g. differing accents/case server-side): re-fetch.
+              try {
+                const all = await categoriesAPI.getAll();
+                const match = (all.data?.data || []).find((c) => norm(c.libelle) === norm(typedCategory));
+                resolvedCategoryId = match?.id_categorie || '';
+              } catch { /* fall through — book is still created without category */ }
+            } else {
+              setError(catErr.response?.data?.message || t('admin.books.errors.saveFailed'));
+              setLoading(false);
+              return;
+            }
+          }
+        }
+      }
+
       const fd = new FormData();
       fd.append('titre', form.titre.trim());
       fd.append('auteur', form.auteur.trim());
-      if (form.id_categorie) fd.append('id_categorie', form.id_categorie);
+      if (resolvedCategoryId) fd.append('id_categorie', resolvedCategoryId);
       if (form.isbn.trim()) fd.append('isbn', form.isbn.trim());
       if (form.description.trim()) fd.append('description', form.description.trim());
       if (form.date_publication) fd.append('date_publication', form.date_publication);
@@ -2168,12 +2208,24 @@ function LivreFormModal({ initial, categories, onClose, onSaved }) {
 
             <div className="form-group">
               <label className="form-label">{t('admin.books.tableCategory')}</label>
-              <select name="id_categorie" className="form-input" value={form.id_categorie} onChange={handleChange}>
-                <option value="">{t('admin.books.noCategory')}</option>
+              {/* Creatable/searchable category: pick an existing one from the
+                  suggestions (datalist) or type a brand-new name. A typed name
+                  that doesn't exist is created on submit (see handleSubmit). */}
+              <input
+                name="categorie_libelle"
+                className="form-input"
+                value={form.categorie_libelle}
+                onChange={handleChange}
+                list="book-category-options"
+                placeholder={t('admin.books.categoryTypePlaceholder')}
+                maxLength={100}
+                autoComplete="off"
+              />
+              <datalist id="book-category-options">
                 {categories.map((c) => (
-                  <option key={c.id_categorie} value={c.id_categorie}>{c.libelle}</option>
+                  <option key={c.id_categorie} value={c.libelle} />
                 ))}
-              </select>
+              </datalist>
             </div>
 
             <div className="form-group">
@@ -2568,6 +2620,7 @@ function LivresView() {
     setFlash({ type: 'success', text: message });
     setPage(1);
     loadLivres();
+    loadCategories(); // a newly typed category may have just been created
   };
 
   const handleDelete = async () => {

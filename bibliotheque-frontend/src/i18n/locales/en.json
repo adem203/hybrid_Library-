@@ -1072,6 +1072,7 @@
       "uploadAcceptedTypes": "Accepted types: PDF, DOCX, PPTX (Max size: 50MB)",
       "uploadRemove": "Remove file",
       "noCategory": "— None —",
+      "categoryTypePlaceholder": "Select or type a category…",
       "saving": "Saving…",
       "bookAddedSuccess": "Book added successfully.",
       "bookUpdatedSuccess": "Book updated successfully.",
