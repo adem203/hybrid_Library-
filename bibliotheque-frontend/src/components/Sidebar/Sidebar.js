@@ -53,7 +53,7 @@ export default function Sidebar({
       <div className={`sidebar-logo ${logoMark ? 'has-mark' : ''}`}>
         {logoMark && <div className="sidebar-logo-mark">{logoMark}</div>}
         <div className="sidebar-logo-copy">
-          <div className="sidebar-logo-text">Educated<span>.</span></div>
+          <div className="sidebar-logo-text">Educated</div>
           <div className="sidebar-logo-sub">{t('sidebar.logoSubtitle', 'Bibliothèque Hybride')}</div>
         </div>
       </div>

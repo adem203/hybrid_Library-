@@ -230,7 +230,9 @@
     "close": "Fermer",
     "confirm": "Confirmer",
     "loading": "Chargement…",
-    "all": "Tous"
+    "all": "Tous",
+    "previous": "Précédent",
+    "next": "Suivant"
   },
   "notif": {
     "title": "Notifications",
@@ -561,6 +563,8 @@
         "edit": "Modifier",
         "deleteBtn": "Supprimer",
         "showing": "Affichage de",
+        "to": "à",
+        "of": "sur",
         "documentsTotal": "document(s)",
         "recent": "Activité récente",
         "engagement": "Taux d'engagement",

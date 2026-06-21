@@ -2814,7 +2814,7 @@ export default function EnseignantDashboard() {
 
                   <footer className="mc-pagination">
                     <div className="mc-pagination-info">
-                      Affichage de {courseRangeStart} à {courseRangeEnd} sur {filteredCourses.length} document{filteredCourses.length > 1 ? 's' : ''}
+                      {t('teacher.ext.mesCours.showing')} {courseRangeStart} {t('teacher.ext.mesCours.to')} {courseRangeEnd} {t('teacher.ext.mesCours.of')} {filteredCourses.length} {t('teacher.ext.mesCours.documentsTotal')}
                     </div>
                     {coursePageCount > 1 && (
                       <div className="mc-pagination-controls">
@@ -2823,7 +2823,7 @@ export default function EnseignantDashboard() {
                           onClick={() => setCoursePage((p) => Math.max(1, p - 1))}
                           disabled={safeCoursePage <= 1}
                         >
-                          ‹ Précédent
+                          ‹ {t('common.previous')}
                         </button>
                         <span>Page {safeCoursePage} / {coursePageCount}</span>
                         <button
@@ -2831,7 +2831,7 @@ export default function EnseignantDashboard() {
                           onClick={() => setCoursePage((p) => Math.min(coursePageCount, p + 1))}
                           disabled={safeCoursePage >= coursePageCount}
                         >
-                          Suivant ›
+                          {t('common.next')} ›
                         </button>
                       </div>
                     )}

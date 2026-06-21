@@ -1,0 +1,581 @@
+END-OF-STUDIES PROJECT DESIGN & DEVELOPMENT OF
+
+A Secure Hybrid
+Library Platform
+
+        Unifying physical library management & digital academic resources
+
+PRESENTED BY       ACADEMIC SUPERVISOR  COMPANY SUPERVISOR                 HOST ORGANIZATION  ACADEMIC YEAR
+
+Med Adem Laadhari  Mr. Adnen Rouatbi    Mr. Najmeddine Zagoub              RiseUp             2025­2026
+OVERVIEW · AGENDA                                                                                            SECURE HYBRID LIBRARY PLATFORM
+
+                                                     01  General Context
+
+                                                         Host organization & project background
+
+PRESENTATION PLAN                                    02 Requirements Analysis
+                                                                       Actors, methodology & specifications
+   Seven parts,
+   one platform.                                     03 Conceptual Design
+                                                                       UML modeling of the system
+      From the problem in academic libraries to a
+      working, secure solution -- and where it goes  04 Implementation
+      next.                                                            Architecture, stack & security
+
+                                                     05 Demonstration
+                                                                       The platform in action
+
+                                                     06 Conclusion
+                                                                       Results & future work
+
+                                                     07 Perspectives
+                                                                          SECURE HYBRID LIBRARY PLATFORM
+
+1. General Context
+
+                                                                                                                                          01 / 35
+   01 · GENERAL CONTEXT                                      SECURE HYBRID LIBRARY PLATFORM
+
+HOST ORGANIZATION                             COMPANY PROFILE  Sousse, Tunisia
+
+ RiseUp                                       Location
+
+A Tunisian software company based in Sousse.  Core business    Software publishing & integration
+
+MAIN ACTIVITIES                               Domains          Web · Mobile · AI · Data
+
+   Software development and integration       Focus            Business management solutions
+   Digital transformation support
+   Web, mobile, AI, and data solutions
+   Business management software
+
+                                                                                                  02 / 35
+     01 · GENERAL CONTEXT                                                                                  SECURE HYBRID LIBRARY PLATFORM
+
+INSIDE RISEUP                                                 R&D  Technical & R&D Department
+
+The Acursoft ecosystem & its departments                           Design, development and integration of
+                                                                   the Acursoft suite.
+                                              SOFTWARE SUITE
+                                                              S&M  Sales & Marketing Department
+            Acursoft
+                                                                   Identifies market needs, promotes and
+           The product suite developed, sold and supported         distributes the solutions.
+                        across the company's divisions.
+
+                                                              SUP  Support & Technical Assistance
+
+                                                                   Maintenance of deployed systems and
+                                                                   continuous client support.
+
+                                                                                                                                           03 / 35
+01 · GENERAL CONTEXT                                                              SECURE HYBRID LIBRARY PLATFORM
+
+PROJECT CONTEXT
+
+ Two worlds, managed separately
+
+In academic environments, physical books and digital resources are often handled
+through separate tools, making access slower and less efficient for students and
+teachers.
+
+PHYSICAL LIBRARY                                                                  DIGITAL RESOURCES
+
+Books, reservations &                                                             Courses, exams & PDFs
+
+loans                                       VS                                    Resources are scattered across emails and
+                                                                                  cloud drives, without one unified academic
+Catalog browsing, borrowing, and return                                           space.
+tracking still depend on manual processes.
+
+students and teachers lose time switching between disconnected systems.
+
+                                                                                                                              04 / 35
+   01 · GENERAL CONTEXT                                                 SECURE HYBRID LIBRARY PLATFORM
+
+EXISTING SOLUTIONS
+
+Platforms studied
+
+Four established digital libraries set the benchmark for our analysis.
+
+01                                 02                                   03                              04
+
+         Internet Archive                     Open Library                     W                                PG
+A vast non-profit digital archive      An open, editable catalog
+                                   working toward a page for every            Wiley Online Library              Project Gutenberg
+        of books, media and                                                                                 A large collection of free,
+             multimedia.                            book.                   Multidisciplinary research  mostly public domain e-books.
+                                                                        platform for academic journals
+
+                                                                                    and e-books.
+
+                                                                                                                                         05 / 35
+01 · GENERAL CONTEXT                      SECURE HYBRID LIBRARY PLATFORM
+
+PROBLEM STATEMENT                         PAIN POINTS
+
+-No single secure platform                    01 Fragmented, disconnected tools
+-Centralizes physical library management      02 Manual reservation & loan tracking
+-Integrates digital academic resources        03 Difficult academic resource sharing
+-Serves df students, teachers, and            04 No role-based access control
+administrators
+
+  1.
+
+                                                                                      06 / 35
+01 · GENERAL CONTEXT                                  SECURE HYBRID LIBRARY PLATFORM
+
+CRITIQUE OF EXISTING SOLUTIONS
+
+What none of them fully combine
+
+CRITERIA                    Internet   Open    W        PG          Our
+                            Archive   Library                    Platform
+                                               Wiley    Project
+                                                      Gutenberg
+
+Digital book access
+
+Physical book reservation
+Secure academic space
+
+Teacher content upload
+
+University specificity
+Video / multimedia support
+
+                                                                           07 / 35
+01 · GENERAL CONTEXT                                                              SECURE HYBRID LIBRARY PLATFORM
+
+PROPOSED SOLUTION                                       03
+
+One platform, three pillars                             Secure Administration
+A unified hybrid platform where students, teachers and
+administrators work in secure, role-based spaces.          Role-based access control
+                                                           User & content supervision
+01                        02                               Dashboards & statistics
+
+Physical Library          Digital Resources
+
+   Book catalog & search     Academic document access
+   Reservations & loans      Teacher upload space
+   Returns tracking          Courses, exams & videos
+
+                                                                                                                  08 / 35
+01 · GENERAL CONTEXT                                                                   SECURE HYBRID LIBRARY PLATFORM
+
+METHODOLOGY                                                                                                     Why Agile / Scrum?
+
+Built with Agile / Scrum                                                                                      Modular & Progressive
+
+We adopted Agile/Scrum to deliver the platform                                                                The platform is modular,
+iteratively, ensuring flexibility, collaboration and                                                          perfect for iterative delivery.
+continuous value.
+                                                                                                              Short, Focused Sprints
+01                           02                               03                   04
+                                                                                                              Work is divided into short
+  Product Backlog             Sprint Planning          Sprint Development          Review & Increment         sprints to maintain
+                                                                                                              momentum.
+  Collect and prioritize  Plan the sprint and select   Build, test and integrate    Review the results and
+requirements and ideas.   the work to be delivered.   features during the sprint.       deliver a working     Step-by-Step Validation
+                                                                                            increment.
+                                                                                                              Features are implemented
+                                 REPEAT EACH SPRINT                                                           and validated step by step.
+                                   Inspect · Adapt · Improve
+                                                                                                              Continuous Value
+Collaboration                    Transparency                                      Flexibility
+                                                                                                              Each sprint delivers a working
+Close collaboration between      Clear visibility on progress                      Adapt quickly to feedback  increment with tangible value.
+team and stakeholders.           and priorities.                                   and changing needs.
+                                                                                                              Quality
+
+                                                                                                              Continuous testing and
+                                                                                                              improvement.
+
+                                                                                                                                               09/ 35
+                                                                                                             SECURE HYBRID LIBRARY PLATFORM
+
+2. Requirements Analysis
+
+                                                                                                                                                        10 / 35
+02 · REQUIREMENTS ANALYSIS                                                               SECURE HYBRID LIBRARY PLATFORM
+
+SYSTEM ACTORS
+
+Three roles, three workspaces
+
+Each actor interacts with the platform through a dedicated workspace tailored to
+specific responsibilities.
+
+           Student                                    Teacher                                         Admin
+
+Searches the hybrid catalog, reserves or       Uploads and manages pedagogical             Supervises users, books, reservations,
+borrows physical books, accesses digital      documents such as courses, exams,          loans, and documents, validates requests,
+documents, and follows reservations and   corrections, PDFs, and videos for the digital
+                                                                                               and monitors platform statistics.
+                       loans.                                     library.
+                                                                                           Manage users & books
+  Search books                               Upload resources                              Validate reservations / loans
+  Reserve / borrow resources                 Manage digital content                        Monitor dashboards & stats
+  Track loans & notifications                Share courses & exams
+                                                                                                                                         11 / 35
+02 · REQUIREMENTS ANALYSIS                                       SECURE HYBRID LIBRARY PLATFORM
+
+SPRINT PLANNING
+
+Four sprints to a working platform
+
+1                                   2                                            3
+
+            SPRINT 1                             SPRINT 2                     SPRINT 3
+
+    Secure Access &                      Reservations &          Dashboards & testing
+       Library Core                         documents
+                                                                 Dashboards, notifications,
+Authentication, protected               Reservations, loans,           testing and final
+roles, user management,             returns and teacher digital           corrections.
+book catalog, categories,
+                                         document upload.
+         and search.
+
+Progressive delivery from security foundations to complete platform validation.
+
+                                                                                             12 / 35
+02 · REQUIREMENTS ANALYSIS                                                                      SECURE HYBRID LIBRARY PLATFORM
+
+NON-FUNCTIONAL REQUIREMENTS
+
+Quality the platform must guarantee
+
+Beyond features, the platform must remain secure, usable, efficient, and easy to
+maintain.
+
+01                                              02                                              03
+
+           Security                                        Usability                                       Performance
+
+               JWT, hashing, and role-based                    An intuitive interface across                   Responsive search, browsing,
+               access protect every operation.                 catalog, library, and                           and data retrieval.
+                                                               dashboards.
+
+04                                              05                                              06
+
+           Reliability                                     Availability                                    Maintainability
+
+               Consistent behavior for                         Continuous access for students,                 A layered architecture that is
+               reservations, loans, and                        teachers, and admins.                           easy to extend.
+               uploads.
+
+                                                                                                                                               13 / 35
+                                                                                              SECURE HYBRID LIBRARY PLATFORM
+
+3. Conceptual Design
+
+                                                                                                                                            14 / 35
+  03 · CONCEPTUAL DESIGN              SECURE HYBRID LIBRARY PLATFORM
+
+UML·USE CASE                                                             15 / 35
+
+ Global use case diagram
+
+ The main interactions between the
+ three actors and the platform.
+ Every role authenticates through a
+ shared Login, then unlocks only the
+ actions permitted to it.
+03 · CONCEPTUAL DESIGN                                                                       SECURE HYBRID LIBRARY PLATFORM
+
+UML·STRUCTURE           Class Diagram Overview: User, Student, Teacher, Admin, Book,
+                        Document, Reservation, Loan, DocumentDownload.
+   Class diagram
+
+                                                                                                                             16 / 35
+03 · CONCEPTUAL DESIGN                                       SECURE HYBRID LIBRARY PLATFORM
+
+                        UML·SEQUENCE
+
+                             Reserving a physical book
+
+                                   1 Student sends reservation request
+                                   2 Backend checks book availability
+                                   3 System verifies no active reservation
+                                   4 Reservation is saved
+                                   5 Confirmation is returned
+
+                                                                                 17 / 35
+                                                                                       SECURE HYBRID LIBRARY PLATFORM
+
+4. Implementation
+
+                                                                                                                                       18 / 35
+04 · IMPLEMENTATION                                                                                   SECURE HYBRID LIBRARY PLATFORM
+
+TECHNOLOGY STACK
+
+The tools behind the platform
+
+FRONTEND                        BACKEND                              DATABASE                         TESTING
+
+User interfaces and navigation  API, business logic, uploads and     Persistent storage for platform  API validation and protected route
+                                                security                               data                              testing
+        React.js JS JavaScript
+   CSS CSS RR React Router           N Node.js ex Express.js                       Pg PostgreSQL                          Thunder Client
+                                                           M Multer
+      Ax Axios i18 i18next
+                    Recharts                         node-cron
+
+                                                                                                                                          19 / 35
+04 · IMPLEMENTATION                                                                                          SECURE HYBRID LIBRARY PLATFORM
+
+SYSTEM ARCHITECTURE                                                                                                                    DATABASE
+
+A three-tier client­server design                                                                                        PostgreSQL
+
+The platform separates the user interface, business logic, and persistent data storage.                                     Users, books, documents,
+                                                                                                                                 reservations, loans,
+             USERS        FRONTEND                                      BACKEND · REST API                                           notifications
+
+Student , Teacher ,             React.js               HTTP Requests /  Node.js / Express.js                                                    20 / 35
+        Admin                                          JSON Responses
+                          Pages, components, routing,                     Authentication, authorization,
+Interact through the web               API calls                        business logic, uploads, routes via
+           interface
+                                                                                             pg
+
+                                    INTERNAL SERVICE                    EXTERNAL SERVICE
+
+                                            In-app                           Brevo API
+                                       Notifications
+                                                                          Transactional emails
+                                    Managed internally by                 and password reset
+                                           the platform
+                                                                                    codes
+04 · IMPLEMENTATION                                                                        SECURE HYBRID LIBRARY PLATFORM
+
+ARCHITECTURE VIEWS
+
+Logical and physical structure of the platform
+                                                                     HTTP request
+
+              LOGICAL
+         ARCHITECTURE
+
+                       Client  Response                                            Server
+
+PHYSICAL ARCHITECTURE
+
+Client                         Server
+
+                                                                                           Database
+
+                                                                                                     21 / 35
+04 · IMPLEMENTATION                                                                                                     SECURE HYBRID LIBRARY PLATFORM
+
+JWT SESSION SECURITY
+
+How JWT Protects User Sessions and Access in the Hybrid Library Platform
+
+JWT secures authenticated sessions and controls            1  Login Request                                                                                            ROLE-BASED ACCESS
+protected access for Students, Teachers, and Admins.
+                                                              Student, Teacher, or Admin logs                                                                    STUDENT
+                                                              in with email and password.
+                                                                                                                                                                   Search Books
+LIBRARY RESOURCES      2  User Verified                      JWT                                                        4                                          Make Reservations
+                                                                                                                                                                   View Loans
+  Books & Catalog         The backend verifies             SECURE · RELIABLE · TRUSTED                                          Protected Request                  My Dashboard
+  Reservations
+  Loans                   credentials and identifies       HYBRID LIBRARY PLATFORM                                             The client sends the JWT when     TEACHER
+  Digital Documents                                                                                                            accessing reservations, loans,
+  Notifications           the user role.                                                                                       digital documents, or dashboard      Reserve Resources
+  Dashboard Analytics                                                                                                          features.                            Loan Management
+                       3                                                                                                                                            Upload Documents
+                                                                                                                             5                                      Analytics Dashboard
+                               JWT Generated
+                                                                                                                                     Access by Role              ADMIN
+                                A signed token is created
+                                with user ID, role, and                                                                          The server validates the token     User Management
+                                expiration time.                                                                                 and grants access according to     System Settings
+                                                                                                                                 Student, Teacher, or Admin         All Reservations
+                                                                                                                                 permissions.                       Reports & Analytics
+
+Role inside token                                          Protected API routes                                         Stateless session
+
+JWT carries the authenticated user identity and role for   Only requests with a valid JWT can access sensitive library  JWT enables secure session handling without storing session
+authorization checks.                                      resources and actions.                                       state on every request.
+
+                                                                                                                                                                                          22 / 35
+04 · IMPLEMENTATION                                                                            SECURE HYBRID LIBRARY PLATFORM
+
+SECURITY DEEP DIVE
+
+How Authentication & Password Protection Works
+
+1                      2                         3                                          4                      5
+
+  Login Request               Password                     OTP                                        OTP               Secure Access
+                             Verification             Generation                                 Validation                 Granted
+User enters email and
+        password.      The backend verifies the    A one-time code is                         The user enters the  JWT token is issued only
+                          account and hashed     generated and sent by                      received code and the    after successful OTP
+                                 password.                                                                                  verification.
+                                                            email.                             system checks it.
+
+Time-limited OTP                                 Resend cooldown                               JWT after OTP only
+
+OTP codes expire after a short duration to       Users must wait before requesting another     A JWT token is issued only after successful
+reduce risk.                                     OTP to prevent abuse.                         OTP verification.
+
+                                                                                                                                          23 / 35
+04 · IMPLEMENTATION                                                                           SECURE HYBRID LIBRARY PLATFORM
+
+SECURITY DEEP DIVE
+
+How Role-Based Access & Protected Routes Work
+
+1                        2                         3                                       4                          5
+
+    User Logs In           Role Is Identified          Route Request                           Access Check                Access Result
+
+The user authenticates   The system retrieves the  The user requests a page                Frontend and backend       Authorized users proceed;
+with valid credentials.      user role: Student,            or API route.                  verify the role and route    unauthorized users are
+                             Teacher, or Admin.                                                                          blocked or redirected.
+                                                                                                  permissions.
+
+Separate permissions by role                       Protected frontend pages                   Protected backend endpoints
+
+Define what each role (Student, Teacher,           Restrict access to pages based on role     Enforce role checks on API routes to secure
+Admin) can access.                                 before rendering.                          data and actions.
+
+                                                                                                                                         24 / 35
+04 · IMPLEMENTATION                                                                          SECURE HYBRID LIBRARY PLATFORM
+
+TWO-FACTOR AUTHENTICATION
+
+How Two-Factor Login Works
+
+A second verification step strengthens access security before a session is granted.
+
+1                      2                         3                                        4                       5
+
+  Login Request          Credential Check         OTP Sent by Email                       OTP Verification         Access Granted
+
+User enters email and  The backend verifies the      A one-time code is                     The user enters the   After successful OTP
+        password.      account and password.     generated and sent to the                received code and the   validation, the user is
+                                                                                                                  authenticated and the
+                                                          user's email.                     system validates it.
+                                                                                                                    session is opened.
+
+Time-limited OTP                                 Resend cooldown                             JWT issued only after OTP validation
+
+Codes expire after a short validity window.      Users must wait before requesting a new     Tokens are generated solely after
+                                                 code.                                       successful verification.
+
+                                                                                                                                        25 / 35
+     04 · IMPLEMENTATION                      SECURE HYBRID LIBRARY PLATFORM
+
+FUNCTIONAL·STUDENT                                                               26 / 35
+
+    The student workspace
+
+           Search & filter the book catalog
+           Reserve or borrow physical books
+           Access digital academic documents
+           Track reservations & loans
+           Receive notifications
+       04 · IMPLEMENTATION                      SECURE HYBRID LIBRARY PLATFORM
+
+FUNCTIONAL·TEACHER                                                                 27 / 35
+
+   The teacher workspace
+
+            Upload pedagogical resources
+            Manage uploaded documents
+           Access the digital library
+           View document statistics
+           Share courses, exams, PDFs & videos
+        04 · IMPLEMENTATION                    SECURE HYBRID LIBRARY PLATFORM
+
+FUNCTIONAL·ADMIN                                                                  28 / 35
+
+      The admin workspace
+
+                Manage users & roles
+                 Manage books & categories
+                Supervise digital documents
+                Validate reservations
+                Manage loans & returns
+                 View dashboards & statistics
+                                                                                    SECURE HYBRID LIBRARY PLATFORM
+
+5. Demonstration
+
+                                                                                                                                     29 / 35
+05 · DEMONSTRATION                                                           SECURE HYBRID LIBRARY PLATFORM
+
+LIVE DEMONSTRATION                                        A
+                                                         Admin
+The platform in action
+                                                          Manage users & books
+A walkthrough across the three roles -- from search and   Validate a reservation
+reservation to upload and supervision.                    Review the dashboard
+
+ S                           T
+
+Student                     Teacher
+
+ Search the catalog          Upload a document
+ Reserve or borrow a book    Manage uploaded resources
+ View reservations & loans   View usage statistics
+
+                                                                                                             30 / 35
+                                                                        SECURE HYBRID LIBRARY PLATFORM
+
+6. Conclusion
+
+                                                                                                                           31 / 35
+06 · CONCLUSION                                                                                                                        SECURE HYBRID LIBRARY PLATFORM
+
+Project outcomes                                                                                                                           2. Secure          3. Scalable
+
+The project resulted in a complete and secure platform that                                                                            role-based access  foundation for future
+brings together the main services of a modern hybrid library. Its                                                                                             enhancements
+main contributions can be summarized as follows:
+-Secure hybrid library platform delivered.                                                                                                                                 32 / 35
+-Physical and digital resources unified.
+-Role-based spaces for students, teachers, and admins.
+-Secure access with 2FA, RBAC, and protected routes.
+-Dashboards and notifications integrated.
+-Improved library management and academic content access
+
+                                                                                                            1. Unified
+
+                                                                                                                   academic resources
+                                                                        SECURE HYBRID LIBRARY PLATFORM
+
+7. Perspectives
+
+                                                                                                                           33 / 35
+07 · Perspectives                                                      SECURE HYBRID LIBRARY PLATFORM
+
+                                              LIBRARY              Where it goes next
+
+                                                  Search books...  01  Native mobile application
+
+                                                                   02 QR / barcode-based loan management
+
+                                                                   03 Advanced search & recommendations
+
+                                                                   04 Richer analytics dashboards
+
+                                                                   05 Integration with academic systems
+
+                                                                                                          34 / 35
+Thank you all for
+your attention.
+
+SECURE  HYBRID  ACCESSIBLE  COLLABORATIVE
+
+                                           35 / 35
+
