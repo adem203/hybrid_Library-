@@ -1958,10 +1958,6 @@ export default function EtudiantDashboard() {
                       </header>
                       <p>{t('student.help.usefulInfoText')}</p>
                     </div>
-                    <div className="student-help-book-art" aria-hidden="true">
-                      <span />
-                      <span />
-                    </div>
                   </section>
 
                   <section className="student-help-card student-help-faq-card">

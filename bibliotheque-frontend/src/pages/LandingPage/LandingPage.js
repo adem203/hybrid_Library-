@@ -605,7 +605,7 @@ export default function LandingPage() {
             onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
           >
             <span className="lv-brand-mark" aria-hidden="true">📘</span>
-            Educated<span className="lv-brand-dot">.</span>
+            Educated
           </a>
 
           <nav className="lv-nav-links" aria-label="Primary">
