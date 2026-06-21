@@ -1976,7 +1976,7 @@ export default function EtudiantDashboard() {
                               aria-expanded={isOpen}
                               onClick={() => setOpenSupportFaq(isOpen ? null : index)}
                             >
-                              <span aria-hidden="true">□</span>
+                              <span aria-hidden="true">-</span>
                               <strong>{t(faq.questionKey)}</strong>
                               <em className="student-help-faq-arrow" aria-hidden="true">›</em>
                             </button>
