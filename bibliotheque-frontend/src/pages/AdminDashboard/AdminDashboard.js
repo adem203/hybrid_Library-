@@ -2035,6 +2035,38 @@ function LivreFormModal({ initial, categories, onClose, onSaved }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // ── Upload Book (frontend-only — see TODO in handleSubmit) ──
+  const [selectedBookFile, setSelectedBookFile] = useState(null);
+  const [bookFileDragActive, setBookFileDragActive] = useState(false);
+  const bookFileInputRef = useRef(null);
+
+  const formatFileSize = (bytes) => {
+    if (!bytes && bytes !== 0) return '';
+    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${bytes} B`;
+  };
+
+  const acceptBookFile = (file) => {
+    if (!file) return;
+    const okExt = /\.(pdf|docx|pptx)$/i.test(file.name);
+    if (!okExt) return; // silently ignore unsupported types (UI mirrors accept="")
+    setSelectedBookFile(file);
+  };
+
+  const handleBookFileChange = (e) => {
+    acceptBookFile(e.target.files?.[0]);
+    e.target.value = ''; // allow re-selecting the same file later
+  };
+
+  const handleBookFileDrop = (e) => {
+    e.preventDefault();
+    setBookFileDragActive(false);
+    acceptBookFile(e.dataTransfer.files?.[0]);
+  };
+
+  const removeBookFile = () => setSelectedBookFile(null);
+
   const handleChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -2072,6 +2104,15 @@ function LivreFormModal({ initial, categories, onClose, onSaved }) {
       fd.append('stock_total', String(total));
       if (isEdit) fd.append('stock_disponible', String(dispo));
       if (form.emplacement_rayon.trim()) fd.append('emplacement_rayon', form.emplacement_rayon.trim());
+
+      // TODO(book-file-upload): The "Upload Book" file (selectedBookFile) is
+      // currently FRONTEND-ONLY and intentionally NOT sent to the API.
+      // The POST/PUT /livres route uses the `uploadImage` multer middleware
+      // (`.single('image')`, images only). Appending a PDF/DOCX/PPTX here
+      // would trigger a multer "Unexpected field"/type error and break book
+      // creation. To connect it: add a backend field (e.g. `fichier_livre`)
+      // + a document-capable multer middleware, then append it below, e.g.
+      //   if (selectedBookFile) fd.append('fichier_livre', selectedBookFile);
 
       if (isEdit) {
         await livresAPI.update(initial.id_ressource, fd);
@@ -2165,6 +2206,84 @@ function LivreFormModal({ initial, categories, onClose, onSaved }) {
               <label className="form-label">{t('admin.books.shelfLocation')}</label>
               <input name="emplacement_rayon" className="form-input" value={form.emplacement_rayon}
                 onChange={handleChange} placeholder={t('admin.books.shelfPlaceholder')} maxLength={100} />
+            </div>
+
+            {/* ── Upload Book (frontend-only) ── */}
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label className="form-label" style={{ color: 'var(--gold)' }}>{t('admin.books.uploadBook')}</label>
+              <input
+                ref={bookFileInputRef}
+                type="file"
+                accept=".pdf,.docx,.pptx"
+                onChange={handleBookFileChange}
+                style={{ display: 'none' }}
+              />
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => bookFileInputRef.current?.click()}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bookFileInputRef.current?.click(); } }}
+                onDragOver={(e) => { e.preventDefault(); setBookFileDragActive(true); }}
+                onDragLeave={(e) => { e.preventDefault(); setBookFileDragActive(false); }}
+                onDrop={handleBookFileDrop}
+                style={{
+                  border: `1.5px dashed ${bookFileDragActive ? 'var(--gold)' : 'var(--glass-border-gold)'}`,
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '28px 20px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  background: bookFileDragActive ? 'var(--gold-dim)' : 'transparent',
+                  transition: 'border-color 0.2s ease, background 0.2s ease',
+                }}
+              >
+                <div aria-hidden="true" style={{ color: 'var(--gold)', marginBottom: 8 }}>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ display: 'inline-block' }}>
+                    <path d="M16 16l-4-4-4 4" />
+                    <path d="M12 12v9" />
+                    <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" />
+                    <path d="M16 16l-4-4-4 4" />
+                  </svg>
+                </div>
+                <div style={{ color: 'var(--white)', fontWeight: 600 }}>{t('admin.books.uploadDragDrop')}</div>
+                <div style={{ color: 'var(--text-secondary)', marginTop: 4 }}>{t('admin.books.uploadBrowse')}</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: 8 }}>{t('admin.books.uploadAcceptedTypes')}</div>
+              </div>
+
+              {selectedBookFile && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 12, marginTop: 12,
+                  padding: '10px 14px', borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--glass-border)', background: 'var(--navy-deepest)',
+                }}>
+                  <span aria-hidden="true" style={{
+                    flexShrink: 0, width: 36, height: 36, borderRadius: 8,
+                    background: 'rgba(239,68,68,0.18)', color: '#ef4444',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.02em',
+                  }}>PDF</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: 'var(--white)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {selectedBookFile.name}
+                    </div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                      {formatFileSize(selectedBookFile.size)}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeBookFile}
+                    aria-label={t('admin.books.uploadRemove')}
+                    title={t('admin.books.uploadRemove')}
+                    style={{
+                      flexShrink: 0, background: 'none', border: '1px solid var(--glass-border)',
+                      borderRadius: 8, color: 'var(--text-muted)', cursor: 'pointer',
+                      width: 32, height: 32, lineHeight: 1,
+                    }}
+                  >✕</button>
+                </div>
+              )}
             </div>
 
             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
